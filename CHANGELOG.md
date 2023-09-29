@@ -2,6 +2,8 @@
 
 ## master
 
+- Extract tock-registers to dedicated reposity.
+
 ## v0.9
 
 There is a small breaking change, described below, which addresses semantic
