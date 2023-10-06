@@ -1,4 +1,4 @@
-# Tock Register Interface
+# ![Tock-Register-Interface](http://www.tockos.org/assets/img/tockregisters.svg "Tock Registers Logo")
 
 This crate provides an interface and types for defining and
 manipulating registers and bitfields.
