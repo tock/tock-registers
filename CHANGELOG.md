@@ -1,8 +1,11 @@
 # Changelog
 
-## master
+## main
 
-- Extract tock-registers to dedicated reposity.
+## v0.10.1
+
+`tock-registers` has graduated to its own repository! This patch release merely
+updates the crate metadata to reflect this change.
 
 ## v0.10.0
 
