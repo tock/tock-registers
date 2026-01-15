@@ -1,0 +1,26 @@
+# Licensed under the Apache License, Version 2.0 or the MIT License.
+# SPDX-License-Identifier: Apache-2.0 OR MIT
+# Copyright Tock Contributors 2026.
+
+name: license_check
+on: pull_request
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clone tock-registers
+        uses: actions/checkout@v6
+        with:
+          path: tock-registers
+
+      - name: Clone tock/tock
+        uses: actions/checkout@v6
+        with:
+          path: tock
+          repository: tock/tock
+
+      - name: License check
+        run: cargo run --manifest-path=../tock/tools/ci/license-checker/Cargo.toml --release
+        working-directory: tock-registers
