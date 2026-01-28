@@ -22,5 +22,5 @@ jobs:
           repository: tock/tock
 
       - name: License check
-        run: cargo run --manifest-path=../tock/tools/ci/license-checker/Cargo.toml --release
+        run: cargo +stable run --manifest-path=../tock/tools/ci/license-checker/Cargo.toml --release
         working-directory: tock-registers
