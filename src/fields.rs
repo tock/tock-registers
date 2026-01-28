@@ -599,6 +599,11 @@ macro_rules! register_bitfields {
                 #[derive(Clone, Copy)]
                 pub struct Register;
                 impl $crate::RegisterLongName for Register {}
+                impl $crate::DataType for Register {
+                    type Value = $valtype;
+                    type Read = Self;
+                    type Write = Self;
+                }
 
                 use $crate::fields::Field;
 

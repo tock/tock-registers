@@ -1,0 +1,37 @@
+# Licensed under the Apache License, Version 2.0 or the MIT License.
+# SPDX-License-Identifier: Apache-2.0 OR MIT
+# Copyright Tock Contributors 2026.
+# Copyright Better Bytes 2026.
+
+[package]
+name = "tock-registers-macros"
+version.workspace = true
+authors.workspace = true
+description = "Proc macros for tock-registers"
+edition.workspace = true
+homepage.workspace = true
+license.workspace = true
+readme.workspace = true
+repository.workspace = true
+
+[lib]
+proc-macro = true
+
+[dependencies]
+proc-macro2 = { default-features = false, version = "1.0.106" }
+quote = "1.0.44"
+
+[dependencies.syn]
+default-features = false
+features = ["clone-impls", "full", "parsing", "printing", "proc-macro"]
+version = "2.0.114"
+
+[dev-dependencies]
+pretty_assertions = "1.4.1"
+prettyplease = "0.2.37"
+tock-registers = { path = ".." }
+
+[dev-dependencies.syn]
+default-features = false
+features = ["extra-traits"]
+version = "2.0.114"
