@@ -114,11 +114,11 @@ pub trait RegisterDebugInfo<T: UIntLike>: RegisterLongName {
     /// this [`RegisterLongName`] register.
     ///
     /// See [`FieldValueEnumSeq`]. The index of types in this sequence
-    /// correspond to indices of values returned from the [`fields`] and
-    /// [`field_names`] methods.
+    /// correspond to indices of values returned from the [`fields`](Self::fields) and
+    /// [`field_names`](Self::field_names) methods.
     ///
-    /// [`field_names`]: RegisterDebugInfo::field_names [`fields`]:
-    /// RegisterDebugInfo::fields
+    /// [`field_names`](Self::field_names): RegisterDebugInfo::field_names
+    /// [`fields`](Self::fields): RegisterDebugInfo::fields
     type FieldValueEnumTypes: FieldValueEnumSeq<T>;
 
     /// The name of the register.

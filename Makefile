@@ -8,6 +8,7 @@ test:
 	+RUSTFLAGS="-D warnings" cargo build --all-targets
 	+RUSTFLAGS="-D warnings" cargo test
 	+RUSTFLAGS="-D warnings" cargo clippy
+	+RUSTDOCFLAGS="-D warnings" cargo doc
 	+cargo fmt --check
 	+cd nightly && \
 		RUSTFLAGS="-D warnings" cargo miri test --manifest-path=../Cargo.toml
