@@ -4,7 +4,6 @@
 // Copyright Better Bytes 2026.
 
 use crate::{RegisterLongName, UIntLike};
-use core::marker::PhantomData;
 
 /// Type implemented by all registers.
 pub trait Register: Copy {
@@ -18,32 +17,11 @@ pub trait DataType {
     /// register.
     type Value: UIntLike;
 
-    /// The bitfield used when data is read from this register.
-    type Read: RegisterLongName;
-
-    /// The bitfield used when data is written to this register.
-    type Write: RegisterLongName;
+    /// This register's bitfield.
+    type LongName: RegisterLongName;
 }
 
 impl<U: UIntLike> DataType for U {
     type Value = U;
-    type Read = ();
-    type Write = ();
+    type LongName = ();
 }
-
-/// Aliased is a DataType that has a different RegisterLongName when read than it does when
-/// written.
-pub struct Aliased<Read: DataType, Write: DataType<Value = Read::Value>> {
-    _empty: Empty,
-    _read: PhantomData<Read>,
-    _write: PhantomData<Write>,
-}
-
-impl<Read: DataType, Write: DataType<Value = Read::Value>> DataType for Aliased<Read, Write> {
-    type Value = Read::Value;
-    type Read = Read::Read;
-    type Write = Write::Write;
-}
-
-/// Used to make Aliased uninhabited.
-enum Empty {}

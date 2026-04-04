@@ -3,7 +3,7 @@
 // Copyright Tock Contributors 2022.
 // Copyright Better Bytes 2026.
 
-use crate::{fields::FieldValue, DataType, LocalRegisterCopy, Read, Register, RegisterLongName};
+use crate::{fields::FieldValue, DataType, LocalRegisterCopy, Read, Register};
 #[cfg(feature = "register_types")]
 use crate::{Bus, UIntLike};
 
@@ -17,7 +17,10 @@ pub trait Write: Register {
     /// zero
     fn write(
         &self,
-        field: FieldValue<<Self::DataType as DataType>::Value, <Self::DataType as DataType>::Write>,
+        field: FieldValue<
+            <Self::DataType as DataType>::Value,
+            <Self::DataType as DataType>::LongName,
+        >,
     ) {
         self.set(field.value);
     }
@@ -30,9 +33,12 @@ pub trait Write: Register {
         &self,
         original: LocalRegisterCopy<
             <Self::DataType as DataType>::Value,
-            <Self::DataType as DataType>::Write,
+            <Self::DataType as DataType>::LongName,
         >,
-        field: FieldValue<<Self::DataType as DataType>::Value, <Self::DataType as DataType>::Write>,
+        field: FieldValue<
+            <Self::DataType as DataType>::Value,
+            <Self::DataType as DataType>::LongName,
+        >,
     ) {
         self.set(field.modify(original.get()));
     }
@@ -45,16 +51,16 @@ pub trait ReadWrite: Read + Write {
     /// unchanged
     fn modify(
         &self,
-        field: FieldValue<<Self::DataType as DataType>::Value, <Self::DataType as DataType>::Read>,
+        field: FieldValue<
+            <Self::DataType as DataType>::Value,
+            <Self::DataType as DataType>::LongName,
+        >,
     ) {
         self.set(field.modify(self.get()));
     }
 }
 
-impl<L: RegisterLongName, R: Register<DataType: DataType<Read = L, Write = L>> + Read + Write>
-    ReadWrite for R
-{
-}
+impl<R: Read + Write> ReadWrite for R {}
 
 /// A Bus that implements `BusWrite<T>` can support Write implementations with DataType T. Other
 /// crates (e.g. LiteX registers) can implement this on their own buses so that Write works with

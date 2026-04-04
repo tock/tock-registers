@@ -77,43 +77,37 @@ fn doc_comments() {
             pub trait Bus: ::tock_registers::Address + ::tock_registers::DataTypeBus<u8> +
                 ::tock_registers::DataTypeBus<u8> + a::Bus + b::Bus + sealed::Bus
             {
-                const BLOCK_INFO: ::tock_registers::internal::BlockInfo<4usize>;
-                const scalar_definition_offset: usize = <Self as Bus>::BLOCK_INFO .offsets[0usize];
-                const array_definition_offset: usize = <Self as Bus>::BLOCK_INFO.offsets[1usize];
-                const scalar_reference_offset: usize = <Self as Bus>::BLOCK_INFO.offsets[2usize];
-                const array_reference_offset: usize = <Self as Bus>::BLOCK_INFO.offsets[3usize];
+                const BLOCK_SIZE: usize;
+                const scalar_definition_offset: usize = 0;
+                const array_definition_offset: usize = 1;
+                const scalar_reference_offset: usize = 7;
+                const array_reference_offset: usize = 8;
             }
             impl Bus for Mmio32 {
-                const BLOCK_INFO: ::tock_registers::internal::BlockInfo<4usize> =
-                    ::tock_registers::internal::BlockInfo::new([true, true, true, true,],
-                        [<Self as ::tock_registers::DataTypeBus<u8> >::PADDED_SIZE,
-                         <Self as ::tock_registers::DataTypeBus<u8> >::PADDED_SIZE,
-                         <a::Real<Self> as ::tock_registers::Block>::SIZE,
-                         <b::Real<Self> as ::tock_registers::Block>::SIZE,],
-                        [&[], &[2, 3], &[], &[2, 3],]
-                    );
+                const BLOCK_SIZE: usize = 8 +
+                    <<Real<Mmio32> as Interface>::array_reference as ::tock_registers::Block>::SIZE;
             }
             impl sealed::Bus for Mmio32 {}
             impl Bus for Mmio64 {
-                const BLOCK_INFO: ::tock_registers::internal::BlockInfo<4usize> =
-                    ::tock_registers::internal::BlockInfo::new([true, true, true, true,],
-                        [<Self as ::tock_registers::DataTypeBus<u8> >::PADDED_SIZE,
-                         <Self as ::tock_registers::DataTypeBus<u8> >::PADDED_SIZE,
-                         <a::Real<Self> as ::tock_registers::Block>::SIZE,
-                         <b::Real<Self> as ::tock_registers::Block>::SIZE,],
-                        [&[], &[2, 3], &[], &[2, 3],]
-                    );
+                const BLOCK_SIZE: usize = 8 +
+                    <<Real<Mmio64> as Interface>::array_reference as ::tock_registers::Block>::SIZE;
             }
             impl sealed::Bus for Mmio64 {}
             const _: () = {
-                assert!(0 == <Mmio32 as Bus>::scalar_definition_offset, "offset mismatch");
-                assert!(0 == <Mmio64 as Bus>::scalar_definition_offset, "offset mismatch");
-                assert!(1 == <Mmio32 as Bus>::array_definition_offset, "offset mismatch");
-                assert!(1 == <Mmio64 as Bus>::array_definition_offset, "offset mismatch");
-                assert!(7 == <Mmio32 as Bus>::scalar_reference_offset, "offset mismatch");
-                assert!(7 == <Mmio64 as Bus>::scalar_reference_offset, "offset mismatch");
-                assert!(8 == <Mmio32 as Bus>::array_reference_offset, "offset mismatch");
-                assert!(8 == <Mmio64 as Bus>::array_reference_offset, "offset mismatch");
+                assert!(0 == 0, "offset mismatch");
+                assert!(0 == 0, "offset mismatch");
+                assert!(1 == 0 + <<Real<Mmio32> as Interface>::scalar_definition as
+                    ::tock_registers::Block>::SIZE, "offset mismatch");
+                assert!(1 == 0 + <<Real<Mmio64> as Interface>::scalar_definition as
+                    ::tock_registers::Block>::SIZE, "offset mismatch");
+                assert!(7 == 1 + <<Real<Mmio32> as Interface>::array_definition as
+                    ::tock_registers::Block>::SIZE, "offset mismatch");
+                assert!(7 == 1 + <<Real<Mmio64> as Interface>::array_definition as
+                    ::tock_registers::Block>::SIZE, "offset mismatch");
+                assert!(8 == 7 + <<Real<Mmio32> as Interface>::scalar_reference as
+                    ::tock_registers::Block>::SIZE, "offset mismatch");
+                assert!(8 == 7 + <<Real<Mmio64> as Interface>::scalar_reference as
+                    ::tock_registers::Block>::SIZE, "offset mismatch");
             };
             mod sealed { pub trait Bus {} }
             /// Struct implementing [Interface] for use with the real hardware.
@@ -163,7 +157,7 @@ fn doc_comments() {
             }
             impl<B: Bus> ::tock_registers::Block for Real<B> {
                 type Address = B;
-                const SIZE: usize = <B as Bus>::BLOCK_INFO.block_size;
+                const SIZE: usize = <B as Bus>::BLOCK_SIZE;
                 unsafe fn new(address: B) -> Self { Self(address) }
             }
             #[doc =

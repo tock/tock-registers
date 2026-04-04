@@ -22,6 +22,8 @@ registers! {
     },
     outer_block {
         0 => scalar: u64 { Read, Write },
+        #[aliased]
+        1 => overlapped: u8 { Read, Write },
         8 => nested: inner_block,
         [56, 64] => nested_array: [inner_block; 2],
     },
@@ -81,6 +83,7 @@ fn mmio32() {
     // Pointer offset validation: verifies that pointer offsets are correctly calculated through
     // the various field types.
     assert_eq!(registers.scalar().get(), 1);
+    assert_eq!(registers.overlapped().get(), 0);
     #[cfg(any(target_pointer_width = "32", target_endian = "little"))]
     assert_eq!(registers.nested().scalar_definition().get(), 2);
     let array = registers.nested().array_definition();
@@ -138,8 +141,9 @@ fn mmio32() {
     unsafe { (*peripheral.get()).scalar = 44 };
     assert_eq!(registers.scalar().get(), 44);
     // Perform a write.
-    registers.scalar().set(45);
-    assert_eq!(unsafe { (*peripheral.get()).scalar }, 45);
+    registers.scalar().set(u64::MAX);
+    assert_eq!(unsafe { (*peripheral.get()).scalar }, u64::MAX);
+    assert_eq!(registers.overlapped().get(), 0xff);
 }
 
 #[test]
@@ -177,6 +181,7 @@ fn mmio64() {
     // Pointer offset validation: verifies that pointer offsets are correctly calculated through
     // the various field types.
     assert_eq!(registers.scalar().get(), 1);
+    assert_eq!(registers.overlapped().get(), 0);
     #[cfg(any(target_pointer_width = "64", target_endian = "little"))]
     assert_eq!(registers.nested().scalar_definition().get(), 2);
     let array = registers.nested().array_definition();
@@ -234,6 +239,7 @@ fn mmio64() {
     unsafe { (*peripheral.get()).scalar = 44 };
     assert_eq!(registers.scalar().get(), 44);
     // Perform a write.
-    registers.scalar().set(45);
-    assert_eq!(unsafe { (*peripheral.get()).scalar }, 45);
+    registers.scalar().set(u64::MAX);
+    assert_eq!(unsafe { (*peripheral.get()).scalar }, u64::MAX);
+    assert_eq!(registers.overlapped().get(), 0xff);
 }

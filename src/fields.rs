@@ -601,8 +601,7 @@ macro_rules! register_bitfields {
                 impl $crate::RegisterLongName for Register {}
                 impl $crate::DataType for Register {
                     type Value = $valtype;
-                    type Read = Self;
-                    type Write = Self;
+                    type LongName = Self;
                 }
 
                 use $crate::fields::Field;

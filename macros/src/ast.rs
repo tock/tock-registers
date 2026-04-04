@@ -117,15 +117,16 @@ pub enum Value {
 ///         1 => _: 1,
 ///       //^^^^^^^^ Field (padding)
 ///
-///         2 => d: a,
-///       //^^^^^^^^^ Field
+///         #[aliased] 2 => d: a,
+///       //^^^^^^^^^^^^^^^^^^^^ Field
 ///
-///         // The doc comment and cfg are also part of the field
+///         // The doc comment is also part of the field
 ///         /// Doc comment
-///         3 => f: [a; 256],
+///         2 => f: [a; 256],
 ///     }
 /// }
 /// ```
+#[cfg_attr(test, derive(Debug, PartialEq))]
 pub struct Field {
     /// Doc comments for this field.
     pub docs: Vec<Attribute>,
@@ -153,10 +154,14 @@ pub struct Field {
 ///     }
 /// }
 /// ```
+///
+/// Note that when a FieldDef::Register is initially parsed, `aliased` is always false. The Parse
+/// impl on Field changes the value of `aliased` if the #[aliased] attribute is present.
 #[cfg_attr(test, derive(Debug, PartialEq))]
 pub enum FieldDef {
     Padding(PerBusInt),
     Register {
+        aliased: bool,
         name: Ident,
         definition: RegisterSpec,
     },

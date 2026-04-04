@@ -3,9 +3,7 @@
 // Copyright Tock Contributors 2026.
 // Copyright Better Bytes 2026.
 
-// TODO: Implement #[aliased] (which makes a register *not* participate in offset and block size
-//       calculations). Remove my new Aliased and BlockInfo. Question: should we only emit fields
-//       with variable offsets, or all fields?
+// TODO: Doc comments on `unsafe new` functions.
 // TODO: Figure out multi-core support. How do we make the real types !Send (by making the Buses
 //       not Send?). Do we add some sort of RegisterSender? Can the lifetime be on the bus or does
 //       it have to be on Real<> (perhaps a BorrowedBus<'s, B: Bus>?)?
@@ -30,8 +28,11 @@
 // TODO: Implement a "clippy test" -> a crate that uses tock-registers with as many lints as
 //       possible enabled (to verify we don't trip any of them).
 // TODO: Are doc comments on padding desirable? If not -> remove support (AST update?).
-// TODO: Update parsing logic to support outputting multiple errors at once (for errors that do not
-//       need to stop parsing).
+// TODO: Improve parse error handling. There might be three classes of errors:
+//       1. Errors which immediately terminate parsing (e.g. unexpected token)
+//       2. Errors which prevent generating code, but allow parsing to continue (e.g. register
+//          reference must be to a module)
+//       3. Errors where we can still generate code (e.g. multiple #[aliased] attributes)
 // TODO: Re-evaluate which `syn` features we need (is full necessary?).
 // TODO: Implement a arm64_secure_vm feature (see the TODO in src/mmio.rs).
 
@@ -52,6 +53,8 @@ mod block_test_empty;
 #[cfg(test)]
 mod block_test_offsets;
 mod parse;
+#[cfg(test)]
+mod parse_tests;
 mod single;
 #[cfg(test)]
 mod single_test_basic;

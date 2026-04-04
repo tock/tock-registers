@@ -97,7 +97,7 @@ mod read;
 pub use read::BusRead;
 pub use read::Read;
 
-pub mod register_trait; // TODO: Remove `pub` once Aliased is removed.
+mod register_trait;
 pub use register_trait::{DataType, Register};
 
 mod write;

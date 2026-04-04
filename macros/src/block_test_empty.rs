@@ -28,17 +28,11 @@ fn empty() {
             pub trait Interface: ::tock_registers::internal::core::marker::Copy {}
             #[allow(non_upper_case_globals)]
             #bus_comment pub trait Bus: ::tock_registers::Address + sealed::Bus {
-                const BLOCK_INFO: ::tock_registers::internal::BlockInfo<0usize>;
+                const BLOCK_SIZE: usize;
             }
-            impl Bus for Mmio32 {
-                const BLOCK_INFO: ::tock_registers::internal::BlockInfo<0usize>
-                    = ::tock_registers::internal::BlockInfo::new([], [], []);
-            }
+            impl Bus for Mmio32 { const BLOCK_SIZE: usize = 0; }
             impl sealed::Bus for Mmio32 {}
-            impl Bus for Mmio64 {
-                const BLOCK_INFO: ::tock_registers::internal::BlockInfo<0usize>
-                    = ::tock_registers::internal::BlockInfo::new([], [], []);
-            }
+            impl Bus for Mmio64 { const BLOCK_SIZE: usize = 0; }
             impl sealed::Bus for Mmio64 {}
             const _: () = {};
             mod sealed { pub trait Bus {} }
@@ -53,7 +47,7 @@ fn empty() {
             impl<B: Bus> Interface for Real<B> where {}
             impl<B: Bus> ::tock_registers::Block for Real<B> {
                 type Address = B;
-                const SIZE: usize = <B as Bus>::BLOCK_INFO.block_size;
+                const SIZE: usize = <B as Bus>::BLOCK_SIZE;
                 unsafe fn new(address: B) -> Self { Self(address) }
             }
         }

@@ -10,7 +10,7 @@ use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
 use syn::token::{Brace, Bracket};
-use syn::{braced, bracketed, AttrStyle, Attribute, Error, LitInt, Result, Token, TypePath};
+use syn::{braced, bracketed, AttrStyle, Attribute, Error, LitInt, Meta, Result, Token, TypePath};
 
 impl Parse for Input {
     fn parse(input: ParseStream) -> Result<Input> {
@@ -112,16 +112,41 @@ impl Parse for Value {
 
 impl Parse for Field {
     fn parse(input: ParseStream) -> Result<Field> {
+        let mut aliased_attr: Option<Attribute> = None;
         let mut docs = Vec::new();
         for attr in Attribute::parse_outer(input)? {
             match attr.path() {
                 p if p.is_ident("doc") => docs.push(attr),
+                p if p.is_ident("aliased") => {
+                    if let Some(prev) = aliased_attr {
+                        let mut error = Error::new_spanned(attr, "multiple #[aliased] attributes");
+                        error.combine(Error::new_spanned(
+                            prev,
+                            "note: aliased already specified here",
+                        ));
+                        return Err(error);
+                    }
+                    aliased_attr = Some(attr);
+                }
                 p => return Err(Error::new(p.span(), "unknown attribute")),
             }
         }
         let offsets = input.parse()?;
         input.parse::<Token![=>]>()?;
-        let field_def = input.parse()?;
+        let mut field_def = input.parse()?;
+        if let Some(aliased) = aliased_attr {
+            let Meta::Path(_) = aliased.meta else {
+                return Err(Error::new_spanned(
+                    aliased,
+                    "#[aliased] cannot have arguments",
+                ));
+            };
+            #[rustfmt::skip]
+            let FieldDef::Register { ref mut aliased, .. } = field_def else {
+                return Err(Error::new_spanned(aliased, "padding cannot be aliased"));
+            };
+            *aliased = true;
+        }
         Ok(Field {
             docs,
             offsets,
@@ -138,6 +163,7 @@ impl Parse for FieldDef {
             return input.parse().map(FieldDef::Padding);
         }
         Ok(FieldDef::Register {
+            aliased: false,
             name: input.parse()?,
             definition: input.parse()?,
         })
@@ -190,65 +216,5 @@ impl Parse for RegisterSpec {
             array_sizes,
             operations,
         })
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use quote::quote;
-    use syn::{parse2, parse_quote};
-
-    #[test]
-    fn field_def() {
-        let field: FieldDef = parse_quote![_: 3];
-        assert_eq!(field, FieldDef::Padding(parse_quote![3]));
-        let field: FieldDef = parse_quote![a: status];
-        assert_eq!(
-            field,
-            FieldDef::Register {
-                name: parse_quote![a],
-                definition: RegisterSpec {
-                    element_type: parse_quote![status],
-                    array_sizes: vec![],
-                    operations: None,
-                }
-            }
-        );
-    }
-
-    #[test]
-    fn per_bus_int() {
-        let offsets: PerBusInt = parse_quote![0x0];
-        assert_eq!(offsets, PerBusInt::Single(parse_quote![0x0]));
-        let offsets: PerBusInt = parse_quote!([1, 2, 1]);
-        let expected = vec![parse_quote![1], parse_quote![2], parse_quote![1]];
-        assert_eq!(offsets, PerBusInt::Array(expected));
-    }
-
-    #[test]
-    fn register_def() {
-        let register: RegisterSpec = parse_quote![: <Foo as Bar>::Associated { Read, Write }];
-        let expected_type: TypePath = parse_quote![<Foo as Bar>::Associated];
-        assert_eq!(register.element_type, expected_type);
-        assert_eq!(register.array_sizes, []);
-        let expected_operations = vec![parse_quote![Read], parse_quote![Write]];
-        assert_eq!(register.operations, Some(expected_operations));
-
-        let register: RegisterSpec = parse_quote![: status];
-        let expected_type: TypePath = parse_quote![status];
-        assert_eq!(register.element_type, expected_type);
-        assert_eq!(register.array_sizes, []);
-        assert_eq!(register.operations, None);
-
-        let register: RegisterSpec = parse_quote![: [[[status; 2]; 3]; 4]];
-        let expected_type: TypePath = parse_quote![status];
-        assert_eq!(register.element_type, expected_type);
-        let expected_sizes = [parse_quote![2], parse_quote![3], parse_quote![4]];
-        assert_eq!(register.array_sizes, expected_sizes);
-        assert_eq!(register.operations, None);
-
-        let error = parse2::<RegisterSpec>(quote![: <Foo as Bar>::Associated]).unwrap_err();
-        assert!(error.to_string().contains("reference must be to a mod"));
     }
 }

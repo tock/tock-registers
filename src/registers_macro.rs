@@ -183,8 +183,7 @@
 /// Sometimes, the offset tests are too restrictive. In that case, you can mark a register as
 /// `#[aliased]`, which removes it from the offset calculation logic entirely. This allows you to
 /// overlap registers:
-/// TODO: Implement `#[aliased]` then re-enable
-/// ```ignore
+/// ```
 /// # fn main() {}
 /// use tock_registers::{mmio32_registers, register_bitfields, Read, Write};
 /// register_bitfields! [u8,

@@ -17,7 +17,7 @@ pub trait Read: Register {
     /// Read the value of the given field
     fn read(
         self,
-        field: Field<<Self::DataType as DataType>::Value, <Self::DataType as DataType>::Read>,
+        field: Field<<Self::DataType as DataType>::Value, <Self::DataType as DataType>::LongName>,
     ) -> <Self::DataType as DataType>::Value {
         field.read(self.get())
     }
@@ -62,7 +62,7 @@ pub trait Read: Register {
     #[inline]
     fn read_as_enum<E: TryFromValue<<Self::DataType as DataType>::Value, EnumType = E>>(
         self,
-        field: Field<<Self::DataType as DataType>::Value, <Self::DataType as DataType>::Read>,
+        field: Field<<Self::DataType as DataType>::Value, <Self::DataType as DataType>::LongName>,
     ) -> Option<E> {
         field.read_as_enum(self.get())
     }
@@ -71,8 +71,10 @@ pub trait Read: Register {
     /// Make a local copy of the register
     fn extract(
         self,
-    ) -> LocalRegisterCopy<<Self::DataType as DataType>::Value, <Self::DataType as DataType>::Read>
-    {
+    ) -> LocalRegisterCopy<
+        <Self::DataType as DataType>::Value,
+        <Self::DataType as DataType>::LongName,
+    > {
         LocalRegisterCopy::new(self.get())
     }
 
@@ -80,7 +82,7 @@ pub trait Read: Register {
     /// Check if one or more bits in a field are set
     fn is_set(
         self,
-        field: Field<<Self::DataType as DataType>::Value, <Self::DataType as DataType>::Read>,
+        field: Field<<Self::DataType as DataType>::Value, <Self::DataType as DataType>::LongName>,
     ) -> bool {
         field.is_set(self.get())
     }
@@ -92,7 +94,10 @@ pub trait Read: Register {
     #[inline]
     fn any_matching_bits_set(
         self,
-        field: FieldValue<<Self::DataType as DataType>::Value, <Self::DataType as DataType>::Read>,
+        field: FieldValue<
+            <Self::DataType as DataType>::Value,
+            <Self::DataType as DataType>::LongName,
+        >,
     ) -> bool {
         field.any_matching_bits_set(self.get())
     }
@@ -101,7 +106,10 @@ pub trait Read: Register {
     /// Check if all specified parts of a field match
     fn matches_all(
         self,
-        field: FieldValue<<Self::DataType as DataType>::Value, <Self::DataType as DataType>::Read>,
+        field: FieldValue<
+            <Self::DataType as DataType>::Value,
+            <Self::DataType as DataType>::LongName,
+        >,
     ) -> bool {
         field.matches_all(self.get())
     }
@@ -114,7 +122,7 @@ pub trait Read: Register {
         self,
         fields: &[FieldValue<
             <Self::DataType as DataType>::Value,
-            <Self::DataType as DataType>::Read,
+            <Self::DataType as DataType>::LongName,
         >],
     ) -> bool {
         fields

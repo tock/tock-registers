@@ -4,7 +4,7 @@
 // Copyright Better Bytes 2026.
 
 use super::register_definition;
-use crate::ast::{Definition, Field, FieldDef};
+use crate::ast::{Definition, Field, FieldDef, PerBusInt};
 use proc_macro2::TokenStream;
 use quote::{quote, quote_spanned};
 use syn::{spanned::Spanned, Ident, Path};
@@ -18,40 +18,38 @@ pub fn generate(tock_registers: &Path, definition: &Definition, fields: &[Field]
     let mut interface_fields = TokenStream::new();
     let bus_comment = bus_doc_comment();
     let mut bus_bounds = TokenStream::new();
-    let num_fields = fields.len();
-    let mut bus_offsets = TokenStream::new();
+    let mut bus_offset_decls = TokenStream::new();
     let buses = &definition.buses;
-    let mut block_info_cfgs = TokenStream::new();
-    let mut block_info_sizes: Vec<_> = (0..buses.len()).map(|_| TokenStream::new()).collect();
-    let mut block_info_array_lens = TokenStream::new();
+    let mut block_sizes: Vec<_> = (0..buses.len()).map(|_| quote![0]).collect();
+    let mut bus_offset_defs: Vec<_> = (0..buses.len()).map(|_| TokenStream::new()).collect();
     let mut offset_tests = TokenStream::new();
     let real_comment = real_doc_comment();
     let mut interface_bounds = TokenStream::new();
     let mut interface_impl_items = TokenStream::new();
     let mut real_structs = TokenStream::new();
-    for (field_idx, field) in fields.iter().enumerate() {
+    for field in fields.iter() {
         let docs = &field.docs;
-        block_info_cfgs.extend(quote![true,]);
-        let (name, register) = match &field.field_def {
+        let (aliased, name, register) = match &field.field_def {
             FieldDef::Padding(sizes) => {
-                for (bus_idx, bus) in buses.iter().enumerate() {
-                    let size = &sizes[bus_idx];
-                    block_info_sizes[bus_idx].extend(quote![#size,]);
+                for bus_idx in 0..buses.len() {
                     let offset = &field.offsets[bus_idx];
-                    offset_tests.extend(quote_spanned! {offset.span()=>
-                        assert!(#offset == <#bus as Bus>::BLOCK_INFO.offsets[#field_idx],
-                            "offset mismatch");
-                    });
+                    let block_size = &block_sizes[bus_idx];
+                    offset_tests.extend(quote_spanned![offset.span()=>
+                        assert!(#offset == #block_size, "offset mismatch");]);
+                    let size = &sizes[bus_idx];
+                    block_sizes[bus_idx].extend(quote![+ #size]);
                 }
-                block_info_array_lens.extend(quote![&[],]);
                 continue;
             }
-            FieldDef::Register { name, definition } => (name, definition),
+            FieldDef::Register {
+                aliased,
+                name,
+                definition,
+            } => (*aliased, name, definition),
         };
         let element_type = &register.element_type;
         let mut interface_bound;
         let mut real;
-        let size;
         if let Some(operations) = &register.operations {
             interface_bound =
                 quote![#tock_registers::Register<DataType = #element_type> #(+ #operations)*];
@@ -59,7 +57,6 @@ pub fn generate(tock_registers: &Path, definition: &Definition, fields: &[Field]
             real = quote![#real_name<B>];
             let bus_trait = quote![#tock_registers::DataTypeBus<#element_type>];
             bus_bounds.extend(quote![+ #bus_trait]);
-            size = quote![<Self as #bus_trait>::PADDED_SIZE];
             real_structs.extend(register_definition(
                 tock_registers,
                 field_struct_doc_comment(name),
@@ -71,7 +68,6 @@ pub fn generate(tock_registers: &Path, definition: &Definition, fields: &[Field]
             interface_bound = quote![#element_type::Interface];
             real = quote![#element_type::Real<B>];
             bus_bounds.extend(quote_spanned![element_type.span()=>+ #element_type::Bus]);
-            size = quote![<#element_type::Real<Self> as #tock_registers::Block>::SIZE];
         };
         interface_bounds.extend(quote![#real: #interface_bound,]);
         for array_size in &register.array_sizes {
@@ -83,18 +79,25 @@ pub fn generate(tock_registers: &Path, definition: &Definition, fields: &[Field]
             #(#docs)* fn #name(self) -> Self::#name;
         });
         let name_offset = Ident::new(&format!("{name}_offset"), name.span());
-        bus_offsets.extend(quote! {
-            const #name_offset: usize = <Self as Bus>::BLOCK_INFO.offsets[#field_idx];
+        bus_offset_decls.extend(match &field.offsets {
+            PerBusInt::Array(offsets) => {
+                for (bus_idx, offset) in offsets.iter().enumerate() {
+                    bus_offset_defs[bus_idx].extend(quote![const #name_offset: usize = #offset;]);
+                }
+                quote![const #name_offset: usize;]
+            }
+            PerBusInt::Single(offset) => quote![const #name_offset: usize = #offset;],
         });
-        for (bus_idx, bus) in buses.iter().enumerate() {
-            block_info_sizes[bus_idx].extend(quote![#size,]);
-            let offset = &field.offsets[bus_idx];
-            offset_tests.extend(quote_spanned! {offset.span()=>
-                assert!(#offset == <#bus as Bus>::#name_offset, "offset mismatch");
-            });
+        if !aliased {
+            for (bus_idx, bus) in buses.iter().enumerate() {
+                let offset = &field.offsets[bus_idx];
+                let block_size = &block_sizes[bus_idx];
+                offset_tests.extend(quote_spanned![offset.span()=>
+                    assert!(#offset == #block_size, "offset mismatch");]);
+                block_sizes[bus_idx] = quote![#offset +
+                    <<Real<#bus> as Interface>::#name as #tock_registers::Block>::SIZE];
+            }
         }
-        let array_lens = &register.array_sizes;
-        block_info_array_lens.extend(quote![&[#(#array_lens),*],]);
         interface_impl_items.extend(quote! {
             type #name = #real;
             fn #name(self) -> Self::#name {
@@ -115,14 +118,13 @@ pub fn generate(tock_registers: &Path, definition: &Definition, fields: &[Field]
             }
             #[allow(non_upper_case_globals)]
             #bus_comment pub trait Bus: #tock_registers::Address #bus_bounds + sealed::Bus {
-                const BLOCK_INFO: #tock_registers::internal::BlockInfo<#num_fields>;
-                #bus_offsets
+                const BLOCK_SIZE: usize;
+                #bus_offset_decls
             }
             #(
                 impl Bus for #buses {
-                    const BLOCK_INFO: #tock_registers::internal::BlockInfo<#num_fields> =
-                        #tock_registers::internal::BlockInfo::new(
-                            [#block_info_cfgs], [#block_info_sizes], [#block_info_array_lens]);
+                    const BLOCK_SIZE: usize = #block_sizes;
+                    #bus_offset_defs
                 }
                 impl sealed::Bus for #buses {}
             )*
@@ -141,7 +143,7 @@ pub fn generate(tock_registers: &Path, definition: &Definition, fields: &[Field]
             }
             impl<B: Bus> #tock_registers::Block for Real<B> {
                 type Address = B;
-                const SIZE: usize = <B as Bus>::BLOCK_INFO.block_size;
+                const SIZE: usize = <B as Bus>::BLOCK_SIZE;
                 unsafe fn new(address: B) -> Self { Self(address) }
             }
             #real_structs
