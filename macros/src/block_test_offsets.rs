@@ -6,8 +6,7 @@
 use crate::block::{
     bus_doc_comment, field_struct_doc_comment, interface_doc_comment, real_doc_comment,
 };
-use crate::generate;
-use crate::test_util::assert_tokens_eq;
+use crate::{generate, new_doc_comment, test_util::assert_tokens_eq};
 use quote::quote;
 use syn::parse_quote;
 
@@ -28,6 +27,7 @@ fn offsets() {
     let interface_comment = interface_doc_comment();
     let bus_comment = bus_doc_comment();
     let real_comment = real_doc_comment();
+    let new_comment = new_doc_comment();
     let variable_size_comment = field_struct_doc_comment(&parse_quote![variable_size]);
     let variable_pos_comment = field_struct_doc_comment(&parse_quote![variable_pos]);
     let aliased_comment = field_struct_doc_comment(&parse_quote![aliased]);
@@ -90,7 +90,7 @@ fn offsets() {
             mod sealed { pub trait Bus {} }
             #real_comment pub struct Real<B: Bus>(B);
             impl<B: Bus> Real<B> {
-                pub const unsafe fn new(address: B) -> Self { Self(address) }
+                #new_comment pub const unsafe fn new(address: B) -> Self { Self(address) }
             }
             impl<B: Bus> ::tock_registers::internal::core::clone::Clone for Real<B> {
                 #[inline] fn clone(&self) -> Self { *self }
@@ -135,7 +135,7 @@ fn offsets() {
             }
             #variable_size_comment pub struct real_variable_size<B: Bus>(B);
             impl<B: Bus> real_variable_size<B> {
-                pub unsafe fn new(address: B) -> Self { Self(address) }
+                #new_comment pub const unsafe fn new(address: B) -> Self { Self(address) }
             }
             impl<B: Bus> ::tock_registers::internal::core::clone::Clone
             for real_variable_size<B> { #[inline] fn clone(&self) -> Self { *self } }
@@ -151,7 +151,7 @@ fn offsets() {
             Read!(real_impl, real_variable_size, usize,);
             #variable_pos_comment pub struct real_variable_pos<B: Bus>(B);
             impl<B: Bus> real_variable_pos<B> {
-                pub unsafe fn new(address: B) -> Self { Self(address) }
+                #new_comment pub const unsafe fn new(address: B) -> Self { Self(address) }
             }
             impl<B: Bus> ::tock_registers::internal::core::clone::Clone
             for real_variable_pos<B> { #[inline] fn clone(&self) -> Self { *self } }
@@ -166,7 +166,9 @@ fn offsets() {
             }
             Read!(real_impl, real_variable_pos, u32,);
             #aliased_comment pub struct real_aliased<B: Bus>(B);
-            impl<B: Bus> real_aliased<B> { pub unsafe fn new(address: B) -> Self { Self(address) } }
+            impl<B: Bus> real_aliased<B> {
+                #new_comment pub const unsafe fn new(address: B) -> Self { Self(address) }
+            }
             impl<B: Bus> ::tock_registers::internal::core::clone::Clone for real_aliased<B> {
                 #[inline] fn clone(&self) -> Self { *self }
             }
@@ -180,7 +182,7 @@ fn offsets() {
             Read!(real_impl, real_aliased, u16,);
             #final_fixed_pos_comment pub struct real_final_fixed_pos<B: Bus>(B);
             impl<B: Bus> real_final_fixed_pos<B> {
-                pub unsafe fn new(address: B) -> Self { Self(address) }
+                #new_comment pub const unsafe fn new(address: B) -> Self { Self(address) }
             }
             impl<B: Bus> ::tock_registers::internal::core::clone::Clone
             for real_final_fixed_pos<B> { #[inline] fn clone(&self) -> Self { *self } }

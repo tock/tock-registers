@@ -18,6 +18,8 @@ pub trait RegisterArray: Copy {
         if index >= Self::LEN {
             return None;
         }
+        // Safety: We returned early if `index >= Self::LEN`, so because `index` is an integer type
+        // we know that `index < Self::LEN`.
         Some(unsafe { self.get_unchecked(index) })
     }
 
@@ -42,10 +44,15 @@ pub struct RealRegisterArray<Element: Block, const LEN: usize> {
 }
 
 impl<Element: Block, const LEN: usize> RealRegisterArray<Element, LEN> {
-    /// Constructs a new register array with the given address.
+    /// Constructs an accessor for the register array at the given address.
     /// # Safety
-    /// `address` must point to an array of `LEN` registers, each of which has a layout
-    /// corresponding to `Element`.
+    /// 1. `address` must point to a register array on the bus corresponding to `Self::Address`.
+    /// 2. The register array's definition (as provided to the
+    ///    [`registers`](macro@crate::registers) macro) must correctly describe the pointed-to
+    ///    register array.
+    /// 3. The returned register array accessor must not be used in a way that causes data races.
+    ///    The exact requirements depend on the hardware, but it's usually best to access registers
+    ///    from only one thread at a time.
     pub unsafe fn new(address: Element::Address) -> RealRegisterArray<Element, LEN> {
         RealRegisterArray { address }
     }

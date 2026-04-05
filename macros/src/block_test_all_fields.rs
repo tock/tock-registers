@@ -6,8 +6,7 @@
 use crate::block::{
     bus_doc_comment, field_struct_doc_comment, interface_doc_comment, real_doc_comment,
 };
-use crate::generate;
-use crate::test_util::assert_tokens_eq;
+use crate::{generate, new_doc_comment, test_util::assert_tokens_eq};
 use quote::quote;
 use syn::parse_quote;
 
@@ -29,6 +28,7 @@ fn all_field_types_example() {
     let interface_comment = interface_doc_comment();
     let bus_comment = bus_doc_comment();
     let real_comment = real_doc_comment();
+    let new_comment = new_doc_comment();
     let scalar_definition_comment = field_struct_doc_comment(&parse_quote![scalar_definition]);
     let array_definition_comment = field_struct_doc_comment(&parse_quote![array_definition]);
     let expected = quote! {
@@ -92,7 +92,9 @@ fn all_field_types_example() {
             };
             mod sealed { pub trait Bus {} }
             #real_comment pub struct Real<B: Bus>(B);
-            impl<B: Bus> Real<B> { pub const unsafe fn new(address: B) -> Self { Self(address) } }
+            impl<B: Bus> Real<B> {
+                #new_comment pub const unsafe fn new(address: B) -> Self { Self(address) }
+            }
             impl<B: Bus> ::tock_registers::internal::core::clone::Clone for Real<B> {
                 #[inline] fn clone(&self) -> Self { *self }
             }
@@ -142,7 +144,7 @@ fn all_field_types_example() {
             }
             #scalar_definition_comment pub struct real_scalar_definition<B: Bus>(B);
             impl<B: Bus> real_scalar_definition<B> {
-                pub unsafe fn new(address: B) -> Self { Self(address) }
+                #new_comment pub const unsafe fn new(address: B) -> Self { Self(address) }
             }
             impl<B: Bus> ::tock_registers::internal::core::clone::Clone
             for real_scalar_definition<B> { #[inline] fn clone(&self) -> Self { *self } }
@@ -160,7 +162,7 @@ fn all_field_types_example() {
             Write!(real_impl, real_scalar_definition, u8,);
             #array_definition_comment pub struct real_array_definition<B: Bus>(B);
             impl<B: Bus> real_array_definition<B> {
-                pub unsafe fn new(address: B) -> Self { Self(address) }
+                #new_comment pub const unsafe fn new(address: B) -> Self { Self(address) }
             }
             impl<B: Bus> ::tock_registers::internal::core::clone::Clone
             for real_array_definition<B> { #[inline] fn clone(&self) -> Self { *self } }

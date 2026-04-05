@@ -68,8 +68,9 @@ impl<R: Read + Write> ReadWrite for R {}
 #[cfg(feature = "register_types")]
 pub trait BusWrite<T: UIntLike>: Bus<T> {
     /// # Safety
-    /// There must be a register of type T at `pointer`, and if the register itself has safety
-    /// invariants (i.e. it is `UnsafeWrite`) the caller must satisfy those.
+    /// There must be a writable register of type T at `pointer`, and if the register itself has
+    /// safety invariants (i.e. it is `UnsafeWrite`) the caller must satisfy those. The caller is
+    /// responsible for avoiding data races.
     unsafe fn write(self, value: T);
 }
 
@@ -87,7 +88,8 @@ macro_rules! Write {
         {
             fn set(self, value: <$datatype as $crate::DataType>::Value) {
                 // Safety: The caller assured this GenericReal points at a register on bus B with
-                // value type $datatype::Value that is safe to write.
+                // value type $datatype::Value that is safe to write. The code that constructed
+                // `self` guaranteed that they would avoid data races (precondition of Self::new).
                 unsafe { self.0.write(value) }
             }
         }

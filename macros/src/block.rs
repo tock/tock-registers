@@ -5,6 +5,7 @@
 
 use super::register_definition;
 use crate::ast::{Definition, Field, FieldDef, PerBusInt};
+use crate::new_doc_comment;
 use proc_macro2::TokenStream;
 use quote::{quote, quote_spanned};
 use syn::{spanned::Spanned, Ident, Path};
@@ -24,6 +25,7 @@ pub fn generate(tock_registers: &Path, definition: &Definition, fields: &[Field]
     let mut bus_offset_defs: Vec<_> = (0..buses.len()).map(|_| TokenStream::new()).collect();
     let mut offset_tests = TokenStream::new();
     let real_comment = real_doc_comment();
+    let new_comment = new_doc_comment();
     let mut interface_bounds = TokenStream::new();
     let mut interface_impl_items = TokenStream::new();
     let mut real_structs = TokenStream::new();
@@ -101,6 +103,16 @@ pub fn generate(tock_registers: &Path, definition: &Definition, fields: &[Field]
         interface_impl_items.extend(quote! {
             type #name = #real;
             fn #name(self) -> Self::#name {
+                // Safety (see crate::new_doc_comment() for requirements):
+                // 1. When Self::new was called to construct `self`, the caller guaranteed that the
+                //    passed address (which became self.0) points to registers on the bus of type
+                //    B.
+                // 2. The definition of this register block is correct (guaranteed by the caller of
+                //    Self::new), which guarantees that a register corresponding to the #real type
+                //    exists at B::name_offset.
+                // 3. The user of this struct is responsible for using the entire register block in
+                //    a way that avoids data races, which includes the responsibility to avoid data
+                //    races on individual fields of the register block.
                 unsafe {
                     Self::#name::new(self.0.byte_add(<B as Bus>::#name_offset))
                 }
@@ -132,7 +144,7 @@ pub fn generate(tock_registers: &Path, definition: &Definition, fields: &[Field]
             mod sealed { pub trait Bus {} }
             #real_comment pub struct Real<B: Bus>(B);
             impl<B: Bus> Real<B> {
-                pub const unsafe fn new(address: B) -> Self { Self(address) }
+                #new_comment pub const unsafe fn new(address: B) -> Self { Self(address) }
             }
             impl<B: Bus> #tock_registers::internal::core::clone::Clone for Real<B> {
                 #[inline] fn clone(&self) -> Self { *self }

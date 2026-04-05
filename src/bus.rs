@@ -53,8 +53,12 @@ pub trait Block: Copy {
 
     /// Constructs an accessor for a register block.
     /// # Safety
-    /// `address` must point to registers on the bus corresponding to Self::Address with the layout
-    /// that correctly matches this type's definition.
+    /// 1. `address` must point to register(s) on the bus corresponding to `Self::Address`.
+    /// 2. The register(s)' definition (as provided to the [`registers`](macro@crate::registers)
+    ///    macro) must correctly describe the pointed-to register(s).
+    /// 3. The returned register block accessor must not be used in a way that causes data races.
+    ///    The exact requirements depend on the hardware, but it's usually best to access a
+    ///    register block from only one thread at a time.
     unsafe fn new(address: Self::Address) -> Self;
 }
 

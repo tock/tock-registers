@@ -112,7 +112,20 @@ fn doc_comments() {
             mod sealed { pub trait Bus {} }
             /// Struct implementing [Interface] for use with the real hardware.
             pub struct Real<B: Bus>(B);
-            impl<B: Bus> Real<B> { pub const unsafe fn new(address: B) -> Self { Self(address) } }
+            impl<B: Bus> Real<B> {
+                /// Constructs an accessor for this register or register block.
+                /// # Safety
+                /// 1. `address` must point to register(s) on the bus corresponding to
+                ///    `B`.
+                /// 2. The register(s)' definition (as provided to the
+                ///    `tock_registers::registers!` macro) must correctly describe the
+                ///    pointed-to register(s).
+                /// 3. The returned register accessor must not be used in a way that
+                ///    causes data races. The exact requirements depend on the hardware,
+                ///    but it's usually best to access a register from only one thread
+                ///    at a time.
+                pub const unsafe fn new(address: B) -> Self { Self(address) }
+            }
             impl<B: Bus> ::tock_registers::internal::core::clone::Clone for Real<B> {
                 #[inline] fn clone(&self) -> Self { *self }
             }
@@ -164,7 +177,18 @@ fn doc_comments() {
                 "Struct that provides access to the `scalar_definition` register on real hardware."]
             pub struct real_scalar_definition<B: Bus>(B);
             impl<B: Bus> real_scalar_definition<B> {
-                pub unsafe fn new(address: B) -> Self { Self(address) }
+                /// Constructs an accessor for this register or register block.
+                /// # Safety
+                /// 1. `address` must point to register(s) on the bus corresponding to
+                ///    `B`.
+                /// 2. The register(s)' definition (as provided to the
+                ///    `tock_registers::registers!` macro) must correctly describe the
+                ///    pointed-to register(s).
+                /// 3. The returned register accessor must not be used in a way that
+                ///    causes data races. The exact requirements depend on the hardware,
+                ///    but it's usually best to access a register from only one thread
+                ///    at a time.
+                pub const unsafe fn new(address: B) -> Self { Self(address) }
             }
             impl<B: Bus> ::tock_registers::internal::core::clone::Clone
             for real_scalar_definition<B> { #[inline] fn clone(&self) -> Self { *self } }
@@ -184,7 +208,18 @@ fn doc_comments() {
                 "Struct that provides access to the `array_definition` register on real hardware."]
             pub struct real_array_definition<B: Bus>(B);
             impl<B: Bus> real_array_definition<B> {
-                pub unsafe fn new(address: B) -> Self { Self(address) }
+                /// Constructs an accessor for this register or register block.
+                /// # Safety
+                /// 1. `address` must point to register(s) on the bus corresponding to
+                ///    `B`.
+                /// 2. The register(s)' definition (as provided to the
+                ///    `tock_registers::registers!` macro) must correctly describe the
+                ///    pointed-to register(s).
+                /// 3. The returned register accessor must not be used in a way that
+                ///    causes data races. The exact requirements depend on the hardware,
+                ///    but it's usually best to access a register from only one thread
+                ///    at a time.
+                pub const unsafe fn new(address: B) -> Self { Self(address) }
             }
             impl<B: Bus> ::tock_registers::internal::core::clone::Clone
             for real_array_definition<B> { #[inline] fn clone(&self) -> Self { *self } }

@@ -4,8 +4,7 @@
 // Copyright Better Bytes 2026.
 
 use crate::block::{bus_doc_comment, interface_doc_comment, real_doc_comment};
-use crate::generate;
-use crate::test_util::assert_tokens_eq;
+use crate::{generate, new_doc_comment, test_util::assert_tokens_eq};
 use quote::quote;
 use syn::parse_quote;
 
@@ -19,6 +18,7 @@ fn empty() {
     let interface_comment = interface_doc_comment();
     let bus_comment = bus_doc_comment();
     let real_comment = real_doc_comment();
+    let new_comment = new_doc_comment();
     let expected = quote! {
         pub mod foo {
             #![allow(clippy::expl_impl_clone_on_copy)]
@@ -38,7 +38,7 @@ fn empty() {
             mod sealed { pub trait Bus {} }
             #real_comment pub struct Real<B: Bus>(B);
             impl<B: Bus> Real<B> {
-                pub const unsafe fn new(address: B) -> Self { Self(address) }
+                #new_comment pub const unsafe fn new(address: B) -> Self { Self(address) }
             }
             impl<B: Bus> ::tock_registers::internal::core::clone::Clone for Real<B> {
                 #[inline] fn clone(&self) -> Self { *self }

@@ -137,8 +137,9 @@ pub trait Read: Register {
 #[cfg(feature = "register_types")]
 pub trait BusRead<T: UIntLike>: Bus<T> {
     /// # Safety
-    /// There must be a register of type T at `pointer`, and if the register itself has safety
-    /// invariants (i.e. it is `UnsafeRead`) the caller must satisfy those.
+    /// There must be a readable register of type T at `pointer`, and if the register itself has
+    /// safety invariants (i.e. it is `UnsafeRead`) the caller must satisfy those. The caller is
+    /// responsible for avoiding data races.
     unsafe fn read(self) -> T;
 }
 
@@ -156,7 +157,8 @@ macro_rules! Read {
         {
             fn get(self) -> <$datatype as $crate::DataType>::Value {
                 // Safety: The caller assured this GenericReal points at a register on bus B with
-                // value type $datatype::Value that is safe to read.
+                // value type $datatype::Value that is safe to read. The code that constructed
+                // `self` guaranteed that they would avoid data races (precondition of Self::new).
                 unsafe { self.0.read() }
             }
         }

@@ -3,11 +3,10 @@
 // Copyright Tock Contributors 2026.
 // Copyright Better Bytes 2026.
 
-use crate::generate;
 use crate::single::{
     bus_doc_comment, interface_doc_comment, real_alias_doc_comment, struct_doc_comment,
 };
-use crate::test_util::assert_tokens_eq;
+use crate::{generate, new_doc_comment, test_util::assert_tokens_eq};
 use quote::quote;
 use syn::parse_quote;
 
@@ -23,6 +22,7 @@ fn scalar_definition_example() {
     let interface_comment = interface_doc_comment();
     let bus_comment = bus_doc_comment();
     let struct_comment = struct_doc_comment(true);
+    let new_comment = new_doc_comment();
     let expected = quote! {
         pub mod foo {
             #![allow(clippy::expl_impl_clone_on_copy)]
@@ -45,7 +45,7 @@ fn scalar_definition_example() {
             mod sealed { pub trait Bus {} }
             #struct_comment pub struct Real<B: Bus>(B);
             impl<B: Bus> Real<B> {
-                pub unsafe fn new(address: B) -> Self { Self(address) }
+                #new_comment pub const unsafe fn new(address: B) -> Self { Self(address) }
             }
             // We could just use `#[derive(Clone, Copy)]` on `Real`, but that generates
             // more-complex code than necessary (it has unnecessary trait bounds and calls
@@ -88,6 +88,7 @@ fn array_definition_example() {
     let interface_comment = interface_doc_comment();
     let bus_comment = bus_doc_comment();
     let struct_comment = struct_doc_comment(false);
+    let new_comment = new_doc_comment();
     let real_alias_comment = real_alias_doc_comment();
     let expected = quote! {
         pub mod foo {
@@ -109,7 +110,7 @@ fn array_definition_example() {
             mod sealed { pub trait Bus {} }
             #struct_comment pub struct Element<B: Bus>(B);
             impl<B: Bus> Element<B> {
-                pub unsafe fn new(address: B) -> Self { Self(address) }
+                #new_comment pub const unsafe fn new(address: B) -> Self { Self(address) }
             }
             impl<B: Bus> ::tock_registers::internal::core::clone::Clone for Element<B> {
                 #[inline] fn clone(&self) -> Self { *self }

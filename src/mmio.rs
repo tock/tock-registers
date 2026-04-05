@@ -22,17 +22,23 @@ impl Address for Mmio32 {
 // https://github.com/google/safe-mmio/blob/main/src/aarch64_mmio.rs
 // https://github.com/rust-lang/rust/issues/131894
 macro_rules! bus_impls {
-    ($name:ident, $data_type:ty, $size:literal) => {
-        impl Bus<$data_type> for $name {
+    ($name:ident, $value:ty, $size:literal) => {
+        impl Bus<$value> for $name {
             const PADDED_SIZE: usize = $size;
         }
-        impl BusRead<$data_type> for $name {
-            unsafe fn read(self) -> $data_type {
+        impl BusRead<$value> for $name {
+            unsafe fn read(self) -> $value {
+                // BusRead::read's preconditions guarantee that a readable register with value type
+                // $value exists at address self.0, and the caller is responsible for avoiding data
+                // races and satisfying any other unsafe invariants of the register.
                 unsafe { read_volatile(self.0.cast_const().cast()) }
             }
         }
-        impl BusWrite<$data_type> for $name {
-            unsafe fn write(self, value: $data_type) {
+        impl BusWrite<$value> for $name {
+            unsafe fn write(self, value: $value) {
+                // BusRead::write's preconditions guarantee that a writable register with value
+                // type $value exists at address self.0, and the caller is responsible for avoiding
+                // data races and satisfying any other unsafe invariants of the register.
                 unsafe { write_volatile(self.0.cast(), value) }
             }
         }

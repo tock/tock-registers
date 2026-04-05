@@ -3,7 +3,6 @@
 // Copyright Tock Contributors 2026.
 // Copyright Better Bytes 2026.
 
-// TODO: Doc comments on `unsafe new` functions.
 // TODO: Figure out multi-core support. How do we make the real types !Send (by making the Buses
 //       not Send?). Do we add some sort of RegisterSender? Can the lifetime be on the bus or does
 //       it have to be on Real<> (perhaps a BorrowedBus<'s, B: Bus>?)?
@@ -97,12 +96,13 @@ fn register_definition(
     register: &RegisterSpec,
     operations: &[Path],
 ) -> TokenStream {
+    let new_comment = new_doc_comment();
     let element_type = &register.element_type;
     quote! {
         #docs
         pub struct #struct_name<B: Bus>(B);
         impl<B: Bus> #struct_name<B> {
-            pub unsafe fn new(address: B) -> Self { Self(address) }
+            #new_comment pub const unsafe fn new(address: B) -> Self { Self(address) }
         }
         impl<B: Bus> #tock_registers::internal::core::clone::Clone for #struct_name<B> {
             #[inline] fn clone(&self) -> Self { *self }
@@ -111,13 +111,28 @@ fn register_definition(
         impl<B: Bus> #tock_registers::Block for #struct_name<B> {
             type Address = B;
             const SIZE: usize = <B as #tock_registers::DataTypeBus<#element_type>>::PADDED_SIZE;
-            unsafe fn new(address: B) -> Self {
-                Self(address)
-            }
+            unsafe fn new(address: B) -> Self { Self(address) }
         }
         impl<B: Bus> #tock_registers::Register for #struct_name<B> {
             type DataType = #element_type;
         }
         #(#operations!(real_impl, #struct_name, #element_type,);)*
+    }
+}
+
+/// Returns the block comment for the `new` function for a register or register block.
+fn new_doc_comment() -> TokenStream {
+    quote! {
+        /// Constructs an accessor for this register or register block.
+        /// # Safety
+        /// 1. `address` must point to register(s) on the bus corresponding to
+        ///    `B`.
+        /// 2. The register(s)' definition (as provided to the
+        ///    `tock_registers::registers!` macro) must correctly describe the
+        ///    pointed-to register(s).
+        /// 3. The returned register accessor must not be used in a way that
+        ///    causes data races. The exact requirements depend on the hardware,
+        ///    but it's usually best to access a register from only one thread
+        ///    at a time.
     }
 }

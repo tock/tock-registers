@@ -48,7 +48,18 @@ fn scalar_definition() {
             /// Struct that implements [Interface] for use with the real hardware.
             pub struct Real<B: Bus>(B);
             impl<B: Bus> Real<B> {
-                pub unsafe fn new(address: B) -> Self { Self(address) }
+                /// Constructs an accessor for this register or register block.
+                /// # Safety
+                /// 1. `address` must point to register(s) on the bus corresponding to
+                ///    `B`.
+                /// 2. The register(s)' definition (as provided to the
+                ///    `tock_registers::registers!` macro) must correctly describe the
+                ///    pointed-to register(s).
+                /// 3. The returned register accessor must not be used in a way that
+                ///    causes data races. The exact requirements depend on the hardware,
+                ///    but it's usually best to access a register from only one thread
+                ///    at a time.
+                pub const unsafe fn new(address: B) -> Self { Self(address) }
             }
             impl<B: Bus> ::tock_registers::internal::core::clone::Clone for Real<B> {
                 #[inline] fn clone(&self) -> Self { *self }
@@ -111,7 +122,18 @@ fn array_definition() {
             /// specified in the register definition.
             pub struct Element<B: Bus>(B);
             impl<B: Bus> Element<B> {
-                pub unsafe fn new(address: B) -> Self { Self(address) }
+                /// Constructs an accessor for this register or register block.
+                /// # Safety
+                /// 1. `address` must point to register(s) on the bus corresponding to
+                ///    `B`.
+                /// 2. The register(s)' definition (as provided to the
+                ///    `tock_registers::registers!` macro) must correctly describe the
+                ///    pointed-to register(s).
+                /// 3. The returned register accessor must not be used in a way that
+                ///    causes data races. The exact requirements depend on the hardware,
+                ///    but it's usually best to access a register from only one thread
+                ///    at a time.
+                pub const unsafe fn new(address: B) -> Self { Self(address) }
             }
             impl<B: Bus> ::tock_registers::internal::core::clone::Clone for Element<B> {
                 #[inline] fn clone(&self) -> Self { *self }
