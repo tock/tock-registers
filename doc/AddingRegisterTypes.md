@@ -17,7 +17,7 @@ add:
 ```rust
 #[derive(Clone, Copy)]
 pub struct MyBus {
-    pub address: u8,
+    address: u8,
     // Used to make MyBus !Sync, which is not needed but can help prevent
     // misuse (for the same reason as why raw pointers are !Sync).
     _phantom: core::marker::PhantomData<*mut ()>,
@@ -78,9 +78,12 @@ macro_rules! MyOperation {
     //             implemented on. This is guaranteed to be a tuple struct that
     //             wraps a bus.
     //   datatype: The DataType for the register specified by the user.
+    //   generics: Generic arguments attached to the operation trait. This is
+    //             left blank if the trait does not have generics (resulting in
+    //             two consecutive commas in the input).
     //   rest:     A catch-all so that registers! can pass additional arguments
     //             in the future without breaking every existing macro trait.
-    (real_impl, $name:ident, $datatype:ty, $($rest:tt)*) => {
+    (real_impl, $name:ident, $datatype:ty, $(<$generic:path>)?, $($rest:tt)*) => {
         impl<B: Bus + /* Your Bus* trait */> $crate::MyOperation
             for $name<B>
         {
@@ -98,7 +101,9 @@ macro_rules! MyOperation {
 
 Your `Bus*` trait should be implemented on your bus type. You may need that
 trait to be generic (as `BusRead` and `BusWrite` are) so that you can provide
-separate implementations for each type that your bus supports.
+separate implementations for each type that your bus supports. If your bus can
+be sent between threads, then it should also be implemented for
+`BorrowedBus<YourBusTrait>`.
 
 ## Using your new Bus and operation
 

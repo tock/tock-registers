@@ -18,7 +18,7 @@ fn all_field_types_example() {
         ::tock_registers
         #[buses(Mmio32, Mmio64)]
         pub foo {
-            0 => scalar_definition: u8 { Read, Write },
+            0 => scalar_definition: u8 { Read, Dance<Waltz> },
             1 => array_definition: [[u8; 2]; 3] { Read, Write },
             7 => _: 1, // Padding
             8 => scalar_reference: a,
@@ -37,7 +37,8 @@ fn all_field_types_example() {
             #![allow(non_camel_case_types)]
             use super::*;
             #interface_comment pub trait Interface: ::tock_registers::internal::core::marker::Copy {
-                type scalar_definition: ::tock_registers::Register<DataType = u8> + Read + Write;
+                type scalar_definition:
+                    ::tock_registers::Register<DataType = u8> + Read + Dance<Waltz>;
                 fn scalar_definition(self) -> Self::scalar_definition;
                 type array_definition: ::tock_registers::RegisterArray<Element:
                     ::tock_registers::RegisterArray<Element:
@@ -110,7 +111,8 @@ fn all_field_types_example() {
             impl<B: Bus> ::tock_registers::internal::core::marker::Copy for Real<B> {}
             impl<B: Bus> Interface for Real<B>
             where
-                real_scalar_definition<B>: ::tock_registers::Register<DataType = u8> + Read + Write,
+                real_scalar_definition<B>:
+                    ::tock_registers::Register<DataType = u8> + Read + Dance<Waltz>,
                 real_array_definition<B>: ::tock_registers::Register<DataType = u8> + Read + Write,
                 a::Real<B>: a::Interface,
                 b::Real<B>: b::Interface,
@@ -178,8 +180,10 @@ fn all_field_types_example() {
             impl<B: Bus> ::tock_registers::Register for real_scalar_definition<B> {
                 type DataType = u8;
             }
-            Read!(real_impl, real_scalar_definition, u8,);
-            Write!(real_impl, real_scalar_definition, u8,);
+            Read!(real_impl, real_scalar_definition, u8,,);
+            // Since macros cannot accept generic arguments, the generics are instead detached from
+            // the operation path and moved into an argument of the macro invocation.
+            Dance!(real_impl, real_scalar_definition, u8, <Waltz>,);
             #array_definition_comment pub struct real_array_definition<B: Bus> {
                 address: B,
                 _phantom: ::tock_registers::internal::RealPhantom,
@@ -204,8 +208,8 @@ fn all_field_types_example() {
             impl<B: Bus> ::tock_registers::Register for real_array_definition<B> {
                 type DataType = u8;
             }
-            Read!(real_impl, real_array_definition, u8,);
-            Write!(real_impl, real_array_definition, u8,);
+            Read!(real_impl, real_array_definition, u8,,);
+            Write!(real_impl, real_array_definition, u8,,);
         }
     };
     assert_tokens_eq(generate(input), expected);

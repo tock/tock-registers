@@ -3,11 +3,6 @@
 // Copyright Tock Contributors 2026.
 // Copyright Better Bytes 2026.
 
-// TODO: Can we support generic buses? E.g. LiteX<const C, const B>.
-// TODO: Make operations with generic arguments work, and update the documentation for adding new
-//       operations (as this will probably add an argument to the operation macro interface). It
-//       looks like ast should still use syn::Path to represent operations, but parsing should
-//       error if any non-last path segment has arguments.
 // TODO: Add Read::debug().
 // TODO: Should FakeRegister use the Value type or LocalRegisterCopy?
 // TODO: We should have separate types for non-null pointers and nullable pointers. Implement that.
@@ -32,6 +27,9 @@
 //       3. Errors where we can still generate code (e.g. multiple #[aliased] attributes)
 // TODO: Re-evaluate which `syn` features we need (is full necessary?).
 // TODO: Implement a arm64_secure_vm feature (see the TODO in src/mmio.rs).
+// TODO: Investigate adding typestates into the API.
+// TODO: Investigate dependency reductions (both syn/quote/proc-macro2 and
+//       prettyplease/pretty-assertions).
 
 // Questions to ask the group:
 // TODO: Do we want to rename something? We have the Register trait, registers module, and
@@ -63,7 +61,8 @@ mod test_util;
 use ast::{Input, RegisterSpec, Value};
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, Ident, Path};
+use std::mem::replace;
+use syn::{parse_macro_input, Ident, Path, PathArguments};
 
 #[proc_macro]
 pub fn registers(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
@@ -96,6 +95,13 @@ fn register_definition(
 ) -> TokenStream {
     let new_comment = new_doc_comment();
     let element_type = &register.element_type;
+    let mut op_macros = Vec::with_capacity(operations.len());
+    let mut op_generics = Vec::with_capacity(operations.len());
+    for mut path in operations.iter().cloned() {
+        let last = path.segments.last_mut().expect("empty operation path");
+        op_generics.push(replace(&mut last.arguments, PathArguments::None));
+        op_macros.push(path);
+    }
     quote! {
         #docs pub struct #struct_name<B: Bus> {
             address: B,
@@ -121,7 +127,7 @@ fn register_definition(
         impl<B: Bus> #tock_registers::Register for #struct_name<B> {
             type DataType = #element_type;
         }
-        #(#operations!(real_impl, #struct_name, #element_type,);)*
+        #(#op_macros!(real_impl, #struct_name, #element_type, #op_generics,);)*
     }
 }
 

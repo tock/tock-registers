@@ -170,7 +170,7 @@ fn offsets() {
             impl<B: Bus> ::tock_registers::Register for real_variable_size<B> {
                 type DataType = usize;
             }
-            Read!(real_impl, real_variable_size, usize,);
+            Read!(real_impl, real_variable_size, usize,,);
             #variable_pos_comment pub struct real_variable_pos<B: Bus> {
                 address: B,
                 _phantom: ::tock_registers::internal::RealPhantom,
@@ -194,7 +194,7 @@ fn offsets() {
             impl<B: Bus> ::tock_registers::Register for real_variable_pos<B> {
                 type DataType = u32;
             }
-            Read!(real_impl, real_variable_pos, u32,);
+            Read!(real_impl, real_variable_pos, u32,,);
             #aliased_comment pub struct real_aliased<B: Bus> {
                 address: B,
                 _phantom: ::tock_registers::internal::RealPhantom,
@@ -217,7 +217,7 @@ fn offsets() {
                 type Borrowed<'b> = real_aliased<::tock_registers::BorrowedBus<'b, B>>;
             }
             impl<B: Bus> ::tock_registers::Register for real_aliased<B> { type DataType = u16; }
-            Read!(real_impl, real_aliased, u16,);
+            Read!(real_impl, real_aliased, u16,,);
             #final_fixed_pos_comment pub struct real_final_fixed_pos<B: Bus> {
                 address: B,
                 _phantom: ::tock_registers::internal::RealPhantom,
@@ -242,7 +242,7 @@ fn offsets() {
             impl<B: Bus> ::tock_registers::Register for real_final_fixed_pos<B> {
                 type DataType = u32;
             }
-            Read!(real_impl, real_final_fixed_pos, u32,);
+            Read!(real_impl, real_final_fixed_pos, u32,,);
         }
     };
     assert_tokens_eq(generate(input), expected);

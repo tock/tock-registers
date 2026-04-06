@@ -70,8 +70,8 @@ fn scalar_definition_example() {
                 type Borrowed<'b> = Real<::tock_registers::BorrowedBus<'b, B>>;
             }
             impl<B: Bus> ::tock_registers::Register for Real<B> { type DataType = u8; }
-            Read!(real_impl, Real, u8,);
-            Write!(real_impl, Real, u8,);
+            Read!(real_impl, Real, u8,,);
+            Write!(real_impl, Real, u8,,);
             impl<B: Bus> Interface for Real<B> where
                 // Rust understands that Real<B> always implements Register, but it does not
                 // understand that Register::DataType is always u8. Therefore we have to add this
@@ -142,8 +142,8 @@ fn array_definition_example() {
                 type Borrowed<'b> = Element<::tock_registers::BorrowedBus<'b, B>>;
             }
             impl<B: Bus> ::tock_registers::Register for Element<B> { type DataType = u8; }
-            Read!(real_impl, Element, u8,);
-            Write!(real_impl, Element, u8,);
+            Read!(real_impl, Element, u8,,);
+            Write!(real_impl, Element, u8,,);
             #real_alias_comment pub type Real<B> = ::tock_registers::RealRegisterArray<
                 ::tock_registers::RealRegisterArray<Element<B>, 2>, 3
             >;
@@ -222,6 +222,63 @@ fn array_reference_example() {
                 ::tock_registers::RealRegisterArray<status::Real<B>, 2>,
             3>;
             impl<B: Bus> Interface for Real<B> where status::Real<B>: status::Interface {}
+        }
+    };
+    assert_tokens_eq(generate(input), expected);
+}
+
+/// Verifies that generic arguments on operations are correctly copied to the output (they need to
+/// be split off the operation path for the operation macro invocation).
+#[test]
+fn generic_operation() {
+    let input = parse_quote! {
+        ::tock_registers
+        #[buses(Mmio32)]
+        foo: u8 { Dance<Waltz> },
+    };
+    let interface_comment = interface_doc_comment();
+    let bus_comment = bus_doc_comment();
+    let struct_comment = struct_doc_comment(true);
+    let new_comment = new_doc_comment();
+    let expected = quote! {
+        mod foo {
+            #![allow(clippy::expl_impl_clone_on_copy)]
+            use super::*;
+            #interface_comment
+            pub trait Interface: ::tock_registers::Register<DataType = u8> + Dance<Waltz> {}
+            #bus_comment pub trait Bus: ::tock_registers::DataTypeBus<u8> + sealed::Bus {}
+            impl Bus for Mmio32 {}
+            impl sealed::Bus for Mmio32 {}
+            impl<B: Bus> Bus for ::tock_registers::BorrowedBus<'_, B> {}
+            impl<B: Bus> sealed::Bus for ::tock_registers::BorrowedBus<'_, B> {}
+            mod sealed { pub trait Bus {} }
+            #struct_comment pub struct Real<B: Bus> {
+                address: B,
+                _phantom: ::tock_registers::internal::RealPhantom,
+            }
+            impl<B: Bus> Real<B> {
+                #new_comment pub const unsafe fn new(address: B) -> Self {
+                    Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
+                }
+            }
+            impl<B: Bus> ::tock_registers::internal::core::clone::Clone for Real<B> {
+                #[inline] fn clone(&self) -> Self { *self }
+            }
+            impl<B: Bus> ::tock_registers::internal::core::marker::Copy for Real<B> {}
+            impl<B: Bus> ::tock_registers::Block for Real<B> {
+                type Address = B;
+                const SIZE: usize = <B as ::tock_registers::DataTypeBus<u8>>::PADDED_SIZE;
+                unsafe fn new(address: B) -> Self {
+                    Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
+                }
+                type Borrowed<'b> = Real<::tock_registers::BorrowedBus<'b, B>>;
+            }
+            impl<B: Bus> ::tock_registers::Register for Real<B> { type DataType = u8; }
+            // Since macros cannot accept generic arguments, the generics are instead detached
+            // from the operation path and moved into an argument of the macro invocation.
+            Dance!(real_impl, Real, u8, <Waltz>,);
+            impl<B: Bus> Interface for Real<B> where
+                Self: ::tock_registers::Register<DataType = u8> + Dance<Waltz> {}
         }
     };
     assert_tokens_eq(generate(input), expected);

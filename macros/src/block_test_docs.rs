@@ -222,8 +222,8 @@ fn doc_comments() {
             impl<B: Bus> ::tock_registers::Register for real_scalar_definition<B> {
                 type DataType = u8;
             }
-            Read!(real_impl, real_scalar_definition, u8,);
-            Write!(real_impl, real_scalar_definition, u8,);
+            Read!(real_impl, real_scalar_definition, u8,,);
+            Write!(real_impl, real_scalar_definition, u8,,);
             #[doc =
                 "Struct that provides access to the `array_definition` register on real hardware."]
             pub struct real_array_definition<B: Bus> {
@@ -261,8 +261,8 @@ fn doc_comments() {
             impl<B: Bus> ::tock_registers::Register for real_array_definition<B> {
                 type DataType = u8;
             }
-            Read!(real_impl, real_array_definition, u8,);
-            Write!(real_impl, real_array_definition, u8,);
+            Read!(real_impl, real_array_definition, u8,,);
+            Write!(real_impl, real_array_definition, u8,,);
         }
     };
     assert_tokens_eq(generate(input), expected);

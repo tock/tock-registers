@@ -81,8 +81,8 @@ fn scalar_definition() {
                 type Borrowed<'b> = Real<::tock_registers::BorrowedBus<'b, B>>;
             }
             impl<B: Bus> ::tock_registers::Register for Real<B> { type DataType = u8; }
-            Read!(real_impl, Real, u8,);
-            Write!(real_impl, Real, u8,);
+            Read!(real_impl, Real, u8,,);
+            Write!(real_impl, Real, u8,,);
             impl<B: Bus> Interface for Real<B> where
                 Self: ::tock_registers::Register<DataType = u8> + Read + Write {}
         }
@@ -165,8 +165,8 @@ fn array_definition() {
                 type Borrowed<'b> = Element<::tock_registers::BorrowedBus<'b, B>>;
             }
             impl<B: Bus> ::tock_registers::Register for Element<B> { type DataType = u8; }
-            Read!(real_impl, Element, u8,);
-            Write!(real_impl, Element, u8,);
+            Read!(real_impl, Element, u8,,);
+            Write!(real_impl, Element, u8,,);
             /// Implementation of [Interface] for use with real hardware.
             pub type Real<B> = ::tock_registers::RealRegisterArray<
                 ::tock_registers::RealRegisterArray<Element<B>, 2>, 3
