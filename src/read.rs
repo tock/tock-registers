@@ -3,17 +3,18 @@
 // Copyright Tock Contributors 2022.
 // Copyright Better Bytes 2026.
 
+use crate::debug::{RegisterDebugInfo, RegisterDebugValue};
 use crate::fields::{Field, FieldValue, TryFromValue};
 #[cfg(feature = "register_types")]
 use crate::{Address, BorrowedBus, Bus, UIntLike};
 use crate::{DataType, LocalRegisterCopy, Register};
+use core::marker::PhantomData;
 
 /// A register that can be read.
 pub trait Read: Register {
     /// Get the raw register value
     fn get(self) -> <Self::DataType as DataType>::Value;
 
-    #[inline]
     /// Read the value of the given field
     fn read(
         self,
@@ -59,7 +60,6 @@ pub trait Read: Register {
     ///     None => panic!("boo!"),
     /// };
     /// ```
-    #[inline]
     fn read_as_enum<E: TryFromValue<<Self::DataType as DataType>::Value, EnumType = E>>(
         self,
         field: Field<<Self::DataType as DataType>::Value, <Self::DataType as DataType>::LongName>,
@@ -67,7 +67,6 @@ pub trait Read: Register {
         field.read_as_enum(self.get())
     }
 
-    #[inline]
     /// Make a local copy of the register
     fn extract(
         self,
@@ -78,7 +77,6 @@ pub trait Read: Register {
         LocalRegisterCopy::new(self.get())
     }
 
-    #[inline]
     /// Check if one or more bits in a field are set
     fn is_set(
         self,
@@ -91,7 +89,6 @@ pub trait Read: Register {
     /// are set.  This function is identical to `is_set()` but operates on a
     /// `FieldValue` rather than a `Field`, allowing for checking if any bits
     /// are set across multiple, non-contiguous portions of a bitfield.
-    #[inline]
     fn any_matching_bits_set(
         self,
         field: FieldValue<
@@ -102,7 +99,6 @@ pub trait Read: Register {
         field.any_matching_bits_set(self.get())
     }
 
-    #[inline]
     /// Check if all specified parts of a field match
     fn matches_all(
         self,
@@ -117,7 +113,6 @@ pub trait Read: Register {
     /// Check if any of the passed parts of a field exactly match the contained
     /// value. This allows for matching on unset bits, or matching on specific
     /// values in multi-bit fields.
-    #[inline]
     fn matches_any(
         self,
         fields: &[FieldValue<
@@ -128,6 +123,24 @@ pub trait Read: Register {
         fields
             .iter()
             .any(|field| self.get() & field.mask() == field.value)
+    }
+
+    /// Returns a [`RegisterDebugValue`] that implements [`core::fmt::Debug`]. The debug
+    /// information is extracted from `<Register>::DebugInfo`.
+    fn debug(
+        self,
+    ) -> RegisterDebugValue<
+        <Self::DataType as DataType>::Value,
+        <Self::DataType as DataType>::LongName,
+    >
+    where
+        <Self::DataType as DataType>::LongName:
+            RegisterDebugInfo<<Self::DataType as DataType>::Value>,
+    {
+        RegisterDebugValue {
+            data: self.get(),
+            _reg: PhantomData,
+        }
     }
 }
 

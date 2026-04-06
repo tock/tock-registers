@@ -25,7 +25,7 @@ pub fn getrandom<R: rng::Interface>(registers: R, buffer: &mut [u8]) {
 mod tests {
     use super::*;
     use core::cell::Cell;
-    use tock_registers::{FakeRegister, NoAccess, Safe};
+    use tock_registers::{FakeRegister, LocalRegisterCopy, NoAccess, Safe};
 
     /// A fake RNG, which produces an incrementing output. We implement Interface on references to
     /// FakeRng (this mirrors the real implementation, which is implemented on a type that points
@@ -40,7 +40,7 @@ mod tests {
             FakeRegister::new(self).on_read(|this| {
                 let next = this.state.get().wrapping_add(1);
                 this.state.set(next);
-                next
+                LocalRegisterCopy::new(next)
             })
         }
     }

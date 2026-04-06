@@ -3,18 +3,16 @@
 // Copyright Tock Contributors 2026.
 // Copyright Better Bytes 2026.
 
-// TODO: Add Read::debug().
-// TODO: Should FakeRegister use the Value type or LocalRegisterCopy?
 // TODO: We should have separate types for non-null pointers and nullable pointers. Implement that.
 //       Can we make the nullability a generic argument so we don't have to write everything 2x?
 // TODO: Make it easier to construct Mmio32/Mmio64.
 // TODO: Decide whether Mmio32 should have a Bus<u64> impl.
+// TODO: Implement ExactIndexArray. Do we move LEN to be a trait parameter, or do we have to update
+//       parsing code?
 // TODO: Implement FakeArrayRegister.
 // TODO: Implement UnimplementedRegister, add to operation documentation.
 // TODO: Implement macro that automatically provides the type defs for Interface trait impls.
 // TODO: Implement UnsafeRead/UnsafeWrite. Should they be supertraits of Read/Write or independent?
-// TODO: Implement ExactIndexArray. Do we move LEN to be a trait parameter, or do we have to update
-//       parsing code?
 // TODO: Add --all-targets or --all to the clippy run in the Makefile (requires fixing existing
 //       code).
 // TODO: Implement a "clippy test" -> a crate that uses tock-registers with as many lints as
@@ -25,11 +23,11 @@
 //       2. Errors which prevent generating code, but allow parsing to continue (e.g. register
 //          reference must be to a module)
 //       3. Errors where we can still generate code (e.g. multiple #[aliased] attributes)
-// TODO: Re-evaluate which `syn` features we need (is full necessary?).
 // TODO: Implement a arm64_secure_vm feature (see the TODO in src/mmio.rs).
 // TODO: Investigate adding typestates into the API.
 // TODO: Investigate dependency reductions (both syn/quote/proc-macro2 and
 //       prettyplease/pretty-assertions).
+// TODO: Re-evaluate which `syn` features we need (is full necessary?).
 
 // Questions to ask the group:
 // TODO: Do we want to rename something? We have the Register trait, registers module, and

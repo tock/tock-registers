@@ -12,7 +12,6 @@ pub trait Write: Register {
     /// Set the raw register value
     fn set(self, value: <Self::DataType as DataType>::Value);
 
-    #[inline]
     /// Write the value of one or more fields, overwriting the other fields with
     /// zero
     fn write(
@@ -25,7 +24,6 @@ pub trait Write: Register {
         self.set(field.value);
     }
 
-    #[inline]
     /// Write the value of one or more fields, maintaining the value of
     /// unchanged fields via a provided original value, rather than a register
     /// read.

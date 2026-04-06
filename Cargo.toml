@@ -30,16 +30,18 @@ license.workspace = true
 readme.workspace = true
 repository.workspace = true
 
-[dependencies]
-tock-registers-macros = { path = "macros", version = "=0.10.1" }
+[dependencies.tock-registers-macros]
+optional = true
+path = "macros"
+version = "=0.10.1"
 
 [features]
-default = [ "register_types" ]
+default = ["register_types"]
 
 # Include actual register types (except LocalRegisterCopy). Disabling
 # the feature makes this an interface-only library and removes all
 # usage of unsafe code
-register_types = []
+register_types = ["dep:tock-registers-macros"]
 
 [lints.clippy]
 # CLIPPY CONFIGURATION

@@ -65,6 +65,7 @@
 
 pub mod fields;
 pub mod interfaces;
+#[cfg(feature = "register_types")]
 pub mod internal;
 pub mod macros;
 #[cfg(feature = "register_types")]
