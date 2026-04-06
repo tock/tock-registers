@@ -9,7 +9,19 @@
 
 #![doc(hidden)]
 
+use core::marker::PhantomData;
+
 /// It's possible for a crate that is not libcore to be named `core` in a calling crate. Re-export
 /// so registers! can reliably find libcore.
 pub use core;
 pub use tock_registers_macros::registers;
+
+/// Phantom type to make Real structs !Send and !Sync.
+#[derive(Clone, Copy)]
+pub struct RealPhantom(PhantomData<*mut ()>);
+
+impl RealPhantom {
+    pub const fn new() -> Self {
+        Self(PhantomData)
+    }
+}

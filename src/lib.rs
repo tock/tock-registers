@@ -61,6 +61,7 @@
 // If we don't build any actual register types, we don't need unsafe code in
 // this crate
 #![cfg_attr(not(feature = "register_types"), forbid(unsafe_code))]
+#![warn(unsafe_op_in_unsafe_fn)]
 
 pub mod fields;
 pub mod interfaces;
@@ -82,7 +83,7 @@ pub use array::{RealRegisterArray, RegisterArray};
 #[cfg(feature = "register_types")]
 mod bus;
 #[cfg(feature = "register_types")]
-pub use bus::{Address, Block, Bus, DataTypeBus};
+pub use bus::{Address, Block, BorrowedBus, Bus, DataTypeBus, RegisterSender};
 
 mod fake_register;
 pub use fake_register::{FakeRegister, NoAccess, Safe, Unsafe};

@@ -5,7 +5,7 @@
 
 use crate::fields::{Field, FieldValue, TryFromValue};
 #[cfg(feature = "register_types")]
-use crate::{Bus, UIntLike};
+use crate::{Address, BorrowedBus, Bus, UIntLike};
 use crate::{DataType, LocalRegisterCopy, Register};
 
 /// A register that can be read.
@@ -143,6 +143,15 @@ pub trait BusRead<T: UIntLike>: Bus<T> {
     unsafe fn read(self) -> T;
 }
 
+#[cfg(feature = "register_types")]
+impl<'b, T: UIntLike, A: Address + BusRead<T>> BusRead<T> for BorrowedBus<'b, A> {
+    unsafe fn read(self) -> T {
+        // Safety: We are the same Bus as A, so the caller has already satisfied all the
+        // requirements of read.
+        unsafe { self.address().read() }
+    }
+}
+
 /// The macro that goes along with the Read trait. We don't expect this macro to be used by
 /// tock_register's users, instead it is invoked by the generated code.
 #[cfg(feature = "register_types")]
@@ -159,7 +168,7 @@ macro_rules! Read {
                 // Safety: The caller assured this GenericReal points at a register on bus B with
                 // value type $datatype::Value that is safe to read. The code that constructed
                 // `self` guaranteed that they would avoid data races (precondition of Self::new).
-                unsafe { self.0.read() }
+                unsafe { self.address.read() }
             }
         }
     };

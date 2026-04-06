@@ -3,7 +3,7 @@
 // Copyright Tock Contributors 2026.
 // Copyright Better Bytes 2026.
 
-use crate::{Address, Block};
+use crate::{internal::RealPhantom, Address, Block};
 
 /// Interface for an array of registers (or register blocks, or register arrays).
 pub trait RegisterArray: Copy {
@@ -41,6 +41,7 @@ pub trait RegisterArray: Copy {
 #[derive(Clone, Copy)]
 pub struct RealRegisterArray<Element: Block, const LEN: usize> {
     address: Element::Address,
+    _phantom: RealPhantom,
 }
 
 impl<Element: Block, const LEN: usize> RealRegisterArray<Element, LEN> {
@@ -54,7 +55,10 @@ impl<Element: Block, const LEN: usize> RealRegisterArray<Element, LEN> {
     ///    The exact requirements depend on the hardware, but it's usually best to access registers
     ///    from only one thread at a time.
     pub unsafe fn new(address: Element::Address) -> RealRegisterArray<Element, LEN> {
-        RealRegisterArray { address }
+        RealRegisterArray {
+            address,
+            _phantom: RealPhantom::new(),
+        }
     }
 }
 
@@ -63,8 +67,13 @@ impl<Element: Block, const LEN: usize> Block for RealRegisterArray<Element, LEN>
     const SIZE: usize = LEN * Element::SIZE;
 
     unsafe fn new(address: Element::Address) -> RealRegisterArray<Element, LEN> {
-        RealRegisterArray { address }
+        RealRegisterArray {
+            address,
+            _phantom: RealPhantom::new(),
+        }
     }
+
+    type Borrowed<'b> = RealRegisterArray<Element::Borrowed<'b>, LEN>;
 }
 
 impl<Element: Block, const LEN: usize> RegisterArray for RealRegisterArray<Element, LEN> {

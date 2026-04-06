@@ -79,6 +79,8 @@ pub fn generate(
             #bus_comment pub trait Bus: #bus_bound + sealed::Bus {}
             #(impl Bus for #buses {})*
             #(impl sealed::Bus for #buses {})*
+            impl<B: Bus> Bus for #tock_registers::BorrowedBus<'_, B> {}
+            impl<B: Bus> sealed::Bus for #tock_registers::BorrowedBus<'_, B> {}
             mod sealed { pub trait Bus {} }
             #element_definition
             #real_alias

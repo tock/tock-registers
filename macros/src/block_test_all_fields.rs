@@ -70,6 +70,10 @@ fn all_field_types_example() {
                     <<Real<Mmio64> as Interface>::array_reference as ::tock_registers::Block>::SIZE;
             }
             impl sealed::Bus for Mmio64 {}
+            impl<B: Bus> Bus for ::tock_registers::BorrowedBus<'_, B> {
+                const BLOCK_SIZE: usize = <B as Bus>::BLOCK_SIZE;
+            }
+            impl<B: Bus> sealed::Bus for ::tock_registers::BorrowedBus<'_, B> {}
             const _: () = {
                 assert!(0 == 0, "offset mismatch");
                 assert!(0 == 0, "offset mismatch");
@@ -91,9 +95,14 @@ fn all_field_types_example() {
                     ::tock_registers::Block>::SIZE, "offset mismatch");
             };
             mod sealed { pub trait Bus {} }
-            #real_comment pub struct Real<B: Bus>(B);
+            #real_comment pub struct Real<B: Bus> {
+                address: B,
+                _phantom: ::tock_registers::internal::RealPhantom,
+            }
             impl<B: Bus> Real<B> {
-                #new_comment pub const unsafe fn new(address: B) -> Self { Self(address) }
+                #new_comment pub const unsafe fn new(address: B) -> Self {
+                    Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
+                }
             }
             impl<B: Bus> ::tock_registers::internal::core::clone::Clone for Real<B> {
                 #[inline] fn clone(&self) -> Self { *self }
@@ -110,7 +119,7 @@ fn all_field_types_example() {
                 fn scalar_definition(self) -> Self::scalar_definition {
                     unsafe {
                         Self::scalar_definition::new(
-                            self.0.byte_add(<B as Bus>::scalar_definition_offset))
+                            self.address.byte_add(<B as Bus>::scalar_definition_offset))
                     }
                 }
                 type array_definition = ::tock_registers::RealRegisterArray<
@@ -118,14 +127,14 @@ fn all_field_types_example() {
                 fn array_definition(self) -> Self::array_definition {
                     unsafe {
                         Self::array_definition::new(
-                            self.0.byte_add(<B as Bus>::array_definition_offset))
+                            self.address.byte_add(<B as Bus>::array_definition_offset))
                     }
                 }
                 type scalar_reference = a::Real<B>;
                 fn scalar_reference(self) -> Self::scalar_reference {
                     unsafe {
                         Self::scalar_reference::new(
-                            self.0.byte_add(<B as Bus>::scalar_reference_offset))
+                            self.address.byte_add(<B as Bus>::scalar_reference_offset))
                     }
                 }
                 type array_reference = ::tock_registers::RealRegisterArray<
@@ -133,18 +142,26 @@ fn all_field_types_example() {
                 fn array_reference(self) -> Self::array_reference {
                     unsafe {
                         Self::array_reference::new(
-                            self.0.byte_add(<B as Bus>::array_reference_offset))
+                            self.address.byte_add(<B as Bus>::array_reference_offset))
                     }
                 }
             }
             impl<B: Bus> ::tock_registers::Block for Real<B> {
                 type Address = B;
                 const SIZE: usize = <B as Bus>::BLOCK_SIZE;
-                unsafe fn new(address: B) -> Self { Self(address) }
+                unsafe fn new(address: B) -> Self {
+                    Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
+                }
+                type Borrowed<'b> = Real<::tock_registers::BorrowedBus<'b, B>>;
             }
-            #scalar_definition_comment pub struct real_scalar_definition<B: Bus>(B);
+            #scalar_definition_comment pub struct real_scalar_definition<B: Bus> {
+                address: B,
+                _phantom: ::tock_registers::internal::RealPhantom,
+            }
             impl<B: Bus> real_scalar_definition<B> {
-                #new_comment pub const unsafe fn new(address: B) -> Self { Self(address) }
+                #new_comment pub const unsafe fn new(address: B) -> Self {
+                    Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
+                }
             }
             impl<B: Bus> ::tock_registers::internal::core::clone::Clone
             for real_scalar_definition<B> { #[inline] fn clone(&self) -> Self { *self } }
@@ -153,16 +170,24 @@ fn all_field_types_example() {
             impl<B: Bus> ::tock_registers::Block for real_scalar_definition<B> {
                 type Address = B;
                 const SIZE: usize = <B as ::tock_registers::DataTypeBus<u8>>::PADDED_SIZE;
-                unsafe fn new(address: B) -> Self { Self(address) }
+                unsafe fn new(address: B) -> Self {
+                    Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
+                }
+                type Borrowed<'b> = real_scalar_definition<::tock_registers::BorrowedBus<'b, B>>;
             }
             impl<B: Bus> ::tock_registers::Register for real_scalar_definition<B> {
                 type DataType = u8;
             }
             Read!(real_impl, real_scalar_definition, u8,);
             Write!(real_impl, real_scalar_definition, u8,);
-            #array_definition_comment pub struct real_array_definition<B: Bus>(B);
+            #array_definition_comment pub struct real_array_definition<B: Bus> {
+                address: B,
+                _phantom: ::tock_registers::internal::RealPhantom,
+            }
             impl<B: Bus> real_array_definition<B> {
-                #new_comment pub const unsafe fn new(address: B) -> Self { Self(address) }
+                #new_comment pub const unsafe fn new(address: B) -> Self {
+                    Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
+                }
             }
             impl<B: Bus> ::tock_registers::internal::core::clone::Clone
             for real_array_definition<B> { #[inline] fn clone(&self) -> Self { *self } }
@@ -171,7 +196,10 @@ fn all_field_types_example() {
             impl<B: Bus> ::tock_registers::Block for real_array_definition<B> {
                 type Address = B;
                 const SIZE: usize = <B as ::tock_registers::DataTypeBus<u8>>::PADDED_SIZE;
-                unsafe fn new(address: B) -> Self { Self(address) }
+                unsafe fn new(address: B) -> Self {
+                    Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
+                }
+                type Borrowed<'b> = real_array_definition<::tock_registers::BorrowedBus<'b, B>>;
             }
             impl<B: Bus> ::tock_registers::Register for real_array_definition<B> {
                 type DataType = u8;

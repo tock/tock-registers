@@ -42,10 +42,17 @@ fn scalar_definition_example() {
             impl Bus for Mmio64 {}
             impl sealed::Bus for Mmio32 {}
             impl sealed::Bus for Mmio64 {}
+            impl<B: Bus> Bus for ::tock_registers::BorrowedBus<'_, B> {}
+            impl<B: Bus> sealed::Bus for ::tock_registers::BorrowedBus<'_, B> {}
             mod sealed { pub trait Bus {} }
-            #struct_comment pub struct Real<B: Bus>(B);
+            #struct_comment pub struct Real<B: Bus> {
+                address: B,
+                _phantom: ::tock_registers::internal::RealPhantom,
+            }
             impl<B: Bus> Real<B> {
-                #new_comment pub const unsafe fn new(address: B) -> Self { Self(address) }
+                #new_comment pub const unsafe fn new(address: B) -> Self {
+                    Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
+                }
             }
             // We could just use `#[derive(Clone, Copy)]` on `Real`, but that generates
             // more-complex code than necessary (it has unnecessary trait bounds and calls
@@ -57,7 +64,10 @@ fn scalar_definition_example() {
             impl<B: Bus> ::tock_registers::Block for Real<B> {
                 type Address = B;
                 const SIZE: usize = <B as ::tock_registers::DataTypeBus<u8>>::PADDED_SIZE;
-                unsafe fn new(address: B) -> Self { Self(address) }
+                unsafe fn new(address: B) -> Self {
+                    Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
+                }
+                type Borrowed<'b> = Real<::tock_registers::BorrowedBus<'b, B>>;
             }
             impl<B: Bus> ::tock_registers::Register for Real<B> { type DataType = u8; }
             Read!(real_impl, Real, u8,);
@@ -107,10 +117,17 @@ fn array_definition_example() {
             impl Bus for Mmio64 {}
             impl sealed::Bus for Mmio32 {}
             impl sealed::Bus for Mmio64 {}
+            impl<B: Bus> Bus for ::tock_registers::BorrowedBus<'_, B> {}
+            impl<B: Bus> sealed::Bus for ::tock_registers::BorrowedBus<'_, B> {}
             mod sealed { pub trait Bus {} }
-            #struct_comment pub struct Element<B: Bus>(B);
+            #struct_comment pub struct Element<B: Bus> {
+                address: B,
+                _phantom: ::tock_registers::internal::RealPhantom,
+            }
             impl<B: Bus> Element<B> {
-                #new_comment pub const unsafe fn new(address: B) -> Self { Self(address) }
+                #new_comment pub const unsafe fn new(address: B) -> Self {
+                    Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
+                }
             }
             impl<B: Bus> ::tock_registers::internal::core::clone::Clone for Element<B> {
                 #[inline] fn clone(&self) -> Self { *self }
@@ -119,7 +136,10 @@ fn array_definition_example() {
             impl<B: Bus> ::tock_registers::Block for Element<B> {
                 type Address = B;
                 const SIZE: usize = <B as ::tock_registers::DataTypeBus<u8>>::PADDED_SIZE;
-                unsafe fn new(address: B) -> Self { Self(address) }
+                unsafe fn new(address: B) -> Self {
+                    Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
+                }
+                type Borrowed<'b> = Element<::tock_registers::BorrowedBus<'b, B>>;
             }
             impl<B: Bus> ::tock_registers::Register for Element<B> { type DataType = u8; }
             Read!(real_impl, Element, u8,);
@@ -159,6 +179,8 @@ fn scalar_reference_example() {
             impl Bus for Mmio64 {}
             impl sealed::Bus for Mmio32 {}
             impl sealed::Bus for Mmio64 {}
+            impl<B: Bus> Bus for ::tock_registers::BorrowedBus<'_, B> {}
+            impl<B: Bus> sealed::Bus for ::tock_registers::BorrowedBus<'_, B> {}
             mod sealed { pub trait Bus {} }
             #real_alias_comment pub type Real<B> = status::Real<B>;
             impl<B: Bus> Interface for Real<B> where
@@ -193,6 +215,8 @@ fn array_reference_example() {
             impl Bus for Mmio64 {}
             impl sealed::Bus for Mmio32 {}
             impl sealed::Bus for Mmio64 {}
+            impl<B: Bus> Bus for ::tock_registers::BorrowedBus<'_, B> {}
+            impl<B: Bus> sealed::Bus for ::tock_registers::BorrowedBus<'_, B> {}
             mod sealed { pub trait Bus {} }
             #real_alias_comment pub type Real<B> = ::tock_registers::RealRegisterArray<
                 ::tock_registers::RealRegisterArray<status::Real<B>, 2>,

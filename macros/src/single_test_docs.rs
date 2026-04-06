@@ -44,9 +44,14 @@ fn scalar_definition() {
             impl Bus for Mmio64 {}
             impl sealed::Bus for Mmio32 {}
             impl sealed::Bus for Mmio64 {}
+            impl<B: Bus> Bus for ::tock_registers::BorrowedBus<'_, B> {}
+            impl<B: Bus> sealed::Bus for ::tock_registers::BorrowedBus<'_, B> {}
             mod sealed { pub trait Bus {} }
             /// Struct that implements [Interface] for use with the real hardware.
-            pub struct Real<B: Bus>(B);
+            pub struct Real<B: Bus> {
+                address: B,
+                _phantom: ::tock_registers::internal::RealPhantom,
+            }
             impl<B: Bus> Real<B> {
                 /// Constructs an accessor for this register or register block.
                 /// # Safety
@@ -59,7 +64,9 @@ fn scalar_definition() {
                 ///    causes data races. The exact requirements depend on the hardware,
                 ///    but it's usually best to access a register from only one thread
                 ///    at a time.
-                pub const unsafe fn new(address: B) -> Self { Self(address) }
+                pub const unsafe fn new(address: B) -> Self {
+                    Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
+                }
             }
             impl<B: Bus> ::tock_registers::internal::core::clone::Clone for Real<B> {
                 #[inline] fn clone(&self) -> Self { *self }
@@ -68,7 +75,10 @@ fn scalar_definition() {
             impl<B: Bus> ::tock_registers::Block for Real<B> {
                 type Address = B;
                 const SIZE: usize = <B as ::tock_registers::DataTypeBus<u8>>::PADDED_SIZE;
-                unsafe fn new(address: B) -> Self { Self(address) }
+                unsafe fn new(address: B) -> Self {
+                    Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
+                }
+                type Borrowed<'b> = Real<::tock_registers::BorrowedBus<'b, B>>;
             }
             impl<B: Bus> ::tock_registers::Register for Real<B> { type DataType = u8; }
             Read!(real_impl, Real, u8,);
@@ -116,11 +126,16 @@ fn array_definition() {
             impl Bus for Mmio64 {}
             impl sealed::Bus for Mmio32 {}
             impl sealed::Bus for Mmio64 {}
+            impl<B: Bus> Bus for ::tock_registers::BorrowedBus<'_, B> {}
+            impl<B: Bus> sealed::Bus for ::tock_registers::BorrowedBus<'_, B> {}
             mod sealed { pub trait Bus {} }
             /// Implementation of an element of this register array for use with real hardware.
             /// This implements the tock_registers::Register trait as well as any operation traits
             /// specified in the register definition.
-            pub struct Element<B: Bus>(B);
+            pub struct Element<B: Bus> {
+                address: B,
+                _phantom: ::tock_registers::internal::RealPhantom,
+            }
             impl<B: Bus> Element<B> {
                 /// Constructs an accessor for this register or register block.
                 /// # Safety
@@ -133,7 +148,9 @@ fn array_definition() {
                 ///    causes data races. The exact requirements depend on the hardware,
                 ///    but it's usually best to access a register from only one thread
                 ///    at a time.
-                pub const unsafe fn new(address: B) -> Self { Self(address) }
+                pub const unsafe fn new(address: B) -> Self {
+                    Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
+                }
             }
             impl<B: Bus> ::tock_registers::internal::core::clone::Clone for Element<B> {
                 #[inline] fn clone(&self) -> Self { *self }
@@ -142,7 +159,10 @@ fn array_definition() {
             impl<B: Bus> ::tock_registers::Block for Element<B> {
                 type Address = B;
                 const SIZE: usize = <B as ::tock_registers::DataTypeBus<u8>>::PADDED_SIZE;
-                unsafe fn new(address: B) -> Self { Self(address) }
+                unsafe fn new(address: B) -> Self {
+                    Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
+                }
+                type Borrowed<'b> = Element<::tock_registers::BorrowedBus<'b, B>>;
             }
             impl<B: Bus> ::tock_registers::Register for Element<B> { type DataType = u8; }
             Read!(real_impl, Element, u8,);
@@ -189,6 +209,8 @@ fn scalar_reference() {
             impl Bus for Mmio64 {}
             impl sealed::Bus for Mmio32 {}
             impl sealed::Bus for Mmio64 {}
+            impl<B: Bus> Bus for ::tock_registers::BorrowedBus<'_, B> {}
+            impl<B: Bus> sealed::Bus for ::tock_registers::BorrowedBus<'_, B> {}
             mod sealed { pub trait Bus {} }
             /// Implementation of [Interface] for use with real hardware.
             pub type Real<B> = status::Real<B>;
@@ -231,6 +253,8 @@ fn array_reference() {
             impl Bus for Mmio64 {}
             impl sealed::Bus for Mmio32 {}
             impl sealed::Bus for Mmio64 {}
+            impl<B: Bus> Bus for ::tock_registers::BorrowedBus<'_, B> {}
+            impl<B: Bus> sealed::Bus for ::tock_registers::BorrowedBus<'_, B> {}
             mod sealed { pub trait Bus {} }
             /// Implementation of [Interface] for use with real hardware.
             pub type Real<B> = ::tock_registers::RealRegisterArray<

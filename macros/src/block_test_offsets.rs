@@ -71,6 +71,11 @@ fn offsets() {
                 const variable_pos_offset: usize = 8;
             }
             impl sealed::Bus for Mmio64 {}
+            impl<B: Bus> Bus for ::tock_registers::BorrowedBus<'_, B> {
+                const BLOCK_SIZE: usize = <B as Bus>::BLOCK_SIZE;
+                const variable_pos_offset: usize = <B as Bus>::variable_pos_offset;
+            }
+            impl<B: Bus> sealed::Bus for ::tock_registers::BorrowedBus<'_, B> {}
             const _: () = {
                 assert!(0 == 0, "offset mismatch");
                 assert!(0 == 0, "offset mismatch");
@@ -88,9 +93,14 @@ fn offsets() {
                     ::tock_registers::Block>::SIZE + 0, "offset mismatch");
             };
             mod sealed { pub trait Bus {} }
-            #real_comment pub struct Real<B: Bus>(B);
+            #real_comment pub struct Real<B: Bus> {
+                address: B,
+                _phantom: ::tock_registers::internal::RealPhantom,
+            }
             impl<B: Bus> Real<B> {
-                #new_comment pub const unsafe fn new(address: B) -> Self { Self(address) }
+                #new_comment pub const unsafe fn new(address: B) -> Self {
+                    Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
+                }
             }
             impl<B: Bus> ::tock_registers::internal::core::clone::Clone for Real<B> {
                 #[inline] fn clone(&self) -> Self { *self }
@@ -106,36 +116,45 @@ fn offsets() {
                 type variable_size = real_variable_size<B>;
                 fn variable_size(self) -> Self::variable_size {
                     unsafe {
-                        Self::variable_size::new(self.0.byte_add(<B as Bus>::variable_size_offset))
+                        Self::variable_size::new(
+                            self.address.byte_add(<B as Bus>::variable_size_offset))
                     }
                 }
                 type variable_pos = real_variable_pos<B>;
                 fn variable_pos(self) -> Self::variable_pos {
                     unsafe {
-                        Self::variable_pos::new(self.0.byte_add(<B as Bus>::variable_pos_offset))
+                        Self::variable_pos::new(
+                            self.address.byte_add(<B as Bus>::variable_pos_offset))
                     }
                 }
                 type aliased = real_aliased<B>;
                 fn aliased(self) -> Self::aliased {
-                    unsafe { Self::aliased::new(self.0.byte_add(<B as Bus>::aliased_offset)) }
+                    unsafe { Self::aliased::new(self.address.byte_add(<B as Bus>::aliased_offset)) }
                 }
                 type final_fixed_pos = real_final_fixed_pos<B>;
                 fn final_fixed_pos(self) -> Self::final_fixed_pos {
                     unsafe {
                         Self::final_fixed_pos::new(
-                            self.0.byte_add(<B as Bus>::final_fixed_pos_offset)
-                        )
+                            self.address.byte_add(<B as Bus>::final_fixed_pos_offset))
                     }
                 }
             }
             impl<B: Bus> ::tock_registers::Block for Real<B> {
                 type Address = B;
                 const SIZE: usize = <B as Bus>::BLOCK_SIZE;
-                unsafe fn new(address: B) -> Self { Self(address) }
+                unsafe fn new(address: B) -> Self {
+                    Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
+                }
+                type Borrowed<'b> = Real<::tock_registers::BorrowedBus<'b, B>>;
             }
-            #variable_size_comment pub struct real_variable_size<B: Bus>(B);
+            #variable_size_comment pub struct real_variable_size<B: Bus> {
+                address: B,
+                _phantom: ::tock_registers::internal::RealPhantom,
+            }
             impl<B: Bus> real_variable_size<B> {
-                #new_comment pub const unsafe fn new(address: B) -> Self { Self(address) }
+                #new_comment pub const unsafe fn new(address: B) -> Self {
+                    Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
+                }
             }
             impl<B: Bus> ::tock_registers::internal::core::clone::Clone
             for real_variable_size<B> { #[inline] fn clone(&self) -> Self { *self } }
@@ -143,15 +162,23 @@ fn offsets() {
             impl<B: Bus> ::tock_registers::Block for real_variable_size<B> {
                 type Address = B;
                 const SIZE: usize = <B as ::tock_registers::DataTypeBus<usize>>::PADDED_SIZE;
-                unsafe fn new(address: B) -> Self { Self(address) }
+                unsafe fn new(address: B) -> Self {
+                    Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
+                }
+                type Borrowed<'b> = real_variable_size<::tock_registers::BorrowedBus<'b, B>>;
             }
             impl<B: Bus> ::tock_registers::Register for real_variable_size<B> {
                 type DataType = usize;
             }
             Read!(real_impl, real_variable_size, usize,);
-            #variable_pos_comment pub struct real_variable_pos<B: Bus>(B);
+            #variable_pos_comment pub struct real_variable_pos<B: Bus> {
+                address: B,
+                _phantom: ::tock_registers::internal::RealPhantom,
+            }
             impl<B: Bus> real_variable_pos<B> {
-                #new_comment pub const unsafe fn new(address: B) -> Self { Self(address) }
+                #new_comment pub const unsafe fn new(address: B) -> Self {
+                    Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
+                }
             }
             impl<B: Bus> ::tock_registers::internal::core::clone::Clone
             for real_variable_pos<B> { #[inline] fn clone(&self) -> Self { *self } }
@@ -159,15 +186,23 @@ fn offsets() {
             impl<B: Bus> ::tock_registers::Block for real_variable_pos<B> {
                 type Address = B;
                 const SIZE: usize = <B as ::tock_registers::DataTypeBus<u32>>::PADDED_SIZE;
-                unsafe fn new(address: B) -> Self { Self(address) }
+                unsafe fn new(address: B) -> Self {
+                    Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
+                }
+                type Borrowed<'b> = real_variable_pos<::tock_registers::BorrowedBus<'b, B>>;
             }
             impl<B: Bus> ::tock_registers::Register for real_variable_pos<B> {
                 type DataType = u32;
             }
             Read!(real_impl, real_variable_pos, u32,);
-            #aliased_comment pub struct real_aliased<B: Bus>(B);
+            #aliased_comment pub struct real_aliased<B: Bus> {
+                address: B,
+                _phantom: ::tock_registers::internal::RealPhantom,
+            }
             impl<B: Bus> real_aliased<B> {
-                #new_comment pub const unsafe fn new(address: B) -> Self { Self(address) }
+                #new_comment pub const unsafe fn new(address: B) -> Self {
+                    Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
+                }
             }
             impl<B: Bus> ::tock_registers::internal::core::clone::Clone for real_aliased<B> {
                 #[inline] fn clone(&self) -> Self { *self }
@@ -176,13 +211,21 @@ fn offsets() {
             impl<B: Bus> ::tock_registers::Block for real_aliased<B> {
                 type Address = B;
                 const SIZE: usize = <B as ::tock_registers::DataTypeBus<u16>>::PADDED_SIZE;
-                unsafe fn new(address: B) -> Self { Self(address) }
+                unsafe fn new(address: B) -> Self {
+                    Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
+                }
+                type Borrowed<'b> = real_aliased<::tock_registers::BorrowedBus<'b, B>>;
             }
             impl<B: Bus> ::tock_registers::Register for real_aliased<B> { type DataType = u16; }
             Read!(real_impl, real_aliased, u16,);
-            #final_fixed_pos_comment pub struct real_final_fixed_pos<B: Bus>(B);
+            #final_fixed_pos_comment pub struct real_final_fixed_pos<B: Bus> {
+                address: B,
+                _phantom: ::tock_registers::internal::RealPhantom,
+            }
             impl<B: Bus> real_final_fixed_pos<B> {
-                #new_comment pub const unsafe fn new(address: B) -> Self { Self(address) }
+                #new_comment pub const unsafe fn new(address: B) -> Self {
+                    Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
+                }
             }
             impl<B: Bus> ::tock_registers::internal::core::clone::Clone
             for real_final_fixed_pos<B> { #[inline] fn clone(&self) -> Self { *self } }
@@ -191,7 +234,10 @@ fn offsets() {
             impl<B: Bus> ::tock_registers::Block for real_final_fixed_pos<B> {
                 type Address = B;
                 const SIZE: usize = <B as ::tock_registers::DataTypeBus<u32>>::PADDED_SIZE;
-                unsafe fn new(address: B) -> Self { Self(address) }
+                unsafe fn new(address: B) -> Self {
+                    Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
+                }
+                type Borrowed<'b> = real_final_fixed_pos<::tock_registers::BorrowedBus<'b, B>>;
             }
             impl<B: Bus> ::tock_registers::Register for real_final_fixed_pos<B> {
                 type DataType = u32;

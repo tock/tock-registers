@@ -23,6 +23,7 @@
 //! trait. In addition, address types should implement [`Bus<T>`] for every type `T` that they support.
 
 use crate::{DataType, UIntLike};
+use core::marker::PhantomData;
 
 /// Trait for addresses that can be offset without changing their type. See the module-level docs
 /// for more information on address types.
@@ -37,7 +38,11 @@ pub trait Address: Copy {
 }
 
 /// Address types should implement `Bus<T>` for each primitive type `T` that they support.
-pub trait Bus<T: UIntLike>: Address {
+///
+/// # Safety
+/// PADDED_SIZE must be correct, as the generated code relies on PADDED_SIZE to calculate register
+/// offsets.
+pub unsafe trait Bus<T: UIntLike>: Address {
     /// The size that a value of type T takes in this bus' address space. This exists because LiteX
     /// buses have intra-register padding for some types.
     const PADDED_SIZE: usize;
@@ -60,6 +65,9 @@ pub trait Block: Copy {
     ///    The exact requirements depend on the hardware, but it's usually best to access a
     ///    register block from only one thread at a time.
     unsafe fn new(address: Self::Address) -> Self;
+
+    /// Type of this register with its bus wrapped in BorrowedBus.
+    type Borrowed<'b>: Block<Address = BorrowedBus<'b, Self::Address>>;
 }
 
 /// An alias for `Bus<D::Value>`. Used so you don't have to write
@@ -69,3 +77,95 @@ pub trait DataTypeBus<D: DataType>: Bus<D::Value> {
     const PADDED_SIZE: usize = <Self as Bus<D::Value>>::PADDED_SIZE;
 }
 impl<D: DataType, T: Bus<D::Value>> DataTypeBus<D> for T {}
+
+/// A Bus that has a lifetime attached with it. Returned by [`RegisterSender::borrow`].
+#[derive(Clone, Copy)]
+pub struct BorrowedBus<'b, A: Address> {
+    address: A,
+    // Makes BorrowedBus covariant with respect to 'b and neither Send nor Sync.
+    _phantom: PhantomData<&'b *mut ()>,
+}
+
+impl<'b, A: Address> BorrowedBus<'b, A> {
+    /// Constructs a new BorrowedBus. Note that in general, BorrowedBus should be constructed by
+    /// using [`RegisterSender`], but you can use this to build your own RegisterSender-like
+    /// abstraction.
+    pub const fn new(address: A) -> Self {
+        Self {
+            address,
+            _phantom: PhantomData,
+        }
+    }
+
+    /// Returns this bus' address.
+    pub fn address(self) -> A {
+        self.address
+    }
+}
+
+impl<'b, A: Address> Address for BorrowedBus<'b, A> {
+    unsafe fn byte_add(self, offset: usize) -> Self {
+        Self {
+            // Safety: This is the same Bus as A, even though it is a distinct type. Therefore, the
+            // caller of this function already guaranteed that self.address is the correct type,
+            // and promised that adding `offset` will remain within the register block.
+            address: unsafe { self.address.byte_add(offset) },
+            _phantom: PhantomData,
+        }
+    }
+}
+
+/// Safety: We are the same bus as A, so the padded size of each register type is the same.
+unsafe impl<'b, T: UIntLike, A: Address + Bus<T>> Bus<T> for BorrowedBus<'b, A> {
+    const PADDED_SIZE: usize = A::PADDED_SIZE;
+}
+
+/// A utility for sharing a register block between threads.
+///
+/// Unlike the `Real` structs, this implements [`Send`], so it can be moved between threads (using
+/// something like a channel or mutex). To access the register block, call
+/// [`borrow`](RegisterSender::borrow) to get a temporary handle to the register block.
+///
+/// Note that a bus can choose whether RegisterSender works with it by deciding whether to
+/// implement Send.
+pub struct RegisterSender<R: Block>
+where
+    R::Address: Send,
+{
+    address: R::Address,
+    // Makes RegisterSender !Sync (we have a unsafe Send impl to make it Send despite this bound).
+    _phantom: PhantomData<*mut ()>,
+}
+
+// Safety: RegisterSender is not Copy or Sync, so only one thread can have an active borrow at a
+// time. That means the hierarchy of Real<> structs can only be accessed from one thread at a time.
+unsafe impl<R: Block> Send for RegisterSender<R> where R::Address: Send {}
+
+impl<R: Block> RegisterSender<R>
+where
+    R::Address: Send,
+{
+    /// Constructs a new RegisterSender for the given register block.
+    /// # Safety
+    /// 1. `address` must point to register(s) on the bus corresponding to `Self::Address`.
+    /// 2. The register(s)' definition (as provided to the [`registers`](macro@crate::registers)
+    ///    macro) must correctly describe the pointed-to register(s).
+    /// 3. Nothing other than handles returned by [`borrow`](Self::borrow) (and handles derived
+    ///    from them) may be used to access this register block.
+    pub unsafe fn new(address: R::Address) -> Self {
+        Self {
+            address,
+            _phantom: PhantomData,
+        }
+    }
+
+    /// Borrows this `RegisterSender`, returning a handle that can be used to access the
+    /// register(s) it points to. Because the returned handle borrows this `RegisterSender`, the
+    /// returned handles must be dropped before the `RegisterSender` can be sent to another thread.
+    pub fn borrow(&self) -> R::Borrowed<'_> {
+        let borrowed_bus = BorrowedBus::new(self.address);
+        // Safety: All of the requirements for Block::new() were met by the caller when they called
+        // `RegisterSender::new`.
+        unsafe { R::Borrowed::new(borrowed_bus) }
+    }
+}

@@ -16,7 +16,12 @@ add:
 
 ```rust
 #[derive(Clone, Copy)]
-pub struct MyBus(pub u8);
+pub struct MyBus {
+    pub address: u8,
+    // Used to make MyBus !Sync, which is not needed but can help prevent
+    // misuse (for the same reason as why raw pointers are !Sync).
+    _phantom: core::marker::PhantomData<*mut ()>,
+}
 ```
 
 You should then implement the following traits:
@@ -25,6 +30,8 @@ You should then implement the following traits:
 1. `Bus<T>` for each value type `T` that this bus supports.
 1. `BusRead<T>` and/or `BusWrite<T>` for each value type for which this bus
    should support the `Read`/`Write` operations.
+1. `Send`, if you want to be able to use `RegisterSender` to move registers
+   between threads. If the bus is thread-local, then do not implement `Send`.
 
 Note that `Bus::PADDED_SIZE` should be the size of the value type `T` on the
 *target* system, not on the system that we are currently compiling for. That is
@@ -77,7 +84,8 @@ macro_rules! MyOperation {
         impl<B: Bus + /* Your Bus* trait */> $crate::MyOperation
             for $name<B>
         {
-            // Your trait implementation goes here
+            // Your trait implementation goes here. Use self.address to retrieve
+            // the register's address.
         }
     };
     // Catch-all case that emits nothing if registers! invokes it with an unknown first argument.

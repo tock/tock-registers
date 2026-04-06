@@ -3,9 +3,7 @@
 // Copyright Tock Contributors 2026.
 // Copyright Better Bytes 2026.
 
-// TODO: Figure out multi-core support. How do we make the real types !Send (by making the Buses
-//       not Send?). Do we add some sort of RegisterSender? Can the lifetime be on the bus or does
-//       it have to be on Real<> (perhaps a BorrowedBus<'s, B: Bus>?)?
+// TODO: Can we support generic buses? E.g. LiteX<const C, const B>.
 // TODO: Make operations with generic arguments work, and update the documentation for adding new
 //       operations (as this will probably add an argument to the operation macro interface). It
 //       looks like ast should still use syn::Path to represent operations, but parsing should
@@ -99,10 +97,14 @@ fn register_definition(
     let new_comment = new_doc_comment();
     let element_type = &register.element_type;
     quote! {
-        #docs
-        pub struct #struct_name<B: Bus>(B);
+        #docs pub struct #struct_name<B: Bus> {
+            address: B,
+            _phantom: #tock_registers::internal::RealPhantom,
+        }
         impl<B: Bus> #struct_name<B> {
-            #new_comment pub const unsafe fn new(address: B) -> Self { Self(address) }
+            #new_comment pub const unsafe fn new(address: B) -> Self {
+                Self { address, _phantom: #tock_registers::internal::RealPhantom::new() }
+            }
         }
         impl<B: Bus> #tock_registers::internal::core::clone::Clone for #struct_name<B> {
             #[inline] fn clone(&self) -> Self { *self }
@@ -111,7 +113,10 @@ fn register_definition(
         impl<B: Bus> #tock_registers::Block for #struct_name<B> {
             type Address = B;
             const SIZE: usize = <B as #tock_registers::DataTypeBus<#element_type>>::PADDED_SIZE;
-            unsafe fn new(address: B) -> Self { Self(address) }
+            unsafe fn new(address: B) -> Self {
+                Self { address, _phantom: #tock_registers::internal::RealPhantom::new()  }
+            }
+            type Borrowed<'b> = #struct_name<#tock_registers::BorrowedBus<'b, B>>;
         }
         impl<B: Bus> #tock_registers::Register for #struct_name<B> {
             type DataType = #element_type;

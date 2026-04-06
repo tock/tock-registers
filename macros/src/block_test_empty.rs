@@ -34,11 +34,20 @@ fn empty() {
             impl sealed::Bus for Mmio32 {}
             impl Bus for Mmio64 { const BLOCK_SIZE: usize = 0; }
             impl sealed::Bus for Mmio64 {}
+            impl<B: Bus> Bus for ::tock_registers::BorrowedBus<'_, B> {
+                const BLOCK_SIZE: usize = <B as Bus>::BLOCK_SIZE;
+            }
+            impl<B: Bus> sealed::Bus for ::tock_registers::BorrowedBus<'_, B> {}
             const _: () = {};
             mod sealed { pub trait Bus {} }
-            #real_comment pub struct Real<B: Bus>(B);
+            #real_comment pub struct Real<B: Bus> {
+                address: B,
+                _phantom: ::tock_registers::internal::RealPhantom,
+            }
             impl<B: Bus> Real<B> {
-                #new_comment pub const unsafe fn new(address: B) -> Self { Self(address) }
+                #new_comment pub const unsafe fn new(address: B) -> Self {
+                    Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
+                }
             }
             impl<B: Bus> ::tock_registers::internal::core::clone::Clone for Real<B> {
                 #[inline] fn clone(&self) -> Self { *self }
@@ -48,7 +57,10 @@ fn empty() {
             impl<B: Bus> ::tock_registers::Block for Real<B> {
                 type Address = B;
                 const SIZE: usize = <B as Bus>::BLOCK_SIZE;
-                unsafe fn new(address: B) -> Self { Self(address) }
+                unsafe fn new(address: B) -> Self {
+                    Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
+                }
+                type Borrowed<'b> = Real<::tock_registers::BorrowedBus<'b, B>>;
             }
         }
     };

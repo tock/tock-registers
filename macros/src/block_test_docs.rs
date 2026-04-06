@@ -93,6 +93,10 @@ fn doc_comments() {
                     <<Real<Mmio64> as Interface>::array_reference as ::tock_registers::Block>::SIZE;
             }
             impl sealed::Bus for Mmio64 {}
+            impl<B: Bus> Bus for ::tock_registers::BorrowedBus<'_, B> {
+                const BLOCK_SIZE: usize = <B as Bus>::BLOCK_SIZE;
+            }
+            impl<B: Bus> sealed::Bus for ::tock_registers::BorrowedBus<'_, B> {}
             const _: () = {
                 assert!(0 == 0, "offset mismatch");
                 assert!(0 == 0, "offset mismatch");
@@ -111,7 +115,10 @@ fn doc_comments() {
             };
             mod sealed { pub trait Bus {} }
             /// Struct implementing [Interface] for use with the real hardware.
-            pub struct Real<B: Bus>(B);
+            pub struct Real<B: Bus> {
+                address: B,
+                _phantom: ::tock_registers::internal::RealPhantom,
+            }
             impl<B: Bus> Real<B> {
                 /// Constructs an accessor for this register or register block.
                 /// # Safety
@@ -124,7 +131,9 @@ fn doc_comments() {
                 ///    causes data races. The exact requirements depend on the hardware,
                 ///    but it's usually best to access a register from only one thread
                 ///    at a time.
-                pub const unsafe fn new(address: B) -> Self { Self(address) }
+                pub const unsafe fn new(address: B) -> Self {
+                    Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
+                }
             }
             impl<B: Bus> ::tock_registers::internal::core::clone::Clone for Real<B> {
                 #[inline] fn clone(&self) -> Self { *self }
@@ -141,7 +150,7 @@ fn doc_comments() {
                 fn scalar_definition(self) -> Self::scalar_definition {
                     unsafe {
                         Self::scalar_definition::new(
-                            self.0.byte_add(<B as Bus>::scalar_definition_offset))
+                            self.address.byte_add(<B as Bus>::scalar_definition_offset))
                     }
                 }
                 type array_definition = ::tock_registers::RealRegisterArray<
@@ -149,14 +158,14 @@ fn doc_comments() {
                 fn array_definition(self) -> Self::array_definition {
                     unsafe {
                         Self::array_definition::new(
-                            self.0.byte_add(<B as Bus>::array_definition_offset))
+                            self.address.byte_add(<B as Bus>::array_definition_offset))
                     }
                 }
                 type scalar_reference = a::Real<B>;
                 fn scalar_reference(self) -> Self::scalar_reference {
                     unsafe {
                         Self::scalar_reference::new(
-                            self.0.byte_add(<B as Bus>::scalar_reference_offset))
+                            self.address.byte_add(<B as Bus>::scalar_reference_offset))
                     }
                 }
                 type array_reference = ::tock_registers::RealRegisterArray<
@@ -164,18 +173,24 @@ fn doc_comments() {
                 fn array_reference(self) -> Self::array_reference {
                     unsafe {
                         Self::array_reference::new(
-                            self.0.byte_add(<B as Bus>::array_reference_offset))
+                            self.address.byte_add(<B as Bus>::array_reference_offset))
                     }
                 }
             }
             impl<B: Bus> ::tock_registers::Block for Real<B> {
                 type Address = B;
                 const SIZE: usize = <B as Bus>::BLOCK_SIZE;
-                unsafe fn new(address: B) -> Self { Self(address) }
+                unsafe fn new(address: B) -> Self {
+                    Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
+                }
+                type Borrowed<'b> = Real<::tock_registers::BorrowedBus<'b, B>>;
             }
             #[doc =
                 "Struct that provides access to the `scalar_definition` register on real hardware."]
-            pub struct real_scalar_definition<B: Bus>(B);
+            pub struct real_scalar_definition<B: Bus> {
+                address: B,
+                _phantom: ::tock_registers::internal::RealPhantom,
+            }
             impl<B: Bus> real_scalar_definition<B> {
                 /// Constructs an accessor for this register or register block.
                 /// # Safety
@@ -188,7 +203,9 @@ fn doc_comments() {
                 ///    causes data races. The exact requirements depend on the hardware,
                 ///    but it's usually best to access a register from only one thread
                 ///    at a time.
-                pub const unsafe fn new(address: B) -> Self { Self(address) }
+                pub const unsafe fn new(address: B) -> Self {
+                    Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
+                }
             }
             impl<B: Bus> ::tock_registers::internal::core::clone::Clone
             for real_scalar_definition<B> { #[inline] fn clone(&self) -> Self { *self } }
@@ -197,7 +214,10 @@ fn doc_comments() {
             impl<B: Bus> ::tock_registers::Block for real_scalar_definition<B> {
                 type Address = B;
                 const SIZE: usize = <B as ::tock_registers::DataTypeBus<u8>>::PADDED_SIZE;
-                unsafe fn new(address: B) -> Self { Self(address) }
+                unsafe fn new(address: B) -> Self {
+                    Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
+                }
+                type Borrowed<'b> = real_scalar_definition<::tock_registers::BorrowedBus<'b, B>>;
             }
             impl<B: Bus> ::tock_registers::Register for real_scalar_definition<B> {
                 type DataType = u8;
@@ -206,7 +226,10 @@ fn doc_comments() {
             Write!(real_impl, real_scalar_definition, u8,);
             #[doc =
                 "Struct that provides access to the `array_definition` register on real hardware."]
-            pub struct real_array_definition<B: Bus>(B);
+            pub struct real_array_definition<B: Bus> {
+                address: B,
+                _phantom: ::tock_registers::internal::RealPhantom,
+            }
             impl<B: Bus> real_array_definition<B> {
                 /// Constructs an accessor for this register or register block.
                 /// # Safety
@@ -219,7 +242,9 @@ fn doc_comments() {
                 ///    causes data races. The exact requirements depend on the hardware,
                 ///    but it's usually best to access a register from only one thread
                 ///    at a time.
-                pub const unsafe fn new(address: B) -> Self { Self(address) }
+                pub const unsafe fn new(address: B) -> Self {
+                    Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
+                }
             }
             impl<B: Bus> ::tock_registers::internal::core::clone::Clone
             for real_array_definition<B> { #[inline] fn clone(&self) -> Self { *self } }
@@ -228,7 +253,10 @@ fn doc_comments() {
             impl<B: Bus> ::tock_registers::Block for real_array_definition<B> {
                 type Address = B;
                 const SIZE: usize = <B as ::tock_registers::DataTypeBus<u8>>::PADDED_SIZE;
-                unsafe fn new(address: B) -> Self { Self(address) }
+                unsafe fn new(address: B) -> Self {
+                    Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
+                }
+                type Borrowed<'b> = real_array_definition<::tock_registers::BorrowedBus<'b, B>>;
             }
             impl<B: Bus> ::tock_registers::Register for real_array_definition<B> {
                 type DataType = u8;

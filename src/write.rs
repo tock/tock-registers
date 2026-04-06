@@ -5,7 +5,7 @@
 
 use crate::{fields::FieldValue, DataType, LocalRegisterCopy, Read, Register};
 #[cfg(feature = "register_types")]
-use crate::{Bus, UIntLike};
+use crate::{Address, BorrowedBus, Bus, UIntLike};
 
 /// A register that can be written.
 pub trait Write: Register {
@@ -74,6 +74,15 @@ pub trait BusWrite<T: UIntLike>: Bus<T> {
     unsafe fn write(self, value: T);
 }
 
+#[cfg(feature = "register_types")]
+impl<'b, T: UIntLike, A: Address + BusWrite<T>> BusWrite<T> for BorrowedBus<'b, A> {
+    unsafe fn write(self, value: T) {
+        // Safety: We are the same Bus as A, so the caller has already satisfied all the
+        // requirements of write.
+        unsafe { self.address().write(value) }
+    }
+}
+
 /// The macro that goes along with the Write trait. We don't expect this macro to be used by
 /// tock_register's users, instead it is invoked by the generated code.
 #[cfg(feature = "register_types")]
@@ -90,7 +99,7 @@ macro_rules! Write {
                 // Safety: The caller assured this GenericReal points at a register on bus B with
                 // value type $datatype::Value that is safe to write. The code that constructed
                 // `self` guaranteed that they would avoid data races (precondition of Self::new).
-                unsafe { self.0.write(value) }
+                unsafe { self.address.write(value) }
             }
         }
     };

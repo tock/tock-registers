@@ -23,6 +23,7 @@ pub fn generate(tock_registers: &Path, definition: &Definition, fields: &[Field]
     let buses = &definition.buses;
     let mut block_sizes: Vec<_> = (0..buses.len()).map(|_| quote![0]).collect();
     let mut bus_offset_defs: Vec<_> = (0..buses.len()).map(|_| TokenStream::new()).collect();
+    let mut borrowed_bus_defs = TokenStream::new();
     let mut offset_tests = TokenStream::new();
     let real_comment = real_doc_comment();
     let new_comment = new_doc_comment();
@@ -86,6 +87,8 @@ pub fn generate(tock_registers: &Path, definition: &Definition, fields: &[Field]
                 for (bus_idx, offset) in offsets.iter().enumerate() {
                     bus_offset_defs[bus_idx].extend(quote![const #name_offset: usize = #offset;]);
                 }
+                borrowed_bus_defs
+                    .extend(quote![const #name_offset: usize = <B as Bus>::#name_offset;]);
                 quote![const #name_offset: usize;]
             }
             PerBusInt::Single(offset) => quote![const #name_offset: usize = #offset;],
@@ -105,16 +108,16 @@ pub fn generate(tock_registers: &Path, definition: &Definition, fields: &[Field]
             fn #name(self) -> Self::#name {
                 // Safety (see crate::new_doc_comment() for requirements):
                 // 1. When Self::new was called to construct `self`, the caller guaranteed that the
-                //    passed address (which became self.0) points to registers on the bus of type
-                //    B.
+                //    passed address points to registers on the bus of type B.
                 // 2. The definition of this register block is correct (guaranteed by the caller of
                 //    Self::new), which guarantees that a register corresponding to the #real type
-                //    exists at B::name_offset.
+                //    exists at B::name_offset. This also guarantees that the byte_add does not
+                //    leave the register block.
                 // 3. The user of this struct is responsible for using the entire register block in
                 //    a way that avoids data races, which includes the responsibility to avoid data
                 //    races on individual fields of the register block.
                 unsafe {
-                    Self::#name::new(self.0.byte_add(<B as Bus>::#name_offset))
+                    Self::#name::new(self.address.byte_add(<B as Bus>::#name_offset))
                 }
             }
         });
@@ -140,11 +143,21 @@ pub fn generate(tock_registers: &Path, definition: &Definition, fields: &[Field]
                 }
                 impl sealed::Bus for #buses {}
             )*
+            impl<B: Bus> Bus for #tock_registers::BorrowedBus<'_, B> {
+                const BLOCK_SIZE: usize = <B as Bus>::BLOCK_SIZE;
+                #borrowed_bus_defs
+            }
+            impl<B: Bus> sealed::Bus for #tock_registers::BorrowedBus<'_, B> {}
             const _: () = { #offset_tests };
             mod sealed { pub trait Bus {} }
-            #real_comment pub struct Real<B: Bus>(B);
+            #real_comment pub struct Real<B: Bus> {
+                address: B,
+                _phantom: #tock_registers::internal::RealPhantom,
+            }
             impl<B: Bus> Real<B> {
-                #new_comment pub const unsafe fn new(address: B) -> Self { Self(address) }
+                #new_comment pub const unsafe fn new(address: B) -> Self {
+                    Self { address, _phantom: #tock_registers::internal::RealPhantom::new() }
+                }
             }
             impl<B: Bus> #tock_registers::internal::core::clone::Clone for Real<B> {
                 #[inline] fn clone(&self) -> Self { *self }
@@ -156,7 +169,10 @@ pub fn generate(tock_registers: &Path, definition: &Definition, fields: &[Field]
             impl<B: Bus> #tock_registers::Block for Real<B> {
                 type Address = B;
                 const SIZE: usize = <B as Bus>::BLOCK_SIZE;
-                unsafe fn new(address: B) -> Self { Self(address) }
+                unsafe fn new(address: B) -> Self {
+                    Self { address, _phantom: #tock_registers::internal::RealPhantom::new() }
+                }
+                type Borrowed<'b> = Real<#tock_registers::BorrowedBus<'b, B>>;
             }
             #real_structs
         }

@@ -78,7 +78,7 @@ mod peripheral {
     impl Bus for Mmio32 {}
 
     // Implementation of `Interface` for use on the real chip
-    pub struct Real<B: Bus>(/* omitted */);
+    pub struct Real<B: Bus> { /* omitted */ }
 
     impl<B: Bus> Interface for Real<B> { /* omitted */ }
 }

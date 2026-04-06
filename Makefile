@@ -10,5 +10,9 @@ test:
 	+RUSTFLAGS="-D warnings" cargo clippy --workspace
 	+RUSTDOCFLAGS="-D warnings" cargo doc --workspace
 	+cargo fmt --all --check
+	$(MAKE) miri_test
+
+.PHONY: miri_test
+miri_test:
 	+cd nightly && RUSTFLAGS="-D warnings" \
 		cargo miri test --all-targets --manifest-path=../Cargo.toml --workspace
