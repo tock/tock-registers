@@ -92,7 +92,7 @@ pub use fake_register::{FakeRegister, NoAccess, Safe, Unsafe};
 #[cfg(feature = "register_types")]
 mod mmio;
 #[cfg(feature = "register_types")]
-pub use mmio::{Mmio32, Mmio64};
+pub use mmio::{Mmio32, Mmio32Nullable, Mmio64, Mmio64Nullable};
 
 mod read;
 #[cfg(feature = "register_types")]

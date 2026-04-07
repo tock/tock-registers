@@ -3,10 +3,6 @@
 // Copyright Tock Contributors 2026.
 // Copyright Better Bytes 2026.
 
-// TODO: We should have separate types for non-null pointers and nullable pointers. Implement that.
-//       Can we make the nullability a generic argument so we don't have to write everything 2x?
-// TODO: Make it easier to construct Mmio32/Mmio64.
-// TODO: Decide whether Mmio32 should have a Bus<u64> impl.
 // TODO: Implement ExactIndexArray. Do we move LEN to be a trait parameter, or do we have to update
 //       parsing code?
 // TODO: Implement FakeArrayRegister.
@@ -25,8 +21,6 @@
 //       3. Errors where we can still generate code (e.g. multiple #[aliased] attributes)
 // TODO: Implement a arm64_secure_vm feature (see the TODO in src/mmio.rs).
 // TODO: Investigate adding typestates into the API.
-// TODO: Investigate dependency reductions (both syn/quote/proc-macro2 and
-//       prettyplease/pretty-assertions).
 // TODO: Re-evaluate which `syn` features we need (is full necessary?).
 
 // Questions to ask the group:

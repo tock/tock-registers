@@ -5,7 +5,7 @@
 
 //! Tests passing a RegisterSender between threads and using it to access a single peripheral.
 
-use std::{sync::mpsc::channel, thread::spawn};
+use std::{ptr::NonNull, sync::mpsc::channel, thread::spawn};
 use tock_registers::{mmio64_registers, Mmio64, Read, RegisterSender, Write};
 
 mmio64_registers! {
@@ -28,8 +28,8 @@ fn two_threads() {
         register_sender
     });
     let mut peripheral: u8 = 1;
-    let address = Mmio64((&raw mut peripheral).cast());
-    let register_sender = unsafe { RegisterSender::<counter::Real<_>>::new(address) };
+    let mmio = Mmio64::new(NonNull::from(&mut peripheral).cast());
+    let register_sender = unsafe { RegisterSender::<counter::Real<_>>::new(mmio) };
     // Use the RegisterSender from this thread.
     assert_eq!(register_sender.borrow().ctrl().get(), 1);
     register_sender.borrow().ctrl().set(2);

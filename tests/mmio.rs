@@ -3,7 +3,7 @@
 // Copyright Tock Contributors 2026.
 // Copyright Better Bytes 2026.
 
-use core::cell::UnsafeCell;
+use std::{cell::UnsafeCell, ptr::NonNull};
 use tock_registers::{registers, Mmio32, Mmio64, Read, RegisterArray, Write};
 use {inner_block::Interface as _, outer_block::Interface as _};
 
@@ -79,7 +79,8 @@ fn mmio32() {
             },
         ],
     });
-    let registers = unsafe { outer_block::Real::new(Mmio32(peripheral.get().cast())) };
+    let mmio = Mmio32::new(NonNull::new(peripheral.get()).unwrap().cast());
+    let registers = unsafe { outer_block::Real::new(mmio) };
     // Pointer offset validation: verifies that pointer offsets are correctly calculated through
     // the various field types.
     assert_eq!(registers.scalar().get(), 1);
@@ -177,7 +178,8 @@ fn mmio64() {
             },
         ],
     });
-    let registers = unsafe { outer_block::Real::new(Mmio64(peripheral.get().cast())) };
+    let mmio = Mmio64::new(NonNull::new(peripheral.get()).unwrap().cast());
+    let registers = unsafe { outer_block::Real::new(mmio) };
     // Pointer offset validation: verifies that pointer offsets are correctly calculated through
     // the various field types.
     assert_eq!(registers.scalar().get(), 1);
