@@ -3,15 +3,16 @@
 // Copyright Tock Contributors 2026.
 // Copyright Better Bytes 2026.
 
-// TODO: Implement FakeArrayRegister.
+// TODO: Allow inferring padding sizes.
+// TODO: Are doc comments on padding desirable? If not -> remove support (AST update?).
 // TODO: Implement UnimplementedRegister, add to operation documentation.
 // TODO: Implement macro that automatically provides the type defs for Interface trait impls.
 // TODO: Implement UnsafeRead/UnsafeWrite. Should they be supertraits of Read/Write or independent?
+// TODO: Implement a RegisterArray iterator.
 // TODO: Add --all-targets or --all to the clippy run in the Makefile (requires fixing existing
 //       code).
 // TODO: Implement a "clippy test" -> a crate that uses tock-registers with as many lints as
 //       possible enabled (to verify we don't trip any of them).
-// TODO: Are doc comments on padding desirable? If not -> remove support (AST update?).
 // TODO: Improve parse error handling. There might be three classes of errors:
 //       1. Errors which immediately terminate parsing (e.g. unexpected token)
 //       2. Errors which prevent generating code, but allow parsing to continue (e.g. register

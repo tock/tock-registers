@@ -3,7 +3,7 @@
 // Copyright Tock Contributors 2026.
 // Copyright Better Bytes 2026.
 
-use crate::{DataType, LocalRegisterCopy, Read, Register, Write};
+use crate::{DataType, LocalRegisterCopy, Read, Register, RegisterArray, Write};
 
 /// A fake register, for use in unit tests.
 ///
@@ -19,8 +19,8 @@ use crate::{DataType, LocalRegisterCopy, Read, Register, Write};
 /// /// Fake version of the RNG peripheral which outputs incrementing "random" bytes.
 /// struct FakeRng(Cell<u8>);
 /// // Instead of defining a FakeRandomByte struct and implementing Register<DataType = u8> and
-/// // Read on it, this implementation uses FakeRandom. This saves a lot of boilerplate, especially
-/// // when a peripheral has many registers.
+/// // Read on it, this implementation uses FakeRegister. This saves a lot of boilerplate,
+/// // especially when a peripheral has many registers.
 /// impl rng::Interface for &FakeRng {
 ///     type random_byte = FakeRegister<Self, u8, Safe, NoAccess>;
 ///     fn random_byte(self) -> FakeRegister<Self, u8, Safe, NoAccess> {
@@ -188,3 +188,62 @@ mod sealed {
 impl sealed::Access for NoAccess {}
 impl sealed::Access for Safe {}
 impl sealed::Access for Unsafe {}
+
+/// A fake register array, for use in unit tests.
+///
+/// ```
+/// # use std::cell::Cell;
+/// # use tock_registers::{mmio32_registers, FakeRegister, FakeRegisterArray};
+/// # use tock_registers::{LocalRegisterCopy, Read, Write, Safe};
+/// mmio32_registers! {
+///     /// An array of registers that remember values written into them.
+///     storage {
+///         0 => scratch: [u8; 4] { Read, Write },
+///     }
+/// }
+/// /// Fake version of the storage peripheral.
+/// struct Fake([Cell<u8>; 4]);
+/// impl<'f> storage::Interface for &'f Fake {
+///     type scratch = FakeRegisterArray<Self, FakeRegister<&'f Cell<u8>, u8, Safe, Safe>, 4>;
+///     fn scratch(self) -> Self::scratch {
+///         FakeRegisterArray::new(self, |s, i| Some(
+///             FakeRegister::new(s.0.get(i)?)
+///                 .on_read(|c| LocalRegisterCopy::new(c.get()))
+///                 .on_write(|c, v| c.set(v.get()))
+///         ))
+///     }
+/// }
+/// # fn main() {}
+/// ```
+///
+/// Unlike FakeRegister, FakeRegisterArray is not limited to the Read and Write operations. You can
+/// embed any element type in it (including a fake version of a register block).
+#[derive(Clone, Copy)]
+pub struct FakeRegisterArray<Data: Copy, Element: Copy, const LEN: usize> {
+    data: Data,
+    get: fn(Data, usize) -> Option<Element>,
+}
+
+impl<Data: Copy, Element: Copy, const LEN: usize> FakeRegisterArray<Data, Element, LEN> {
+    /// Constructs a new FakeRegisterArray. Whenever the array is indexed (using
+    /// [RegisterArray::get] or [RegisterArray::get_unchecked]), `get_fcn` is called and passed
+    /// `data` and the index.
+    ///
+    /// Note that `get_fcn` must return `None` if the index is `>= LEN`. FakeRegisterArray does not
+    /// perform the bounds check, because it is expected that most `get_fcn` implementations will
+    /// need to perform that bounds check anyway (as they will likely be indexing into a Rust
+    /// array).
+    pub const fn new(data: Data, get_fcn: fn(Data, usize) -> Option<Element>) -> Self {
+        Self { data, get: get_fcn }
+    }
+}
+
+impl<Data: Copy, Element: Copy, const LEN: usize> RegisterArray<LEN>
+    for FakeRegisterArray<Data, Element, LEN>
+{
+    type Element = Element;
+
+    fn get(self, index: usize) -> Option<Element> {
+        (self.get)(self.data, index)
+    }
+}

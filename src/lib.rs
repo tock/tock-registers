@@ -87,7 +87,7 @@ mod bus;
 pub use bus::{Address, Block, BorrowedBus, Bus, DataTypeBus, RegisterSender};
 
 mod fake_register;
-pub use fake_register::{FakeRegister, NoAccess, Safe, Unsafe};
+pub use fake_register::{FakeRegister, FakeRegisterArray, NoAccess, Safe, Unsafe};
 
 #[cfg(feature = "register_types")]
 mod mmio;

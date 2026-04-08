@@ -76,7 +76,7 @@ mod tests {
 }
 ```
 
-See [examples/rng.rs] a complete example here.
+See [examples/rng.rs] for the complete example.
 
 Of course, you also need the "real" (non-unit-test) version of this code. You
 can add a new function to do that:

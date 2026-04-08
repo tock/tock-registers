@@ -11,19 +11,27 @@ pub trait RegisterArray<const LEN: usize>: Copy {
     /// The type of each element of this array.
     type Element: Copy;
 
+    // Default implementations of get() and get_unchecked() are provided that depend on each other.
+    // RealArray implementations need to implement at least one of the methods to avoid infinite
+    // recursion. In general, Real register implementations (such as RealRegisterArray) will
+    // implement get_unchecked(), while fake implementations (for unit testing) will probably
+    // implement get().
+
     /// Returns the `index`-th element of this array, or `None` if `index >= LEN`.
     fn get(self, index: usize) -> Option<Self::Element> {
         if index >= LEN {
             return None;
         }
-        // Safety: We returned early if `index >= Self::LEN`, so because `index` is an integer type
-        // we know that `index < Self::LEN`.
+        // Safety: We returned early if `index >= LEN`, so because `index` is an integer type we
+        // know that `index < LEN`.
         Some(unsafe { self.get_unchecked(index) })
     }
 
     /// Returns the `index`-th element of this array.
     /// # Safety
     /// `index` must be less than `LEN`
+    // Because this default implementation will only be used in testing environments, it's okay
+    // (and beneficial) for it to have a runtime check.
     unsafe fn get_unchecked(self, index: usize) -> Self::Element {
         self.get(index).unwrap_or_else(|| {
             panic!("get_unchecked called with out-of-bounds index {index}; len = {LEN}")
