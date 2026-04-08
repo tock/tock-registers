@@ -40,14 +40,14 @@ fn all_field_types_example() {
                 type scalar_definition:
                     ::tock_registers::Register<DataType = u8> + Read + Dance<Waltz>;
                 fn scalar_definition(self) -> Self::scalar_definition;
-                type array_definition: ::tock_registers::RegisterArray<Element:
-                    ::tock_registers::RegisterArray<Element:
+                type array_definition: ::tock_registers::RegisterArray<3, Element:
+                    ::tock_registers::RegisterArray<2, Element:
                         ::tock_registers::Register<DataType = u8> + Read + Write> >;
                 fn array_definition(self) -> Self::array_definition;
                 type scalar_reference: a::Interface;
                 fn scalar_reference(self) -> Self::scalar_reference;
-                type array_reference: ::tock_registers::RegisterArray<Element:
-                    ::tock_registers::RegisterArray<Element: b::Interface> >;
+                type array_reference: ::tock_registers::RegisterArray<3, Element:
+                    ::tock_registers::RegisterArray<2, Element: b::Interface> >;
                 fn array_reference(self) -> Self::array_reference;
             }
             #[allow(non_upper_case_globals)]

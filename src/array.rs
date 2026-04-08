@@ -5,17 +5,15 @@
 
 use crate::{internal::RealPhantom, Address, Block};
 
-/// Interface for an array of registers (or register blocks, or register arrays).
-pub trait RegisterArray: Copy {
+/// Interface for an array of registers (or register blocks, or register arrays). Each register
+/// type should only implement RegisterArray for a single LEN.
+pub trait RegisterArray<const LEN: usize>: Copy {
     /// The type of each element of this array.
     type Element: Copy;
 
-    /// The number of elements of this array.
-    const LEN: usize;
-
     /// Returns the `index`-th element of this array, or `None` if `index >= LEN`.
     fn get(self, index: usize) -> Option<Self::Element> {
-        if index >= Self::LEN {
+        if index >= LEN {
             return None;
         }
         // Safety: We returned early if `index >= Self::LEN`, so because `index` is an integer type
@@ -28,10 +26,7 @@ pub trait RegisterArray: Copy {
     /// `index` must be less than `LEN`
     unsafe fn get_unchecked(self, index: usize) -> Self::Element {
         self.get(index).unwrap_or_else(|| {
-            panic!(
-                "get_unchecked called with out-of-bounds index {index}; len = {}",
-                Self::LEN
-            )
+            panic!("get_unchecked called with out-of-bounds index {index}; len = {LEN}")
         })
     }
 }
@@ -76,9 +71,8 @@ impl<Element: Block, const LEN: usize> Block for RealRegisterArray<Element, LEN>
     type Borrowed<'b> = RealRegisterArray<Element::Borrowed<'b>, LEN>;
 }
 
-impl<Element: Block, const LEN: usize> RegisterArray for RealRegisterArray<Element, LEN> {
+impl<Element: Block, const LEN: usize> RegisterArray<LEN> for RealRegisterArray<Element, LEN> {
     type Element = Element;
-    const LEN: usize = LEN;
 
     unsafe fn get_unchecked(self, index: usize) -> Element {
         let offset = index * Element::SIZE;

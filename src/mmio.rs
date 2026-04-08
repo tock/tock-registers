@@ -52,8 +52,8 @@ mmio_structs! {
     Mmio64Nullable(*mut ())
 }
 
-/// Macro to provide the with_addr functions for the non-nullable Mmio* structs.
-macro_rules! with_addr_nonnull {
+/// Macro to provide the from_addr functions for the non-nullable Mmio* structs.
+macro_rules! from_addr_nonnull {
     [$($name:ident)*] => {$(impl $name {
         /// Constructs a new MMIO register bus pointing to the given address. If you have an
         /// address from a datasheet and want to access it as a register struct, this is probably
@@ -69,7 +69,7 @@ macro_rules! with_addr_nonnull {
         /// pointer cannot be determined to be null or not. If you want to access a register at
         /// address 0, use one of the nullable MMIO structs.
         #[track_caller]
-        pub const fn with_addr(addr: usize) -> Self {
+        pub const fn from_addr(addr: usize) -> Self {
             // TODO: Once the MSRV reaches:
             // 1.84: replace the pointer cast with core::ptr::without_provenance_mut
             // 1.85: replace NonNull::new_unchecked with NonNull::new
@@ -85,10 +85,10 @@ macro_rules! with_addr_nonnull {
     })*}
 }
 
-with_addr_nonnull![Mmio32 Mmio64];
+from_addr_nonnull![Mmio32 Mmio64];
 
-/// Macro to provide the with_addr functions for the Mmio*Nullable structs.
-macro_rules! with_addr_nullable {
+/// Macro to provide the from_addr functions for the Mmio*Nullable structs.
+macro_rules! from_addr_nullable {
     [$($name:ident)*] => {$(impl $name {
         /// Constructs a new MMIO register bus pointing to the given address. If you have an
         /// address from a datasheet and want to access it as a register struct, this is probably
@@ -98,7 +98,7 @@ macro_rules! with_addr_nullable {
         /// memory, but it means it cannot be used to access Rust memory. If you want to access
         /// Rust memory (i.e. if this is pointing somewhere other than MMIO memory) then you must
         /// use [`new`](Self::new) to construct this bus instead.
-        pub const fn with_addr(addr: usize) -> Self {
+        pub const fn from_addr(addr: usize) -> Self {
             // TODO: Once the MSRV reaches 1.84, replace this cast with
             // core::ptr::without_provenance_mut.
             Self(addr as *mut ())
@@ -106,7 +106,7 @@ macro_rules! with_addr_nullable {
     })*}
 }
 
-with_addr_nullable![Mmio32Nullable Mmio64Nullable];
+from_addr_nullable![Mmio32Nullable Mmio64Nullable];
 
 // TODO: Implement a arm64_secure_vm feature that uses confidential-vm-safe instructions:
 // https://github.com/google/safe-mmio/blob/main/src/aarch64_mmio.rs

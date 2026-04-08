@@ -3,8 +3,6 @@
 // Copyright Tock Contributors 2026.
 // Copyright Better Bytes 2026.
 
-// TODO: Implement ExactIndexArray. Do we move LEN to be a trait parameter, or do we have to update
-//       parsing code?
 // TODO: Implement FakeArrayRegister.
 // TODO: Implement UnimplementedRegister, add to operation documentation.
 // TODO: Implement macro that automatically provides the type defs for Interface trait impls.

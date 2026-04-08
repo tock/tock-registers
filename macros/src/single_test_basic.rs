@@ -107,8 +107,8 @@ fn array_definition_example() {
             // For arrays, we wrap the element's operations in a RegisterArray<> trait (nesting if
             // the array is nested). I'd like to constrain LEN here, but Rust does not support
             // equality constraints on associated constants yet, so that has to be unconstrained.
-            #interface_comment pub trait Interface: ::tock_registers::RegisterArray<
-                Element: ::tock_registers::RegisterArray<
+            #interface_comment pub trait Interface: ::tock_registers::RegisterArray<3,
+                Element: ::tock_registers::RegisterArray<2,
                     Element: ::tock_registers::Register<DataType = u8> + Read + Write
                 >
             > {}
@@ -207,8 +207,8 @@ fn array_reference_example() {
     let expected = quote! {
         pub mod foo {
             use super::*;
-            #interface_comment pub trait Interface: ::tock_registers::RegisterArray<
-                Element: ::tock_registers::RegisterArray<Element: status::Interface>
+            #interface_comment pub trait Interface: ::tock_registers::RegisterArray<3,
+                Element: ::tock_registers::RegisterArray<2, Element: status::Interface>
             > {}
             #bus_comment pub trait Bus: status::Bus + sealed::Bus {}
             impl Bus for Mmio32 {}

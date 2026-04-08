@@ -115,8 +115,8 @@ fn array_definition() {
             use super::*;
             /// Trait representing this register's operations. Driver code can use this trait to work
             /// with both real hardware and fake implementations of the register (for unit testing).
-            pub trait Interface: ::tock_registers::RegisterArray<
-                Element: ::tock_registers::RegisterArray<
+            pub trait Interface: ::tock_registers::RegisterArray<3,
+                Element: ::tock_registers::RegisterArray<2,
                     Element: ::tock_registers::Register<DataType = u8> + Read + Write
                 >
             > {}
@@ -244,8 +244,8 @@ fn array_reference() {
             use super::*;
             /// Trait representing this register's operations. Driver code can use this trait to work
             /// with both real hardware and fake implementations of the register (for unit testing).
-            pub trait Interface: ::tock_registers::RegisterArray<
-                Element: ::tock_registers::RegisterArray<Element: status::Interface>
+            pub trait Interface: ::tock_registers::RegisterArray<3,
+                Element: ::tock_registers::RegisterArray<2, Element: status::Interface>
             > {}
             /// Buses supported by this register.
             pub trait Bus: status::Bus + sealed::Bus {}

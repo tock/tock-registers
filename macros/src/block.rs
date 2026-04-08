@@ -74,7 +74,8 @@ pub fn generate(tock_registers: &Path, definition: &Definition, fields: &[Field]
         };
         interface_bounds.extend(quote![#real: #interface_bound,]);
         for array_size in &register.array_sizes {
-            interface_bound = quote![#tock_registers::RegisterArray<Element: #interface_bound>];
+            interface_bound =
+                quote![#tock_registers::RegisterArray<#array_size, Element: #interface_bound>];
             real = quote![#tock_registers::RealRegisterArray<#real, #array_size>];
         }
         interface_fields.extend(quote! {

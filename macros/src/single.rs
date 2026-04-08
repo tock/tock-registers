@@ -56,7 +56,7 @@ pub fn generate(
     }
     let mut interface_bound = element_bound.clone();
     for size in &register.array_sizes {
-        interface_bound = quote![#tock_registers::RegisterArray<Element: #interface_bound>];
+        interface_bound = quote![#tock_registers::RegisterArray<#size, Element: #interface_bound>];
         real = quote![#tock_registers::RealRegisterArray<#real, #size>];
     }
     let real_alias = if is_scalar && is_definition {

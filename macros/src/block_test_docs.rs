@@ -56,8 +56,8 @@ fn doc_comments() {
                 /// Doc comment G
                 /// Doc comment H
                 fn scalar_definition(self) -> Self::scalar_definition;
-                type array_definition: ::tock_registers::RegisterArray<Element:
-                    ::tock_registers::RegisterArray<Element:
+                type array_definition: ::tock_registers::RegisterArray<3, Element:
+                    ::tock_registers::RegisterArray<2, Element:
                         ::tock_registers::Register<DataType = u8> + Read + Write> >;
                 /// Doc comment I
                 /// Doc comment J
@@ -66,8 +66,8 @@ fn doc_comments() {
                 /// Doc comment K
                 /// Doc comment L
                 fn scalar_reference(self) -> Self::scalar_reference;
-                type array_reference: ::tock_registers::RegisterArray<Element:
-                    ::tock_registers::RegisterArray<Element: b::Interface> >;
+                type array_reference: ::tock_registers::RegisterArray<3, Element:
+                    ::tock_registers::RegisterArray<2, Element: b::Interface> >;
                 /// Doc comment M
                 /// Doc comment N
                 fn array_reference(self) -> Self::array_reference;
