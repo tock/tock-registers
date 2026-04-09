@@ -8,7 +8,7 @@ use crate::ast::{Definition, Field, FieldDef, PerBusInt};
 use crate::new_doc_comment;
 use proc_macro2::TokenStream;
 use quote::{quote, quote_spanned};
-use syn::{spanned::Spanned, Ident, Path};
+use syn::{spanned::Spanned, Ident, Path, TypePath};
 
 /// Generates the module for a register block.
 pub fn generate(tock_registers: &Path, definition: &Definition, fields: &[Field]) -> TokenStream {
@@ -21,6 +21,8 @@ pub fn generate(tock_registers: &Path, definition: &Definition, fields: &[Field]
     let mut bus_bounds = TokenStream::new();
     let mut bus_offset_decls = TokenStream::new();
     let buses = &definition.buses;
+    // block_sizes is empty if the current block size is unknown (due to a padding field with no
+    // specified size).
     let mut block_sizes: Vec<_> = (0..buses.len()).map(|_| quote![0]).collect();
     let mut bus_offset_defs: Vec<_> = (0..buses.len()).map(|_| TokenStream::new()).collect();
     let mut borrowed_bus_defs = TokenStream::new();
@@ -31,24 +33,25 @@ pub fn generate(tock_registers: &Path, definition: &Definition, fields: &[Field]
     let mut interface_impl_items = TokenStream::new();
     let mut real_structs = TokenStream::new();
     for field in fields.iter() {
-        let docs = &field.docs;
-        let (aliased, name, register) = match &field.field_def {
+        let (docs, aliased, name, register) = match &field.field_def {
             FieldDef::Padding(sizes) => {
-                for bus_idx in 0..buses.len() {
-                    let offset = &field.offsets[bus_idx];
-                    let block_size = &block_sizes[bus_idx];
-                    offset_tests.extend(quote_spanned![offset.span()=>
-                        assert!(#offset == #block_size, "offset mismatch");]);
-                    let size = &sizes[bus_idx];
-                    block_sizes[bus_idx].extend(quote![+ #size]);
+                add_offset_tests(&mut offset_tests, buses, &block_sizes, &field.offsets);
+                block_sizes.clear();
+                if let Some(sizes) = sizes {
+                    for bus_idx in 0..buses.len() {
+                        let offset = &field.offsets[bus_idx];
+                        let size = &sizes[bus_idx];
+                        block_sizes.push(quote![#offset + #size]);
+                    }
                 }
                 continue;
             }
             FieldDef::Register {
+                docs,
                 aliased,
                 name,
                 definition,
-            } => (*aliased, name, definition),
+            } => (docs, *aliased, name, definition),
         };
         let element_type = &register.element_type;
         let mut interface_bound;
@@ -95,13 +98,11 @@ pub fn generate(tock_registers: &Path, definition: &Definition, fields: &[Field]
             PerBusInt::Single(offset) => quote![const #name_offset: usize = #offset;],
         });
         if !aliased {
+            add_offset_tests(&mut offset_tests, buses, &block_sizes, &field.offsets);
+            block_sizes.clear();
             for (bus_idx, bus) in buses.iter().enumerate() {
                 let offset = &field.offsets[bus_idx];
-                let block_size = &block_sizes[bus_idx];
-                offset_tests.extend(quote_spanned![offset.span()=>
-                    assert!(#offset == #block_size, "offset mismatch");]);
-                block_sizes[bus_idx] = quote![#offset +
-                    <<Real<#bus> as Interface>::#name as #tock_registers::Block>::SIZE];
+                block_sizes.push(quote![#offset + <<Real<#bus> as Interface>::#name as #tock_registers::Block>::SIZE]);
             }
         }
         interface_impl_items.extend(quote! {
@@ -202,4 +203,20 @@ pub fn real_doc_comment() -> TokenStream {
 pub fn field_struct_doc_comment(name: &Ident) -> TokenStream {
     let msg = format!("Struct that provides access to the `{name}` register on real hardware.");
     quote![#[doc = #msg]]
+}
+
+/// Adds offset tests for a field with the given offsets. If the current block size is unknown
+/// (because of a padding field with no specified size), this does nothing.
+fn add_offset_tests(
+    offset_tests: &mut TokenStream,
+    buses: &[TypePath],
+    block_sizes: &[TokenStream],
+    offsets: &PerBusInt,
+) {
+    for (bus_idx, block_size) in block_sizes.iter().enumerate() {
+        let offset = &offsets[bus_idx];
+        let bus = &buses[bus_idx].path.segments.last().expect("empty bus path");
+        let msg = format!("offset mismatch for bus {}", bus.ident);
+        offset_tests.extend(quote_spanned![offset.span()=>assert!(#offset == #block_size, #msg);]);
+    }
 }

@@ -128,13 +128,14 @@ pub enum Value {
 /// ```
 #[cfg_attr(test, derive(Debug, PartialEq))]
 pub struct Field {
-    /// Doc comments for this field.
-    pub docs: Vec<Attribute>,
     pub offsets: PerBusInt,
     pub field_def: FieldDef,
 }
 
 /// Contents of a field.
+///
+/// Note that when a FieldDef::Register is initially parsed, `aliased` is always false and `docs`
+/// is always empty. The Parse impl on Field sets those fields.
 ///
 /// ```
 /// # use tock_registers::Read;
@@ -146,21 +147,23 @@ pub struct Field {
 ///         0 => c: u8 { Read },
 ///         //   ^^^^^^^^^^^^^^ FieldDef::Register
 ///
-///         1 => _: 1,
-///         //   ^^^^ FieldDef::Padding
+///         1 => _,
+///         //   ^ FieldDef::Padding
 ///
 ///         2 => d: status,
 ///         //   ^^^^^^^^^ FieldDef::Register
+///
+///         3 => _: 1,
+///         //   ^^^^ FieldDef::Padding
 ///     }
 /// }
 /// ```
-///
-/// Note that when a FieldDef::Register is initially parsed, `aliased` is always false. The Parse
-/// impl on Field changes the value of `aliased` if the #[aliased] attribute is present.
 #[cfg_attr(test, derive(Debug, PartialEq))]
 pub enum FieldDef {
-    Padding(PerBusInt),
+    Padding(Option<PerBusInt>),
     Register {
+        /// Doc comments for this register.
+        docs: Vec<Attribute>,
         aliased: bool,
         name: Ident,
         definition: RegisterSpec,

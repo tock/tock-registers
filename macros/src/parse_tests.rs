@@ -12,31 +12,18 @@ fn field() {
     let field: Field = parse_quote! {
         ///A
         ///B
-        1 => _: 2
+        1 => a: b
     };
     assert_eq!(
         field,
         Field {
-            docs: vec![parse_quote![#[doc = r"A"]], parse_quote![#[doc = r"B"]]],
-            offsets: PerBusInt::Single(parse_quote![1]),
-            field_def: FieldDef::Padding(PerBusInt::Single(parse_quote![2])),
-        },
-    );
-
-    let error = parse2::<Field>(quote![#[aliased] 1 => _: 2]).unwrap_err();
-    assert!(error.to_string().contains("padding cannot be aliased"));
-
-    let field: Field = parse_quote![1 => a: status];
-    assert_eq!(
-        field,
-        Field {
-            docs: vec![],
             offsets: PerBusInt::Single(parse_quote![1]),
             field_def: FieldDef::Register {
+                docs: vec![parse_quote![#[doc = r"A"]], parse_quote![#[doc = r"B"]]],
                 aliased: false,
                 name: parse_quote![a],
                 definition: RegisterSpec {
-                    element_type: parse_quote![status],
+                    element_type: parse_quote![b],
                     array_sizes: vec![],
                     operations: None,
                 },
@@ -44,13 +31,25 @@ fn field() {
         },
     );
 
+    let error = parse2::<Field>(quote![#[aliased] 1 => _: 2]).unwrap_err();
+    assert!(error.to_string().contains("padding cannot be aliased"));
+
+    let field: Field = parse_quote![1 => _: 2];
+    assert_eq!(
+        field,
+        Field {
+            offsets: PerBusInt::Single(parse_quote![1]),
+            field_def: FieldDef::Padding(Some(PerBusInt::Single(parse_quote![2])))
+        },
+    );
+
     let field: Field = parse_quote![#[aliased] [1, 2] => a: u8 { Read }];
     assert_eq!(
         field,
         Field {
-            docs: vec![],
             offsets: PerBusInt::Array(vec![parse_quote![1], parse_quote![2]]),
             field_def: FieldDef::Register {
+                docs: vec![],
                 aliased: true,
                 name: parse_quote![a],
                 definition: RegisterSpec {
@@ -75,12 +74,16 @@ fn field() {
 #[test]
 fn field_def() {
     let field: FieldDef = parse_quote![_: 3];
-    assert_eq!(field, FieldDef::Padding(parse_quote![3]));
+    assert_eq!(field, FieldDef::Padding(Some(parse_quote![3])));
+
+    let field: FieldDef = parse_quote![_];
+    assert_eq!(field, FieldDef::Padding(None));
 
     let field: FieldDef = parse_quote![a: status];
     assert_eq!(
         field,
         FieldDef::Register {
+            docs: vec![],
             aliased: false,
             name: parse_quote![a],
             definition: RegisterSpec {

@@ -168,13 +168,14 @@
 ///     uart {
 ///         0 => status: u8 { Read },
 ///
-///         // Padding is specified by replacing the name with _ and specifying the number of bytes
-///         // of padding instead of a type:
-///         1 => _: 3,
-///         // In this case, the padding is 3 bytes.
-///
+///         // Padding is specified by replacing the field definition with a _
+///         1 => _,
+///         // In this case, the padding is inferred to be 3 bytes, because the next field is at
+///         // offset 4.
 ///         4 => ctrl: u16 { Read, Write },
-///         6 => buffer: u8 { Read, Write },
+///         // You can also have padding with a specified size. This size is in bytes.
+///         6 => _: 1,
+///         7 => buffer: u8 { Read, Write },
 ///     }
 /// }
 /// ```

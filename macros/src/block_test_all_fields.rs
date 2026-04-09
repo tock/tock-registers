@@ -76,24 +76,22 @@ fn all_field_types_example() {
             }
             impl<B: Bus> sealed::Bus for ::tock_registers::BorrowedBus<'_, B> {}
             const _: () = {
-                assert!(0 == 0, "offset mismatch");
-                assert!(0 == 0, "offset mismatch");
+                assert!(0 == 0, "offset mismatch for bus Mmio32");
+                assert!(0 == 0, "offset mismatch for bus Mmio64");
                 assert!(1 == 0 + <<Real<Mmio32> as Interface>::scalar_definition as
-                    ::tock_registers::Block>::SIZE, "offset mismatch");
+                    ::tock_registers::Block>::SIZE, "offset mismatch for bus Mmio32");
                 assert!(1 == 0 + <<Real<Mmio64> as Interface>::scalar_definition as
-                    ::tock_registers::Block>::SIZE, "offset mismatch");
+                    ::tock_registers::Block>::SIZE, "offset mismatch for bus Mmio64");
                 assert!(7 == 1 + <<Real<Mmio32> as Interface>::array_definition as
-                    ::tock_registers::Block>::SIZE, "offset mismatch");
+                    ::tock_registers::Block>::SIZE, "offset mismatch for bus Mmio32");
                 assert!(7 == 1 + <<Real<Mmio64> as Interface>::array_definition as
-                    ::tock_registers::Block>::SIZE, "offset mismatch");
-                assert!(8 == 1 + <<Real<Mmio32> as Interface>::array_definition as
-                    ::tock_registers::Block>::SIZE + 1, "offset mismatch");
-                assert!(8 == 1 + <<Real<Mmio64> as Interface>::array_definition as
-                    ::tock_registers::Block>::SIZE + 1, "offset mismatch");
+                    ::tock_registers::Block>::SIZE, "offset mismatch for bus Mmio64");
+                assert!(8 == 7 + 1, "offset mismatch for bus Mmio32");
+                assert!(8 == 7 + 1, "offset mismatch for bus Mmio64");
                 assert!(9 == 8 + <<Real<Mmio32> as Interface>::scalar_reference as
-                    ::tock_registers::Block>::SIZE, "offset mismatch");
+                    ::tock_registers::Block>::SIZE, "offset mismatch for bus Mmio32");
                 assert!(9 == 8 + <<Real<Mmio64> as Interface>::scalar_reference as
-                    ::tock_registers::Block>::SIZE, "offset mismatch");
+                    ::tock_registers::Block>::SIZE, "offset mismatch for bus Mmio64");
             };
             mod sealed { pub trait Bus {} }
             #real_comment pub struct Real<B: Bus> {

@@ -30,7 +30,7 @@ mmio32_registers! {
         /// You can have doc comments on each field of a register block.
         0 => status: u8 { Read },
 
-        /// You can have a doc comment on a padding field.
+        // Note: You cannot have doc comments on a padding field.
         1 => _: 1,
 
         /// Another register block field doc comment.

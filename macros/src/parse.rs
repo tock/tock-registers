@@ -103,9 +103,21 @@ impl Parse for Value {
         }
         let fields;
         braced!(fields in input);
-        let fields = Punctuated::<_, Token![,]>::parse_terminated(&fields)?
+        let fields: Vec<Field> = Punctuated::<_, Token![,]>::parse_terminated(&fields)?
             .into_iter()
             .collect();
+        for field in fields.iter().rev() {
+            match field.field_def {
+                FieldDef::Padding(None) => {
+                    return Err(Error::new(
+                        field.offsets[0].span(),
+                        "last non-aliased field cannot be padding without a size",
+                    ))
+                }
+                FieldDef::Register { aliased: true, .. } => continue,
+                FieldDef::Padding(Some(_)) | FieldDef::Register { aliased: false, .. } => break,
+            }
+        }
         Ok(Value::Block(fields))
     }
 }
@@ -113,10 +125,10 @@ impl Parse for Value {
 impl Parse for Field {
     fn parse(input: ParseStream) -> Result<Field> {
         let mut aliased_attr: Option<Attribute> = None;
-        let mut docs = Vec::new();
+        let mut doc_attrs = Vec::new();
         for attr in Attribute::parse_outer(input)? {
             match attr.path() {
-                p if p.is_ident("doc") => docs.push(attr),
+                p if p.is_ident("doc") => doc_attrs.push(attr),
                 p if p.is_ident("aliased") => {
                     if let Some(prev) = aliased_attr {
                         let mut error = Error::new_spanned(attr, "multiple #[aliased] attributes");
@@ -126,6 +138,9 @@ impl Parse for Field {
                         ));
                         return Err(error);
                     }
+                    let Meta::Path(_) = attr.meta else {
+                        return Err(Error::new_spanned(attr, "#[aliased] cannot have arguments"));
+                    };
                     aliased_attr = Some(attr);
                 }
                 p => return Err(Error::new(p.span(), "unknown attribute")),
@@ -134,35 +149,41 @@ impl Parse for Field {
         let offsets = input.parse()?;
         input.parse::<Token![=>]>()?;
         let mut field_def = input.parse()?;
-        if let Some(aliased) = aliased_attr {
-            let Meta::Path(_) = aliased.meta else {
-                return Err(Error::new_spanned(
-                    aliased,
-                    "#[aliased] cannot have arguments",
-                ));
-            };
-            #[rustfmt::skip]
-            let FieldDef::Register { ref mut aliased, .. } = field_def else {
-                return Err(Error::new_spanned(aliased, "padding cannot be aliased"));
-            };
-            *aliased = true;
+        match field_def {
+            FieldDef::Padding(_) => {
+                if let Some(last) = doc_attrs.last() {
+                    return Err(Error::new(last.span(), "padding cannot have doc comments"));
+                }
+                if let Some(aliased) = aliased_attr {
+                    return Err(Error::new_spanned(aliased, "padding cannot be aliased"));
+                }
+            }
+            FieldDef::Register {
+                ref mut docs,
+                ref mut aliased,
+                ..
+            } => {
+                *docs = doc_attrs;
+                *aliased = aliased_attr.is_some();
+            }
         }
-        Ok(Field {
-            docs,
-            offsets,
-            field_def,
-        })
+        Ok(Field { offsets, field_def })
     }
 }
 
 impl Parse for FieldDef {
     fn parse(input: ParseStream) -> Result<FieldDef> {
         if input.peek(Token![_]) {
+            // The underscore tells us this field is padding.
             input.parse::<Token![_]>()?;
+            if !input.peek(Token![:]) {
+                return Ok(FieldDef::Padding(None));
+            }
             input.parse::<Token![:]>()?;
-            return input.parse().map(FieldDef::Padding);
+            return Ok(FieldDef::Padding(Some(input.parse()?)));
         }
         Ok(FieldDef::Register {
+            docs: Vec::new(),
             aliased: false,
             name: input.parse()?,
             definition: input.parse()?,
@@ -175,9 +196,12 @@ impl Parse for PerBusInt {
         if !input.peek(Bracket) {
             return input.parse().map(PerBusInt::Single);
         }
-        let ints;
-        bracketed!(ints in input);
-        let ints = Punctuated::<_, Token![,]>::parse_terminated(&ints)?;
+        let contents;
+        bracketed!(contents in input);
+        let ints = Punctuated::<_, Token![,]>::parse_terminated(&contents)?;
+        if ints.is_empty() {
+            return Err(Error::new(contents.span(), "offset list cannot be empty"));
+        }
         Ok(PerBusInt::Array(ints.into_iter().collect()))
     }
 }

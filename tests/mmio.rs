@@ -17,7 +17,7 @@ registers! {
         [4, 8] => _: [4, 8],
         [8, 16] => array_definition: [[u32; 2]; 3] { Read, Write },
         [32, 40] => scalar_reference: a,
-        [33, 41] => _: 3,
+        [33, 41] => _,
         [36, 44] => array_reference: [[b; 2]; 3],
     },
     outer_block {

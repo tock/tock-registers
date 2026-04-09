@@ -17,11 +17,18 @@ fn offsets() {
         #[buses(Mmio32, Mmio64)]
         pub foo {
             0 => variable_size: usize { Read },
-            [4, 8] => variable_pos: u32 { Read },
+            [4, 8] => size_variable_pos: u32 { Read },
             #[aliased]
             6 => aliased: u16 { Read },
             [8, 12] => _: [4, 0],
-            12 => final_fixed_pos: u32 { Read },
+            12 => fixed_pos: u32 { Read },
+            16 => _,
+            [20, 24] => padded_pos: u8 { Read },
+            // This pattern of inferred-size padding followed by explicit-size padding is weird and
+            // probably won't be used in practice, but it allows for the total size of the block to
+            // be specified without having to specify the size of the trailing padding.
+            [21, 25] => _,
+            [24, 32] => _: 0,
         }
     };
     let interface_comment = interface_doc_comment();
@@ -29,9 +36,10 @@ fn offsets() {
     let real_comment = real_doc_comment();
     let new_comment = new_doc_comment();
     let variable_size_comment = field_struct_doc_comment(&parse_quote![variable_size]);
-    let variable_pos_comment = field_struct_doc_comment(&parse_quote![variable_pos]);
+    let size_variable_pos_comment = field_struct_doc_comment(&parse_quote![size_variable_pos]);
     let aliased_comment = field_struct_doc_comment(&parse_quote![aliased]);
-    let final_fixed_pos_comment = field_struct_doc_comment(&parse_quote![final_fixed_pos]);
+    let fixed_pos_comment = field_struct_doc_comment(&parse_quote![fixed_pos]);
+    let padded_pos_comment = field_struct_doc_comment(&parse_quote![padded_pos]);
     let expected = quote! {
         pub mod foo {
             #![allow(clippy::expl_impl_clone_on_copy)]
@@ -40,57 +48,67 @@ fn offsets() {
             #interface_comment pub trait Interface: ::tock_registers::internal::core::marker::Copy {
                 type variable_size: ::tock_registers::Register<DataType = usize> + Read;
                 fn variable_size(self) -> Self::variable_size;
-                type variable_pos: ::tock_registers::Register<DataType = u32> + Read;
-                fn variable_pos(self) -> Self::variable_pos;
+                type size_variable_pos: ::tock_registers::Register<DataType = u32> + Read;
+                fn size_variable_pos(self) -> Self::size_variable_pos;
                 type aliased: ::tock_registers::Register<DataType = u16> + Read;
                 fn aliased(self) -> Self::aliased;
-                type final_fixed_pos: ::tock_registers::Register<DataType = u32> + Read;
-                fn final_fixed_pos(self) -> Self::final_fixed_pos;
+                type fixed_pos: ::tock_registers::Register<DataType = u32> + Read;
+                fn fixed_pos(self) -> Self::fixed_pos;
+                type padded_pos: ::tock_registers::Register<DataType = u8> + Read;
+                fn padded_pos(self) -> Self::padded_pos;
             }
             #[allow(non_upper_case_globals)]
             #bus_comment pub trait Bus: ::tock_registers::Address +
                 ::tock_registers::DataTypeBus<usize> + ::tock_registers::DataTypeBus<u32> +
                 ::tock_registers::DataTypeBus<u16> + ::tock_registers::DataTypeBus<u32> +
-                sealed::Bus
+                ::tock_registers::DataTypeBus<u8> + sealed::Bus
             {
                 const BLOCK_SIZE: usize;
                 const variable_size_offset: usize = 0;
-                const variable_pos_offset: usize;
+                const size_variable_pos_offset: usize;
                 const aliased_offset: usize = 6;
-                const final_fixed_pos_offset: usize = 12;
+                const fixed_pos_offset: usize = 12;
+                const padded_pos_offset: usize;
             }
             impl Bus for Mmio32 {
-                const BLOCK_SIZE: usize = 12 +
-                    <<Real<Mmio32> as Interface>::final_fixed_pos as ::tock_registers::Block>::SIZE;
-                const variable_pos_offset: usize = 4;
+                const BLOCK_SIZE: usize = 24 + 0;
+                const size_variable_pos_offset: usize = 4;
+                const padded_pos_offset: usize = 20;
             }
             impl sealed::Bus for Mmio32 {}
             impl Bus for Mmio64 {
-                const BLOCK_SIZE: usize = 12 +
-                    <<Real<Mmio64> as Interface>::final_fixed_pos as ::tock_registers::Block>::SIZE;
-                const variable_pos_offset: usize = 8;
+                const BLOCK_SIZE: usize = 32 + 0;
+                const size_variable_pos_offset: usize = 8;
+                const padded_pos_offset: usize = 24;
             }
             impl sealed::Bus for Mmio64 {}
             impl<B: Bus> Bus for ::tock_registers::BorrowedBus<'_, B> {
                 const BLOCK_SIZE: usize = <B as Bus>::BLOCK_SIZE;
-                const variable_pos_offset: usize = <B as Bus>::variable_pos_offset;
+                const size_variable_pos_offset: usize = <B as Bus>::size_variable_pos_offset;
+                const padded_pos_offset: usize = <B as Bus>::padded_pos_offset;
             }
             impl<B: Bus> sealed::Bus for ::tock_registers::BorrowedBus<'_, B> {}
             const _: () = {
-                assert!(0 == 0, "offset mismatch");
-                assert!(0 == 0, "offset mismatch");
+                assert!(0 == 0, "offset mismatch for bus Mmio32");
+                assert!(0 == 0, "offset mismatch for bus Mmio64");
                 assert!(4 == 0 + <<Real<Mmio32> as Interface>::variable_size as
-                    ::tock_registers::Block>::SIZE, "offset mismatch");
+                    ::tock_registers::Block>::SIZE, "offset mismatch for bus Mmio32");
                 assert!(8 == 0 + <<Real<Mmio64> as Interface>::variable_size as
-                    ::tock_registers::Block>::SIZE, "offset mismatch");
-                assert!(8 == 4 + <<Real<Mmio32> as Interface>::variable_pos as
-                    ::tock_registers::Block>::SIZE, "offset mismatch");
-                assert!(12 == 8 + <<Real<Mmio64> as Interface>::variable_pos as
-                    ::tock_registers::Block>::SIZE, "offset mismatch");
-                assert!(12 == 4 + <<Real<Mmio32> as Interface>::variable_pos as
-                    ::tock_registers::Block>::SIZE + 4, "offset mismatch");
-                assert!(12 == 8 + <<Real<Mmio64> as Interface>::variable_pos as
-                    ::tock_registers::Block>::SIZE + 0, "offset mismatch");
+                    ::tock_registers::Block>::SIZE, "offset mismatch for bus Mmio64");
+                assert!(8 == 4 + <<Real<Mmio32> as Interface>::size_variable_pos as
+                    ::tock_registers::Block>::SIZE, "offset mismatch for bus Mmio32");
+                assert!(12 == 8 + <<Real<Mmio64> as Interface>::size_variable_pos as
+                    ::tock_registers::Block>::SIZE, "offset mismatch for bus Mmio64");
+                assert!(12 == 8 + 4, "offset mismatch for bus Mmio32");
+                assert!(12 == 12 + 0, "offset mismatch for bus Mmio64");
+                assert!(16 == 12 + <<Real<Mmio32> as Interface>::fixed_pos as
+                    ::tock_registers::Block>::SIZE, "offset mismatch for bus Mmio32");
+                assert!(16 == 12 + <<Real<Mmio64> as Interface>::fixed_pos as
+                    ::tock_registers::Block>::SIZE, "offset mismatch for bus Mmio64");
+                assert!(21 == 20 + <<Real<Mmio32> as Interface>::padded_pos as
+                    ::tock_registers::Block>::SIZE, "offset mismatch for bus Mmio32");
+                assert!(25 == 24 + <<Real<Mmio64> as Interface>::padded_pos as
+                    ::tock_registers::Block>::SIZE, "offset mismatch for bus Mmio64");
             };
             mod sealed { pub trait Bus {} }
             #real_comment pub struct Real<B: Bus> {
@@ -109,9 +127,10 @@ fn offsets() {
             impl<B: Bus> Interface for Real<B>
             where
                 real_variable_size<B>: ::tock_registers::Register<DataType = usize> + Read,
-                real_variable_pos<B>: ::tock_registers::Register<DataType = u32> + Read,
+                real_size_variable_pos<B>: ::tock_registers::Register<DataType = u32> + Read,
                 real_aliased<B>: ::tock_registers::Register<DataType = u16> + Read,
-                real_final_fixed_pos<B>: ::tock_registers::Register<DataType = u32> + Read,
+                real_fixed_pos<B>: ::tock_registers::Register<DataType = u32> + Read,
+                real_padded_pos<B>: ::tock_registers::Register<DataType = u8> + Read,
             {
                 type variable_size = real_variable_size<B>;
                 fn variable_size(self) -> Self::variable_size {
@@ -120,22 +139,27 @@ fn offsets() {
                             self.address.byte_add(<B as Bus>::variable_size_offset))
                     }
                 }
-                type variable_pos = real_variable_pos<B>;
-                fn variable_pos(self) -> Self::variable_pos {
+                type size_variable_pos = real_size_variable_pos<B>;
+                fn size_variable_pos(self) -> Self::size_variable_pos {
                     unsafe {
-                        Self::variable_pos::new(
-                            self.address.byte_add(<B as Bus>::variable_pos_offset))
+                        Self::size_variable_pos::new(
+                            self.address.byte_add(<B as Bus>::size_variable_pos_offset))
                     }
                 }
                 type aliased = real_aliased<B>;
                 fn aliased(self) -> Self::aliased {
                     unsafe { Self::aliased::new(self.address.byte_add(<B as Bus>::aliased_offset)) }
                 }
-                type final_fixed_pos = real_final_fixed_pos<B>;
-                fn final_fixed_pos(self) -> Self::final_fixed_pos {
+                type fixed_pos = real_fixed_pos<B>;
+                fn fixed_pos(self) -> Self::fixed_pos {
                     unsafe {
-                        Self::final_fixed_pos::new(
-                            self.address.byte_add(<B as Bus>::final_fixed_pos_offset))
+                        Self::fixed_pos::new(self.address.byte_add(<B as Bus>::fixed_pos_offset))
+                    }
+                }
+                type padded_pos = real_padded_pos<B>;
+                fn padded_pos(self) -> Self::padded_pos {
+                    unsafe {
+                        Self::padded_pos::new(self.address.byte_add(<B as Bus>::padded_pos_offset))
                     }
                 }
             }
@@ -171,30 +195,30 @@ fn offsets() {
                 type DataType = usize;
             }
             Read!(real_impl, real_variable_size, usize,,);
-            #variable_pos_comment pub struct real_variable_pos<B: Bus> {
+            #size_variable_pos_comment pub struct real_size_variable_pos<B: Bus> {
                 address: B,
                 _phantom: ::tock_registers::internal::RealPhantom,
             }
-            impl<B: Bus> real_variable_pos<B> {
+            impl<B: Bus> real_size_variable_pos<B> {
                 #new_comment pub const unsafe fn new(address: B) -> Self {
                     Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
                 }
             }
             impl<B: Bus> ::tock_registers::internal::core::clone::Clone
-            for real_variable_pos<B> { #[inline] fn clone(&self) -> Self { *self } }
-            impl<B: Bus> ::tock_registers::internal::core::marker::Copy for real_variable_pos<B> {}
-            impl<B: Bus> ::tock_registers::Block for real_variable_pos<B> {
+            for real_size_variable_pos<B> { #[inline] fn clone(&self) -> Self { *self } }
+            impl<B: Bus> ::tock_registers::internal::core::marker::Copy for real_size_variable_pos<B> {}
+            impl<B: Bus> ::tock_registers::Block for real_size_variable_pos<B> {
                 type Address = B;
                 const SIZE: usize = <B as ::tock_registers::DataTypeBus<u32>>::PADDED_SIZE;
                 unsafe fn new(address: B) -> Self {
                     Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
                 }
-                type Borrowed<'b> = real_variable_pos<::tock_registers::BorrowedBus<'b, B>>;
+                type Borrowed<'b> = real_size_variable_pos<::tock_registers::BorrowedBus<'b, B>>;
             }
-            impl<B: Bus> ::tock_registers::Register for real_variable_pos<B> {
+            impl<B: Bus> ::tock_registers::Register for real_size_variable_pos<B> {
                 type DataType = u32;
             }
-            Read!(real_impl, real_variable_pos, u32,,);
+            Read!(real_impl, real_size_variable_pos, u32,,);
             #aliased_comment pub struct real_aliased<B: Bus> {
                 address: B,
                 _phantom: ::tock_registers::internal::RealPhantom,
@@ -218,31 +242,56 @@ fn offsets() {
             }
             impl<B: Bus> ::tock_registers::Register for real_aliased<B> { type DataType = u16; }
             Read!(real_impl, real_aliased, u16,,);
-            #final_fixed_pos_comment pub struct real_final_fixed_pos<B: Bus> {
+            #fixed_pos_comment pub struct real_fixed_pos<B: Bus> {
                 address: B,
                 _phantom: ::tock_registers::internal::RealPhantom,
             }
-            impl<B: Bus> real_final_fixed_pos<B> {
+            impl<B: Bus> real_fixed_pos<B> {
                 #new_comment pub const unsafe fn new(address: B) -> Self {
                     Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
                 }
             }
             impl<B: Bus> ::tock_registers::internal::core::clone::Clone
-            for real_final_fixed_pos<B> { #[inline] fn clone(&self) -> Self { *self } }
+            for real_fixed_pos<B> { #[inline] fn clone(&self) -> Self { *self } }
             impl<B: Bus> ::tock_registers::internal::core::marker::Copy
-            for real_final_fixed_pos<B> {}
-            impl<B: Bus> ::tock_registers::Block for real_final_fixed_pos<B> {
+            for real_fixed_pos<B> {}
+            impl<B: Bus> ::tock_registers::Block for real_fixed_pos<B> {
                 type Address = B;
                 const SIZE: usize = <B as ::tock_registers::DataTypeBus<u32>>::PADDED_SIZE;
                 unsafe fn new(address: B) -> Self {
                     Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
                 }
-                type Borrowed<'b> = real_final_fixed_pos<::tock_registers::BorrowedBus<'b, B>>;
+                type Borrowed<'b> = real_fixed_pos<::tock_registers::BorrowedBus<'b, B>>;
             }
-            impl<B: Bus> ::tock_registers::Register for real_final_fixed_pos<B> {
+            impl<B: Bus> ::tock_registers::Register for real_fixed_pos<B> {
                 type DataType = u32;
             }
-            Read!(real_impl, real_final_fixed_pos, u32,,);
+            Read!(real_impl, real_fixed_pos, u32,,);
+            #padded_pos_comment pub struct real_padded_pos<B: Bus> {
+                address: B,
+                _phantom: ::tock_registers::internal::RealPhantom,
+            }
+            impl<B: Bus> real_padded_pos<B> {
+                #new_comment pub const unsafe fn new(address: B) -> Self {
+                    Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
+                }
+            }
+            impl<B: Bus> ::tock_registers::internal::core::clone::Clone
+            for real_padded_pos<B> { #[inline] fn clone(&self) -> Self { *self } }
+            impl<B: Bus> ::tock_registers::internal::core::marker::Copy
+            for real_padded_pos<B> {}
+            impl<B: Bus> ::tock_registers::Block for real_padded_pos<B> {
+                type Address = B;
+                const SIZE: usize = <B as ::tock_registers::DataTypeBus<u8>>::PADDED_SIZE;
+                unsafe fn new(address: B) -> Self {
+                    Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
+                }
+                type Borrowed<'b> = real_padded_pos<::tock_registers::BorrowedBus<'b, B>>;
+            }
+            impl<B: Bus> ::tock_registers::Register for real_padded_pos<B> {
+                type DataType = u8;
+            }
+            Read!(real_impl, real_padded_pos, u8,,);
         }
     };
     assert_tokens_eq(generate(input), expected);

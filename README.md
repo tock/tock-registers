@@ -33,9 +33,7 @@ registers! {
         0x004 => short: u16 { Read, Write },
 
         // Empty space between registers must be marked with a padding field.
-        // Padding fields look like registers, but have _ in place of the name
-        // and a length (in bytes) in place of their type:
-        0x006 => _: 2,
+        0x006 => _,
         0x008 => word: u32 { Read, Write },
 
         // The type for a register can be anything. Conveniently, you can use an
