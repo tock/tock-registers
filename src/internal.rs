@@ -17,7 +17,7 @@ pub use core;
 pub use tock_registers_macros::registers;
 
 /// Phantom type to make Real structs !Send and !Sync.
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Default)]
 pub struct RealPhantom(PhantomData<*mut ()>);
 
 impl RealPhantom {

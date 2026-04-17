@@ -77,7 +77,7 @@ pub mod registers;
 pub mod debug;
 
 #[cfg(feature = "register_types")]
-mod array;
+pub mod array;
 #[cfg(feature = "register_types")]
 pub use array::{RealRegisterArray, RegisterArray};
 

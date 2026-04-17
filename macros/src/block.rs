@@ -17,6 +17,7 @@ pub fn generate(tock_registers: &Path, definition: &Definition, fields: &[Field]
     let name = &definition.name;
     let interface_comment = interface_doc_comment();
     let mut interface_fields = TokenStream::new();
+    let mut len_definitions = TokenStream::new();
     let bus_comment = bus_doc_comment();
     let mut bus_bounds = TokenStream::new();
     let mut bus_offset_decls = TokenStream::new();
@@ -76,10 +77,28 @@ pub fn generate(tock_registers: &Path, definition: &Definition, fields: &[Field]
             bus_bounds.extend(quote_spanned![element_type.span()=>+ #element_type::Bus]);
         };
         interface_bounds.extend(quote![#real: #interface_bound,]);
-        for array_size in &register.array_sizes {
+        let len_types_sizes = match register.array_sizes.as_slice() {
+            [] => vec![],
+            [len] => {
+                len_definitions.extend(quote![pub enum #name {}]);
+                vec![(quote![#name], len)]
+            }
+            nested => {
+                len_definitions.extend(quote![pub enum #name<const N: usize> {}]);
+                nested
+                    .iter()
+                    .enumerate()
+                    .map(|(n, s)| (quote![#name<#n>], s))
+                    .collect()
+            }
+        };
+        for (len_type, size) in len_types_sizes {
             interface_bound =
-                quote![#tock_registers::RegisterArray<#array_size, Element: #interface_bound>];
-            real = quote![#tock_registers::RealRegisterArray<#real, #array_size>];
+                quote![#tock_registers::RegisterArray<lens::#len_type, Element: #interface_bound>];
+            len_definitions.extend(quote! {
+                impl #tock_registers::array::Len for #len_type { const LEN: usize = #size; }
+            });
+            real = quote![#tock_registers::RealRegisterArray<#real, lens::#len_type>];
         }
         interface_fields.extend(quote! {
             type #name: #interface_bound;
@@ -128,12 +147,12 @@ pub fn generate(tock_registers: &Path, definition: &Definition, fields: &[Field]
         #(#docs)*
         #visibility mod #name {
             #![allow(clippy::expl_impl_clone_on_copy)]
-            #![allow(non_camel_case_types)]
+            #![allow(nonstandard_style)]
             use super::*;
             #interface_comment pub trait Interface: #tock_registers::internal::core::marker::Copy {
                 #interface_fields
             }
-            #[allow(non_upper_case_globals)]
+            pub mod lens { #len_definitions }
             #bus_comment pub trait Bus: #tock_registers::Address #bus_bounds + sealed::Bus {
                 const BLOCK_SIZE: usize;
                 #bus_offset_decls

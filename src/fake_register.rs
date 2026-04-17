@@ -4,8 +4,10 @@
 // Copyright Better Bytes 2026.
 
 #[cfg(feature = "register_types")]
-use crate::RegisterArray;
+use crate::{array::Len, RegisterArray};
 use crate::{DataType, LocalRegisterCopy, Read, Register, Write};
+#[cfg(feature = "register_types")]
+use core::marker::PhantomData;
 
 /// A fake register, for use in unit tests.
 ///
@@ -206,7 +208,8 @@ impl sealed::Access for Unsafe {}
 /// /// Fake version of the storage peripheral.
 /// struct Fake([Cell<u8>; 4]);
 /// impl<'f> storage::Interface for &'f Fake {
-///     type scratch = FakeRegisterArray<Self, FakeRegister<&'f Cell<u8>, u8, Safe, Safe>, 4>;
+///     type scratch = FakeRegisterArray<
+///         Self, FakeRegister<&'f Cell<u8>, u8, Safe, Safe>, storage::lens::scratch>;
 ///     fn scratch(self) -> Self::scratch {
 ///         FakeRegisterArray::new(self, |s, i| Some(
 ///             FakeRegister::new(s.0.get(i)?)
@@ -221,31 +224,43 @@ impl sealed::Access for Unsafe {}
 /// Unlike FakeRegister, FakeRegisterArray is not limited to the Read and Write operations. You can
 /// embed any element type in it (including a fake version of a register block).
 #[cfg(feature = "register_types")]
-#[derive(Clone, Copy)]
-pub struct FakeRegisterArray<Data: Copy, Element: Copy, const LEN: usize> {
+pub struct FakeRegisterArray<Data: Copy, Element: Copy, L: Len> {
     data: Data,
     get: fn(Data, usize) -> Option<Element>,
+    _phantom: PhantomData<L>,
 }
 
 #[cfg(feature = "register_types")]
-impl<Data: Copy, Element: Copy, const LEN: usize> FakeRegisterArray<Data, Element, LEN> {
+impl<Data: Copy, Element: Copy, L: Len> FakeRegisterArray<Data, Element, L> {
     /// Constructs a new FakeRegisterArray. Whenever the array is indexed (using
     /// [RegisterArray::get] or [RegisterArray::get_unchecked]), `get_fcn` is called and passed
     /// `data` and the index.
     ///
-    /// Note that `get_fcn` must return `None` if the index is `>= LEN`. FakeRegisterArray does not
-    /// perform the bounds check, because it is expected that most `get_fcn` implementations will
-    /// need to perform that bounds check anyway (as they will likely be indexing into a Rust
+    /// Note that `get_fcn` must return `None` if the index is `>= L::LEN`. FakeRegisterArray does
+    /// not perform the bounds check, because it is expected that most `get_fcn` implementations
+    /// will need to perform that bounds check anyway (as they will likely be indexing into a Rust
     /// array).
     pub const fn new(data: Data, get_fcn: fn(Data, usize) -> Option<Element>) -> Self {
-        Self { data, get: get_fcn }
+        Self {
+            data,
+            get: get_fcn,
+            _phantom: PhantomData,
+        }
     }
 }
 
 #[cfg(feature = "register_types")]
-impl<Data: Copy, Element: Copy, const LEN: usize> RegisterArray<LEN>
-    for FakeRegisterArray<Data, Element, LEN>
-{
+impl<Data: Copy, Element: Copy, L: Len> Clone for FakeRegisterArray<Data, Element, L> {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+
+#[cfg(feature = "register_types")]
+impl<Data: Copy, Element: Copy, L: Len> Copy for FakeRegisterArray<Data, Element, L> {}
+
+#[cfg(feature = "register_types")]
+impl<Data: Copy, Element: Copy, L: Len> RegisterArray<L> for FakeRegisterArray<Data, Element, L> {
     type Element = Element;
 
     fn get(self, index: usize) -> Option<Element> {

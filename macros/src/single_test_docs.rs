@@ -101,7 +101,7 @@ fn array_definition() {
         //! Doc comment D
         /// Doc comment E
         /// Doc comment F
-        pub foo: [[u8; 2]; 3] { Read, Write }
+        pub foo: [u8; 2] { Read, Write }
     };
     let expected = quote! {
         /// Doc comment A
@@ -115,11 +115,10 @@ fn array_definition() {
             use super::*;
             /// Trait representing this register's operations. Driver code can use this trait to work
             /// with both real hardware and fake implementations of the register (for unit testing).
-            pub trait Interface: ::tock_registers::RegisterArray<3,
-                Element: ::tock_registers::RegisterArray<2,
-                    Element: ::tock_registers::Register<DataType = u8> + Read + Write
-                >
-            > {}
+            pub trait Interface: ::tock_registers::RegisterArray<Len,
+                Element: ::tock_registers::Register<DataType = u8> + Read + Write> {}
+            pub enum Len {}
+            impl ::tock_registers::array::Len for Len { const LEN: usize = 2; }
             /// Buses supported by this register.
             pub trait Bus: ::tock_registers::DataTypeBus<u8> + sealed::Bus {}
             impl Bus for Mmio32 {}
@@ -168,9 +167,7 @@ fn array_definition() {
             Read!(real_impl, Element, u8,,);
             Write!(real_impl, Element, u8,,);
             /// Implementation of [Interface] for use with real hardware.
-            pub type Real<B> = ::tock_registers::RealRegisterArray<
-                ::tock_registers::RealRegisterArray<Element<B>, 2>, 3
-            >;
+            pub type Real<B> = ::tock_registers::RealRegisterArray<Element<B>, Len>;
             impl<B: Bus> Interface for Real<B> where
                 Element<B>: ::tock_registers::Register<DataType = u8> + Read + Write {}
         }
@@ -244,9 +241,12 @@ fn array_reference() {
             use super::*;
             /// Trait representing this register's operations. Driver code can use this trait to work
             /// with both real hardware and fake implementations of the register (for unit testing).
-            pub trait Interface: ::tock_registers::RegisterArray<3,
-                Element: ::tock_registers::RegisterArray<2, Element: status::Interface>
+            pub trait Interface: ::tock_registers::RegisterArray<Len<1usize>,
+                Element: ::tock_registers::RegisterArray<Len<0usize>, Element: status::Interface>
             > {}
+            pub enum Len<const N: usize> {}
+            impl ::tock_registers::array::Len for Len<0usize> { const LEN: usize = 2; }
+            impl ::tock_registers::array::Len for Len<1usize> { const LEN: usize = 3; }
             /// Buses supported by this register.
             pub trait Bus: status::Bus + sealed::Bus {}
             impl Bus for Mmio32 {}
@@ -258,8 +258,7 @@ fn array_reference() {
             mod sealed { pub trait Bus {} }
             /// Implementation of [Interface] for use with real hardware.
             pub type Real<B> = ::tock_registers::RealRegisterArray<
-                ::tock_registers::RealRegisterArray<status::Real<B>, 2>,
-            3>;
+                ::tock_registers::RealRegisterArray<status::Real<B>, Len<0usize> >, Len<1usize> >;
             impl<B: Bus> Interface for Real<B> where status::Real<B>: status::Interface {}
         }
     };

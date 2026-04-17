@@ -47,7 +47,7 @@ fn doc_comments() {
         /// Doc comment F
         pub mod foo {
             #![allow(clippy::expl_impl_clone_on_copy)]
-            #![allow(non_camel_case_types)]
+            #![allow(nonstandard_style)]
             use super::*;
             /// Trait representing this register block. Driver code can use this trait to work with
             /// both real hardware and fake implementations of the peripheral (for unit testing).
@@ -56,9 +56,10 @@ fn doc_comments() {
                 /// Doc comment G
                 /// Doc comment H
                 fn scalar_definition(self) -> Self::scalar_definition;
-                type array_definition: ::tock_registers::RegisterArray<3, Element:
-                    ::tock_registers::RegisterArray<2, Element:
-                        ::tock_registers::Register<DataType = u8> + Read + Write> >;
+                type array_definition: ::tock_registers::RegisterArray<
+                    lens::array_definition<1usize>, Element:
+                        ::tock_registers::RegisterArray<lens::array_definition<0usize>, Element:
+                            ::tock_registers::Register<DataType = u8> + Read + Write> >;
                 /// Doc comment I
                 /// Doc comment J
                 fn array_definition(self) -> Self::array_definition;
@@ -66,13 +67,25 @@ fn doc_comments() {
                 /// Doc comment K
                 /// Doc comment L
                 fn scalar_reference(self) -> Self::scalar_reference;
-                type array_reference: ::tock_registers::RegisterArray<3, Element:
-                    ::tock_registers::RegisterArray<2, Element: b::Interface> >;
+                type array_reference: ::tock_registers::RegisterArray<
+                    lens::array_reference<1usize>, Element: ::tock_registers::RegisterArray<
+                        lens::array_reference<0usize>, Element: b::Interface> >;
                 /// Doc comment M
                 /// Doc comment N
                 fn array_reference(self) -> Self::array_reference;
             }
-            #[allow(non_upper_case_globals)]
+            pub mod lens {
+                pub enum array_definition<const N: usize> {}
+                impl ::tock_registers::array::Len for
+                    array_definition<0usize> { const LEN: usize = 2; }
+                impl ::tock_registers::array::Len for
+                    array_definition<1usize> { const LEN: usize = 3; }
+                pub enum array_reference<const N: usize> {}
+                impl ::tock_registers::array::Len for
+                    array_reference<0usize> { const LEN: usize = 2; }
+                impl ::tock_registers::array::Len for
+                    array_reference<1usize> { const LEN: usize = 3; }
+            }
             /// Buses supported by this register block.
             pub trait Bus: ::tock_registers::Address + ::tock_registers::DataTypeBus<u8> +
                 ::tock_registers::DataTypeBus<u8> + a::Bus + b::Bus + sealed::Bus
@@ -154,7 +167,8 @@ fn doc_comments() {
                     }
                 }
                 type array_definition = ::tock_registers::RealRegisterArray<
-                    ::tock_registers::RealRegisterArray<real_array_definition<B>, 2>, 3>;
+                    ::tock_registers::RealRegisterArray<real_array_definition<B>,
+                    lens::array_definition<0usize> >, lens::array_definition<1usize> >;
                 fn array_definition(self) -> Self::array_definition {
                     unsafe {
                         Self::array_definition::new(
@@ -169,7 +183,8 @@ fn doc_comments() {
                     }
                 }
                 type array_reference = ::tock_registers::RealRegisterArray<
-                    ::tock_registers::RealRegisterArray<b::Real<B>, 2>, 3>;
+                    ::tock_registers::RealRegisterArray<b::Real<B>, lens::array_reference<0usize>
+                    >, lens::array_reference<1usize> >;
                 fn array_reference(self) -> Self::array_reference {
                     unsafe {
                         Self::array_reference::new(

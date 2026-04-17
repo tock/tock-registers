@@ -4,10 +4,11 @@
 // Copyright Better Bytes 2026.
 
 use crate::{internal::RealPhantom, Address, Block};
+use core::marker::PhantomData;
 
 /// Interface for an array of registers (or register blocks, or register arrays). Each register
-/// type should only implement RegisterArray for a single LEN.
-pub trait RegisterArray<const LEN: usize>: Copy {
+/// type should only implement RegisterArray for a single Len.
+pub trait RegisterArray<L: Len>: Copy {
     /// The type of each element of this array.
     type Element: Copy;
 
@@ -17,37 +18,92 @@ pub trait RegisterArray<const LEN: usize>: Copy {
     // implement get_unchecked(), while fake implementations (for unit testing) will probably
     // implement get().
 
-    /// Returns the `index`-th element of this array, or `None` if `index >= LEN`.
+    /// Returns the `index`-th element of this array, or `None` if `index >= L::LEN`.
     fn get(self, index: usize) -> Option<Self::Element> {
-        if index >= LEN {
+        if index >= L::LEN {
             return None;
         }
-        // Safety: We returned early if `index >= LEN`, so because `index` is an integer type we
-        // know that `index < LEN`.
+        // Safety: We returned early if `index >= L::LEN`, so because `index` is an integer type we
+        // know that `index < L::LEN`.
         Some(unsafe { self.get_unchecked(index) })
     }
 
     /// Returns the `index`-th element of this array.
     /// # Safety
-    /// `index` must be less than `LEN`
+    /// `index` must be less than `L::LEN`
     // Because this default implementation will only be used in testing environments, it's okay
     // (and beneficial) for it to have a runtime check.
     unsafe fn get_unchecked(self, index: usize) -> Self::Element {
         self.get(index).unwrap_or_else(|| {
-            panic!("get_unchecked called with out-of-bounds index {index}; len = {LEN}")
+            panic!(
+                "get_unchecked called with out-of-bounds index {index}; len = {}",
+                L::LEN
+            )
         })
     }
 }
 
-/// Real implementation of RegisterArray.
-// Safety invariant: `address` points to an array of `LEN` consecurity `Element` registers.
-#[derive(Clone, Copy)]
-pub struct RealRegisterArray<Element: Block, const LEN: usize> {
-    address: Element::Address,
-    _phantom: RealPhantom,
+/// Trait providing the length of a register array.
+///
+/// # Why does this exist?
+/// The obvious way to design `RegisterArray` is to make its length an associated const:
+/// ```
+/// trait RegisterArray {
+///     type Element;
+///     const LEN: usize;
+/// }
+/// ```
+/// However, when you have a nested array in a register block:
+/// ```
+/// # fn main() {}
+/// # use tock_registers::{mmio32_registers, Read, Write};
+/// mmio32_registers! {
+///     foo {
+///         0 => a: [[[u8; 2]; 2]; 2] { Read, Write },
+///     }
+/// }
+/// ```
+/// the generated `foo::Interface` trait contains a type bound:
+/// ```ignore
+/// trait Interface {
+///     type a: RegisterArray<Element: RegisterArray<Element: RegisterArray<Element:
+///         Register<DataType = u8> + Read + Write>>>;
+/// }
+/// ```
+/// and unfortunately this bound results in a compiler error. As best as I can tell, what happens
+/// is that during implied bounds generation, anti-infinite-recursion logic kicks in and prevents
+/// some of the implied bounds from being generated.
+///
+/// This issue can pass through the `Interface` traits, so simply banning nested array fields does
+/// not solve the issue:
+/// ```
+/// # fn main() {}
+/// # use tock_registers::{mmio32_registers, Read, Write};
+/// mmio32_registers! {
+///     a: [u8; 2] { Read, Write },
+///     b: [a; 2],
+///     foo {
+///         // This results in a compile error too
+///         0 => c: [b; 2],
+///     },
+/// }
+/// ```
+/// Instead, we solve this problem by making every generated `RegisterArray` bound a different
+/// trait. To do that, we have to make the `RegisterArray` trait generic. Technically, we could
+/// keep that type parameter separate from the length, but combining them makes the design (and the
+/// generated code) simpler.
+pub trait Len {
+    const LEN: usize;
 }
 
-impl<Element: Block, const LEN: usize> RealRegisterArray<Element, LEN> {
+/// Real implementation of RegisterArray.
+// Safety invariant: `address` points to an array of `L::LEN` consecutive `Element` registers.
+pub struct RealRegisterArray<Element: Block, L: Len> {
+    address: Element::Address,
+    _phantom: (RealPhantom, PhantomData<L>),
+}
+
+impl<Element: Block, L: Len> RealRegisterArray<Element, L> {
     /// Constructs an accessor for the register array at the given address.
     /// # Safety
     /// 1. `address` must point to a register array on the bus corresponding to `Self::Address`.
@@ -57,36 +113,43 @@ impl<Element: Block, const LEN: usize> RealRegisterArray<Element, LEN> {
     /// 3. The returned register array accessor must not be used in a way that causes data races.
     ///    The exact requirements depend on the hardware, but it's usually best to access registers
     ///    from only one thread at a time.
-    pub unsafe fn new(address: Element::Address) -> RealRegisterArray<Element, LEN> {
+    pub const unsafe fn new(address: Element::Address) -> RealRegisterArray<Element, L> {
         RealRegisterArray {
             address,
-            _phantom: RealPhantom::new(),
+            _phantom: (RealPhantom::new(), PhantomData),
         }
     }
 }
 
-impl<Element: Block, const LEN: usize> Block for RealRegisterArray<Element, LEN> {
+impl<Element: Block, L: Len> Block for RealRegisterArray<Element, L> {
     type Address = Element::Address;
-    const SIZE: usize = LEN * Element::SIZE;
+    const SIZE: usize = Element::SIZE * L::LEN;
 
-    unsafe fn new(address: Element::Address) -> RealRegisterArray<Element, LEN> {
+    unsafe fn new(address: Element::Address) -> RealRegisterArray<Element, L> {
         RealRegisterArray {
             address,
-            _phantom: RealPhantom::new(),
+            _phantom: Default::default(),
         }
     }
 
-    type Borrowed<'b> = RealRegisterArray<Element::Borrowed<'b>, LEN>;
+    type Borrowed<'b> = RealRegisterArray<Element::Borrowed<'b>, L>;
 }
 
-impl<Element: Block, const LEN: usize> RegisterArray<LEN> for RealRegisterArray<Element, LEN> {
+impl<Element: Block, L: Len> Clone for RealRegisterArray<Element, L> {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+impl<Element: Block, L: Len> Copy for RealRegisterArray<Element, L> {}
+
+impl<Element: Block, L: Len> RegisterArray<L> for RealRegisterArray<Element, L> {
     type Element = Element;
 
     unsafe fn get_unchecked(self, index: usize) -> Element {
         let offset = index * Element::SIZE;
         // Safety:
-        // We know `address` points to an array of `LEN` `Element`s. The caller guaranteed that
-        // `index <= LEN`, so index * Element::SIZE is within the array's bounds. That guarantees
+        // We know `address` points to an array of `L::LEN` `Element`s. The caller guaranteed that
+        // `index < L::LEN`, so index * Element::SIZE is within the array's bounds. That guarantees
         // that this offset falls within the bounds of a register block (as the array itself is a
         // register block).
         let address = unsafe { self.address.byte_add(offset) };

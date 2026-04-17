@@ -55,9 +55,27 @@ pub fn generate(
         real = quote![#element_type::Real<B>];
     }
     let mut interface_bound = element_bound.clone();
-    for size in &register.array_sizes {
-        interface_bound = quote![#tock_registers::RegisterArray<#size, Element: #interface_bound>];
-        real = quote![#tock_registers::RealRegisterArray<#real, #size>];
+    let (mut len_definition, len_types_sizes) = match register.array_sizes.as_slice() {
+        [] => (TokenStream::new(), vec![]),
+        #[rustfmt::skip]
+        [len] => (quote![pub enum Len {}], vec![(quote![Len], len)]),
+        #[rustfmt::skip]
+        nested => (
+            quote![pub enum Len<const N: usize> {}],
+            nested
+                .iter()
+                .enumerate()
+                .map(|(n, s)| (quote![Len<#n>], s))
+                .collect(),
+        ),
+    };
+    for (len_type, size) in len_types_sizes {
+        interface_bound =
+            quote![#tock_registers::RegisterArray<#len_type, Element: #interface_bound>];
+        len_definition.extend(quote! {
+            impl #tock_registers::array::Len for #len_type { const LEN: usize = #size; }
+        });
+        real = quote![#tock_registers::RealRegisterArray<#real, #len_type>];
     }
     let real_alias = if is_scalar && is_definition {
         quote![]
@@ -76,6 +94,7 @@ pub fn generate(
             #allows
             use super::*;
             #interface_comment pub trait Interface: #interface_bound {}
+            #len_definition
             #bus_comment pub trait Bus: #bus_bound + sealed::Bus {}
             #(impl Bus for #buses {})*
             #(impl sealed::Bus for #buses {})*

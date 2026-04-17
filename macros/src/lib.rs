@@ -3,8 +3,11 @@
 // Copyright Tock Contributors 2026.
 // Copyright Better Bytes 2026.
 
-// TODO: Add --all-targets or --all to the clippy run in the Makefile (requires fixing existing
-//       code).
+// TODO: Update documentation (unit testing doc definitely outdated).
+// TODO: Add #![no_std] to examples/tests where possible.
+// TODO: Translate a Tock driver that uses register arrays.
+// TODO: Rebalance file sizes.
+// TODO: Move the real_* structs into a real:: module? impls would stay in the root.
 // TODO: Implement a "clippy test" -> a crate that uses tock-registers with as many lints as
 //       possible enabled (to verify we don't trip any of them).
 // TODO: Verify that offset/size lists match the number of buses.
@@ -18,6 +21,8 @@
 // TODO: Implement UnsafeRead/UnsafeWrite. Should they be supertraits of Read/Write or independent?
 // TODO: Implement a RegisterArray iterator.
 // TODO: Implement a arm64_secure_vm feature (see the TODO in src/mmio.rs).
+// TODO: Update the top-level crate doc comment. It should probably match or be similar to
+//       the README.
 // TODO: Investigate adding typestates into the API.
 // TODO: Re-evaluate which `syn` features we need (is full necessary?).
 

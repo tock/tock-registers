@@ -3,7 +3,9 @@
 // Copyright Tock Contributors 2026.
 // Copyright Better Bytes 2026.
 
-use std::{cell::UnsafeCell, ptr::NonNull};
+#![no_std]
+
+use core::{cell::UnsafeCell, ptr::NonNull};
 use tock_registers::{registers, Mmio32, Mmio64, Read, RegisterArray, Write};
 use {inner_block::Interface as _, outer_block::Interface as _};
 
@@ -26,6 +28,8 @@ registers! {
         1 => overlapped: u8 { Read, Write },
         8 => nested: inner_block,
         [56, 64] => nested_array: [inner_block; 2],
+        [152, 176] => flat_array: [u8; 2] { Read },
+        [154, 178] => flat_array_reference: [a; 2],
     },
 }
 
@@ -46,6 +50,8 @@ struct OuterBlock<Usize> {
     scalar: u64,
     nested: InnerBlock<Usize>,
     nested_array: [InnerBlock<Usize>; 2],
+    flat_array: [u8; 2],
+    flat_array_reference: [u8; 2],
 }
 
 #[test]
@@ -78,6 +84,8 @@ fn mmio32() {
                 array_reference: [[38, 39], [40, 41], [42, 43]],
             },
         ],
+        flat_array: [44, 45],
+        flat_array_reference: [46, 47],
     });
     let mmio = Mmio32::new(NonNull::new(peripheral.get()).unwrap().cast());
     let registers = unsafe { outer_block::Real::new(mmio) };
@@ -138,9 +146,13 @@ fn mmio32() {
     assert_eq!(array.get(1).unwrap().get(1).unwrap().get(), 41);
     assert_eq!(array.get(2).unwrap().get(0).unwrap().get(), 42);
     assert_eq!(array.get(2).unwrap().get(1).unwrap().get(), 43);
+    assert_eq!(registers.flat_array().get(0).unwrap().get(), 44);
+    assert_eq!(registers.flat_array().get(1).unwrap().get(), 45);
+    assert_eq!(registers.flat_array_reference().get(0).unwrap().get(), 46);
+    assert_eq!(registers.flat_array_reference().get(1).unwrap().get(), 47);
     // External write: verify Mmio can handle varying register values.
-    unsafe { (*peripheral.get()).scalar = 44 };
-    assert_eq!(registers.scalar().get(), 44);
+    unsafe { (*peripheral.get()).scalar = 48 };
+    assert_eq!(registers.scalar().get(), 48);
     // Perform a write.
     registers.scalar().set(u64::MAX);
     assert_eq!(unsafe { (*peripheral.get()).scalar }, u64::MAX);
@@ -177,6 +189,8 @@ fn mmio64() {
                 array_reference: [[38, 39], [40, 41], [42, 43]],
             },
         ],
+        flat_array: [44, 45],
+        flat_array_reference: [46, 47],
     });
     let mmio = Mmio64::new(NonNull::new(peripheral.get()).unwrap().cast());
     let registers = unsafe { outer_block::Real::new(mmio) };
@@ -237,9 +251,13 @@ fn mmio64() {
     assert_eq!(array.get(1).unwrap().get(1).unwrap().get(), 41);
     assert_eq!(array.get(2).unwrap().get(0).unwrap().get(), 42);
     assert_eq!(array.get(2).unwrap().get(1).unwrap().get(), 43);
+    assert_eq!(registers.flat_array().get(0).unwrap().get(), 44);
+    assert_eq!(registers.flat_array().get(1).unwrap().get(), 45);
+    assert_eq!(registers.flat_array_reference().get(0).unwrap().get(), 46);
+    assert_eq!(registers.flat_array_reference().get(1).unwrap().get(), 47);
     // External write: verify Mmio can handle varying register values.
-    unsafe { (*peripheral.get()).scalar = 44 };
-    assert_eq!(registers.scalar().get(), 44);
+    unsafe { (*peripheral.get()).scalar = 48 };
+    assert_eq!(registers.scalar().get(), 48);
     // Perform a write.
     registers.scalar().set(u64::MAX);
     assert_eq!(unsafe { (*peripheral.get()).scalar }, u64::MAX);

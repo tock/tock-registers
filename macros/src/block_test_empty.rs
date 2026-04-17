@@ -22,11 +22,11 @@ fn empty() {
     let expected = quote! {
         pub mod foo {
             #![allow(clippy::expl_impl_clone_on_copy)]
-            #![allow(non_camel_case_types)]
+            #![allow(nonstandard_style)]
             use super::*;
             #interface_comment
             pub trait Interface: ::tock_registers::internal::core::marker::Copy {}
-            #[allow(non_upper_case_globals)]
+            pub mod lens {}
             #bus_comment pub trait Bus: ::tock_registers::Address + sealed::Bus {
                 const BLOCK_SIZE: usize;
             }

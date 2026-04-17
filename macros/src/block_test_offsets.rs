@@ -43,7 +43,7 @@ fn offsets() {
     let expected = quote! {
         pub mod foo {
             #![allow(clippy::expl_impl_clone_on_copy)]
-            #![allow(non_camel_case_types)]
+            #![allow(nonstandard_style)]
             use super::*;
             #interface_comment pub trait Interface: ::tock_registers::internal::core::marker::Copy {
                 type variable_size: ::tock_registers::Register<DataType = usize> + Read;
@@ -57,7 +57,7 @@ fn offsets() {
                 type padded_pos: ::tock_registers::Register<DataType = u8> + Read;
                 fn padded_pos(self) -> Self::padded_pos;
             }
-            #[allow(non_upper_case_globals)]
+            pub mod lens {}
             #bus_comment pub trait Bus: ::tock_registers::Address +
                 ::tock_registers::DataTypeBus<usize> + ::tock_registers::DataTypeBus<u32> +
                 ::tock_registers::DataTypeBus<u16> + ::tock_registers::DataTypeBus<u32> +
