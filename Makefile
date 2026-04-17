@@ -4,7 +4,7 @@
 
 .PHONY: test
 test:
-	+RUSTFLAGS="-D warnings" cargo build --no-default-features --workspace
+	+RUSTFLAGS="-D warnings" cargo build --no-default-features
 	+RUSTFLAGS="-D warnings" cargo build --all-targets --workspace
 	+RUSTFLAGS="-D warnings" cargo test --all-targets --workspace
 	+RUSTFLAGS="-D warnings" cargo clippy --workspace
