@@ -3,7 +3,9 @@
 // Copyright Tock Contributors 2026.
 // Copyright Better Bytes 2026.
 
-use crate::{DataType, LocalRegisterCopy, Read, Register, RegisterArray, Write};
+#[cfg(feature = "register_types")]
+use crate::RegisterArray;
+use crate::{DataType, LocalRegisterCopy, Read, Register, Write};
 
 /// A fake register, for use in unit tests.
 ///
@@ -218,12 +220,14 @@ impl sealed::Access for Unsafe {}
 ///
 /// Unlike FakeRegister, FakeRegisterArray is not limited to the Read and Write operations. You can
 /// embed any element type in it (including a fake version of a register block).
+#[cfg(feature = "register_types")]
 #[derive(Clone, Copy)]
 pub struct FakeRegisterArray<Data: Copy, Element: Copy, const LEN: usize> {
     data: Data,
     get: fn(Data, usize) -> Option<Element>,
 }
 
+#[cfg(feature = "register_types")]
 impl<Data: Copy, Element: Copy, const LEN: usize> FakeRegisterArray<Data, Element, LEN> {
     /// Constructs a new FakeRegisterArray. Whenever the array is indexed (using
     /// [RegisterArray::get] or [RegisterArray::get_unchecked]), `get_fcn` is called and passed
@@ -238,6 +242,7 @@ impl<Data: Copy, Element: Copy, const LEN: usize> FakeRegisterArray<Data, Elemen
     }
 }
 
+#[cfg(feature = "register_types")]
 impl<Data: Copy, Element: Copy, const LEN: usize> RegisterArray<LEN>
     for FakeRegisterArray<Data, Element, LEN>
 {
