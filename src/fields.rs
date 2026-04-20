@@ -685,20 +685,20 @@ mod tests {
         #[test]
         fn test_is_set() {
             let field = Field::<u16, ()>::new(0xFF, 4);
-            assert_eq!(field.is_set(0), false);
-            assert_eq!(field.is_set(0xFFFF), true);
-            assert_eq!(field.is_set(0x0FF0), true);
-            assert_eq!(field.is_set(0x1000), false);
-            assert_eq!(field.is_set(0x0100), true);
-            assert_eq!(field.is_set(0x0010), true);
-            assert_eq!(field.is_set(0x0001), false);
+            assert!(!field.is_set(0));
+            assert!(field.is_set(0xFFFF));
+            assert!(field.is_set(0x0FF0));
+            assert!(!field.is_set(0x1000));
+            assert!(field.is_set(0x0100));
+            assert!(field.is_set(0x0010));
+            assert!(!field.is_set(0x0001));
 
             for shift in 0..24 {
                 let field = Field::<u32, ()>::new(0xFF, shift);
                 for x in 1..=0xFF {
-                    assert_eq!(field.is_set(x << shift), true);
+                    assert!(field.is_set(x << shift));
                 }
-                assert_eq!(field.is_set(!(0xFF << shift)), false);
+                assert!(!field.is_set(!(0xFF << shift)));
             }
         }
 
@@ -788,32 +788,32 @@ mod tests {
         #[test]
         fn test_any_matching_bits_set() {
             let field = Field::<u32, ()>::new(0xFF, 4);
-            assert_eq!(field.val(0x23).any_matching_bits_set(0x1234), true);
-            assert_eq!(field.val(0x23).any_matching_bits_set(0x5678), true);
-            assert_eq!(field.val(0x23).any_matching_bits_set(0x5008), false);
+            assert!(field.val(0x23).any_matching_bits_set(0x1234));
+            assert!(field.val(0x23).any_matching_bits_set(0x5678));
+            assert!(!field.val(0x23).any_matching_bits_set(0x5008));
 
             for shift in 0..24 {
                 let field = Field::<u32, ()>::new(0xFF, shift);
                 let field_value = field.val(0xff);
                 for y in 1..=0xff {
-                    assert_eq!(field_value.any_matching_bits_set(y << shift), true,);
+                    assert!(field_value.any_matching_bits_set(y << shift));
                 }
-                assert_eq!(field_value.any_matching_bits_set(0), false);
-                assert_eq!(field_value.any_matching_bits_set(!(0xFF << shift)), false);
+                assert!(!field_value.any_matching_bits_set(0));
+                assert!(!field_value.any_matching_bits_set(!(0xFF << shift)));
             }
         }
 
         #[test]
         fn test_matches_all() {
             let field = Field::<u32, ()>::new(0xFF, 4);
-            assert_eq!(field.val(0x23).matches_all(0x1234), true);
-            assert_eq!(field.val(0x23).matches_all(0x5678), false);
+            assert!(field.val(0x23).matches_all(0x1234));
+            assert!(!field.val(0x23).matches_all(0x5678));
 
             for shift in 0..24 {
                 let field = Field::<u32, ()>::new(0xFF, shift);
                 for x in 0..=0xFF {
-                    assert_eq!(field.val(x).matches_all(x << shift), true);
-                    assert_eq!(field.val(x + 1).matches_all(x << shift), false);
+                    assert!(field.val(x).matches_all(x << shift));
+                    assert!(!field.val(x + 1).matches_all(x << shift));
                 }
             }
         }
