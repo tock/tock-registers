@@ -7,7 +7,7 @@ test:
 	+RUSTFLAGS="-D warnings" cargo build --no-default-features
 	+RUSTFLAGS="-D warnings" cargo build --all-targets --workspace
 	+RUSTFLAGS="-D warnings" cargo test --all-targets --workspace
-	+RUSTFLAGS="-D warnings" cargo clippy --workspace
+	+RUSTFLAGS="-D warnings" cargo clippy --all --all-targets --workspace
 	+RUSTDOCFLAGS="-D warnings" cargo doc --workspace
 	+cargo fmt --all --check
 	$(MAKE) miri_test
