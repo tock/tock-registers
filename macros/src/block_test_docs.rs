@@ -97,7 +97,7 @@ fn doc_comments() {
                 const BLOCK_SIZE: usize = <B as Bus>::BLOCK_SIZE;
             }
             impl<B: Bus> sealed::Bus for ::tock_registers::BorrowedBus<'_, B> {}
-            const _: () = {
+            #[allow(clippy::eq_op)] const _: () = {
                 assert!(0 == 0, "offset mismatch for bus Mmio32");
                 assert!(0 == 0, "offset mismatch for bus Mmio64");
                 assert!(1 == 0 + <<Real<Mmio32> as Interface>::scalar_definition as

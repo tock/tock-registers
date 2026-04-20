@@ -150,7 +150,7 @@ pub fn generate(tock_registers: &Path, definition: &Definition, fields: &[Field]
                 #borrowed_bus_defs
             }
             impl<B: Bus> sealed::Bus for #tock_registers::BorrowedBus<'_, B> {}
-            const _: () = { #offset_tests };
+            #[allow(clippy::eq_op)] const _: () = { #offset_tests };
             mod sealed { pub trait Bus {} }
             #real_comment pub struct Real<B: Bus> {
                 address: B,

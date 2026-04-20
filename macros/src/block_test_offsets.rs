@@ -88,7 +88,7 @@ fn offsets() {
                 const padded_pos_offset: usize = <B as Bus>::padded_pos_offset;
             }
             impl<B: Bus> sealed::Bus for ::tock_registers::BorrowedBus<'_, B> {}
-            const _: () = {
+            #[allow(clippy::eq_op)] const _: () = {
                 assert!(0 == 0, "offset mismatch for bus Mmio32");
                 assert!(0 == 0, "offset mismatch for bus Mmio64");
                 assert!(4 == 0 + <<Real<Mmio32> as Interface>::variable_size as

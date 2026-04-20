@@ -38,7 +38,7 @@ fn empty() {
                 const BLOCK_SIZE: usize = <B as Bus>::BLOCK_SIZE;
             }
             impl<B: Bus> sealed::Bus for ::tock_registers::BorrowedBus<'_, B> {}
-            const _: () = {};
+            #[allow(clippy::eq_op)] const _: () = {};
             mod sealed { pub trait Bus {} }
             #real_comment pub struct Real<B: Bus> {
                 address: B,
