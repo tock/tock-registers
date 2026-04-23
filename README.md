@@ -3,6 +3,11 @@
 This crate provides an interface and types for defining and
 manipulating registers and bitfields.
 
+**NOTE:** tock-registers is currently undergoing a significant redesign, and
+this README describes the new design. If you are here to learn how to use
+tock-registers today, I suggest looking at a [recent release's
+README](https://github.com/tock/tock-registers/tree/v0.10.1) instead.
+
 ## Defining registers
 
 Note: `registers!` has several pieces of functionality that are not described in

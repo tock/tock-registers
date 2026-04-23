@@ -3,22 +3,34 @@
 // Copyright Tock Contributors 2026.
 // Copyright Better Bytes 2026.
 
-use tock_registers::{mmio32_registers, Read};
+use tock_registers::{mmio32_registers, Mmio32, Read};
 
 mmio32_registers! {
     /// Registers for a hardware device that generates random numbers.
     pub rng {
-        /// This register returns a new random value on every read.
+        /// This register returns a new random value on every read. It can be read concurrently by
+        /// multiple cores, returning separate random data on each core.
         0 => random_byte: u8 { Read },
     }
 }
 
-/// A driver for this hardware, which fills the provided buffer with random
-/// data.
-pub fn getrandom<R: rng::Interface>(registers: R, buffer: &mut [u8]) {
+/// A driver for this hardware, which fills the provided buffer with random data.
+///
+/// This function is unit testable: it can be used with either the real hardware or a fake/mock
+/// implementation of the hardware.
+pub fn getrandom_impl<R: rng::Interface>(registers: R, buffer: &mut [u8]) {
     for byte in buffer {
         *byte = registers.random_byte().get();
     }
+}
+
+/// Driver usable with the real hardware. Fills the provided buffer with random data.
+pub fn getrandom(buffer: &mut [u8]) {
+    let mmio = Mmio32::from_addr(0x100);
+    // Safety: We know this device exists at address 0x100, and can be access from multiple threads
+    // with no issue.
+    let registers = unsafe { rng::Real::new(mmio) };
+    getrandom_impl(registers, buffer);
 }
 
 #[cfg(test)]
@@ -48,7 +60,7 @@ mod tests {
     #[test]
     fn getrandom_test() {
         let mut buffer = [0; 3];
-        getrandom(&FakeRng::default(), &mut buffer);
+        getrandom_impl(&FakeRng::default(), &mut buffer);
         assert_eq!(buffer, [1, 2, 3]);
     }
 }

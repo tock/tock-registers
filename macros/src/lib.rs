@@ -3,7 +3,9 @@
 // Copyright Tock Contributors 2026.
 // Copyright Better Bytes 2026.
 
-// TODO: Update documentation (unit testing doc definitely outdated).
+// TODO: Hacking glossary? Code navigation pointers?
+// TODO: Implement #[bus] to specify a default bus (outputs Real<B: Bus = #bus>), update the
+//       src/registers_macro.rs docs.
 // TODO: Add #![no_std] to examples/tests where possible.
 // TODO: Translate a Tock driver that uses register arrays.
 // TODO: Rebalance file sizes.
@@ -18,7 +20,7 @@
 //       3. Errors where we can still generate code (e.g. multiple #[aliased] attributes)
 // TODO: Implement UnimplementedRegister, add to operation documentation.
 // TODO: Implement macro that automatically provides the type defs for Interface trait impls.
-// TODO: Implement UnsafeRead/UnsafeWrite. Should they be supertraits of Read/Write or independent?
+// TODO: Implement UnsafeRead/UnsafeWrite. No subtrait relationship b/c method name collisions.
 // TODO: Implement a RegisterArray iterator.
 // TODO: Implement a arm64_secure_vm feature (see the TODO in src/mmio.rs).
 // TODO: Update the top-level crate doc comment. It should probably match or be similar to

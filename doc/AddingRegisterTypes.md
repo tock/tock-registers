@@ -6,8 +6,6 @@ defining a new bus type, and defining new operations.
 
 ## Adding a new Bus
 
-While implementing a new bus, you can refer to the implementation of `Mmio32`.
-
 A Bus type must be `Copy` and should wrap a type that can store the register's
 address (generally an integer or pointer type). For example, if you're creating
 a new bus for registers that are accessed by a byte-sized address (this might be
@@ -82,7 +80,7 @@ macro_rules! MyOperation {
     //             left blank if the trait does not have generics (resulting in
     //             two consecutive commas in the input).
     //   rest:     A catch-all so that registers! can pass additional arguments
-    //             in the future without breaking every existing macro trait.
+    //             in the future without breaking every existing operation macro.
     (real_impl, $name:ident, $datatype:ty, $(<$generic:path>)?, $($rest:tt)*) => {
         impl<B: Bus + /* Your Bus* trait */> $crate::MyOperation
             for $name<B>
@@ -91,10 +89,10 @@ macro_rules! MyOperation {
             // the register's address.
         }
     };
-    // Catch-all case that emits nothing if registers! invokes it with an unknown first argument.
-    // This is so that we can add new functionality into the operations macros
-    // without breaking backwards compatibility (though registers! would need to
-    // be compatible with this do-nothing block).
+    // Catch-all case that emits nothing if registers! invokes it with an
+    // unknown first argument. This is so that we can add new functionality into
+    // the operations macros without breaking backwards compatibility (though
+    // registers! would need to be compatible with this do-nothing block).
     ($($unknown:tt)*) => {};
 }
 ```
