@@ -80,7 +80,9 @@ mod peripheral {
     pub trait Bus: /* bounds omitted */ { /* omitted */ }
     impl Bus for Mmio32 {}
 
-    // Implementation of `Interface` for use on the real chip
+    // Implementation of `Interface` for use on the real chip. `Real` is a
+    // handle that refers to the registers -- e.g. for MMIO registers `Real`
+    // wraps a pointer.
     pub struct Real<B: Bus> { /* omitted */ }
 
     impl<B: Bus> Interface for Real<B> { /* omitted */ }

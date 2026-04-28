@@ -28,14 +28,14 @@ fn empty() {
             pub trait Interface: ::tock_registers::internal::core::marker::Copy {}
             pub mod lens {}
             #bus_comment pub trait Bus: ::tock_registers::Address + sealed::Bus {
-                const BLOCK_SIZE: usize;
+                const SIZE: usize;
             }
-            impl Bus for Mmio32 { const BLOCK_SIZE: usize = 0; }
+            impl Bus for Mmio32 { const SIZE: usize = 0; }
             impl sealed::Bus for Mmio32 {}
-            impl Bus for Mmio64 { const BLOCK_SIZE: usize = 0; }
+            impl Bus for Mmio64 { const SIZE: usize = 0; }
             impl sealed::Bus for Mmio64 {}
             impl<B: Bus> Bus for ::tock_registers::BorrowedBus<'_, B> {
-                const BLOCK_SIZE: usize = <B as Bus>::BLOCK_SIZE;
+                const SIZE: usize = <B as Bus>::SIZE;
             }
             impl<B: Bus> sealed::Bus for ::tock_registers::BorrowedBus<'_, B> {}
             #[allow(clippy::eq_op)] const _: () = {};
@@ -54,9 +54,9 @@ fn empty() {
             }
             impl<B: Bus> ::tock_registers::internal::core::marker::Copy for Real<B> {}
             impl<B: Bus> Interface for Real<B> where {}
-            impl<B: Bus> ::tock_registers::Block for Real<B> {
+            impl<B: Bus> ::tock_registers::Span for Real<B> {
                 type Address = B;
-                const SIZE: usize = <B as Bus>::BLOCK_SIZE;
+                const SIZE: usize = <B as Bus>::SIZE;
                 unsafe fn new(address: B) -> Self {
                     Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
                 }

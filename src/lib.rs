@@ -84,7 +84,7 @@ pub use array::{RealRegisterArray, RegisterArray};
 #[cfg(feature = "register_types")]
 mod bus;
 #[cfg(feature = "register_types")]
-pub use bus::{Address, Block, BorrowedBus, Bus, DataTypeBus, RegisterSender};
+pub use bus::{Address, BorrowedBus, Bus, DataTypeBus, RegisterSender, Span};
 
 mod fake_register;
 #[cfg(feature = "register_types")]

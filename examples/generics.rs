@@ -8,7 +8,7 @@
 
 use std::fmt::Debug;
 use std::ptr::{read_volatile, NonNull};
-use tock_registers::{registers, Address, Block, Bus, BusRead, Read, RegisterArray};
+use tock_registers::{registers, Address, Bus, BusRead, Read, RegisterArray, Span};
 
 // -----------------------------------------------------------------------------
 // Partial implementation of LiteX buses, to test registers!'s support for

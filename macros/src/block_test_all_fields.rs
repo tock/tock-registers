@@ -80,7 +80,7 @@ fn all_field_types_example() {
                 ::tock_registers::DataTypeBus<u8> + a::Bus + b::Bus +
                 ::tock_registers::DataTypeBus<u8> + c::Bus + sealed::Bus
             {
-                const BLOCK_SIZE: usize;
+                const SIZE: usize;
                 const scalar_definition_offset: usize = 0;
                 const array_definition_offset: usize = 1;
                 const scalar_reference_offset: usize = 8;
@@ -89,44 +89,44 @@ fn all_field_types_example() {
                 const flat_array_reference_offset: usize = 17;
             }
             impl Bus for Mmio32 {
-                const BLOCK_SIZE: usize = 17 + <<Real<Mmio32> as Interface>::flat_array_reference
-                    as ::tock_registers::Block>::SIZE;
+                const SIZE: usize = 17 + <<Real<Mmio32> as Interface>::flat_array_reference
+                    as ::tock_registers::Span>::SIZE;
             }
             impl sealed::Bus for Mmio32 {}
             impl Bus for Mmio64 {
-                const BLOCK_SIZE: usize = 17 + <<Real<Mmio64> as Interface>::flat_array_reference
-                    as ::tock_registers::Block>::SIZE;
+                const SIZE: usize = 17 + <<Real<Mmio64> as Interface>::flat_array_reference
+                    as ::tock_registers::Span>::SIZE;
             }
             impl sealed::Bus for Mmio64 {}
             impl<B: Bus> Bus for ::tock_registers::BorrowedBus<'_, B> {
-                const BLOCK_SIZE: usize = <B as Bus>::BLOCK_SIZE;
+                const SIZE: usize = <B as Bus>::SIZE;
             }
             impl<B: Bus> sealed::Bus for ::tock_registers::BorrowedBus<'_, B> {}
             #[allow(clippy::eq_op)] const _: () = {
                 assert!(0 == 0, "offset mismatch for bus Mmio32");
                 assert!(0 == 0, "offset mismatch for bus Mmio64");
                 assert!(1 == 0 + <<Real<Mmio32> as Interface>::scalar_definition as
-                    ::tock_registers::Block>::SIZE, "offset mismatch for bus Mmio32");
+                    ::tock_registers::Span>::SIZE, "offset mismatch for bus Mmio32");
                 assert!(1 == 0 + <<Real<Mmio64> as Interface>::scalar_definition as
-                    ::tock_registers::Block>::SIZE, "offset mismatch for bus Mmio64");
+                    ::tock_registers::Span>::SIZE, "offset mismatch for bus Mmio64");
                 assert!(7 == 1 + <<Real<Mmio32> as Interface>::array_definition as
-                    ::tock_registers::Block>::SIZE, "offset mismatch for bus Mmio32");
+                    ::tock_registers::Span>::SIZE, "offset mismatch for bus Mmio32");
                 assert!(7 == 1 + <<Real<Mmio64> as Interface>::array_definition as
-                    ::tock_registers::Block>::SIZE, "offset mismatch for bus Mmio64");
+                    ::tock_registers::Span>::SIZE, "offset mismatch for bus Mmio64");
                 assert!(8 == 7 + 1, "offset mismatch for bus Mmio32");
                 assert!(8 == 7 + 1, "offset mismatch for bus Mmio64");
                 assert!(9 == 8 + <<Real<Mmio32> as Interface>::scalar_reference as
-                    ::tock_registers::Block>::SIZE, "offset mismatch for bus Mmio32");
+                    ::tock_registers::Span>::SIZE, "offset mismatch for bus Mmio32");
                 assert!(9 == 8 + <<Real<Mmio64> as Interface>::scalar_reference as
-                    ::tock_registers::Block>::SIZE, "offset mismatch for bus Mmio64");
+                    ::tock_registers::Span>::SIZE, "offset mismatch for bus Mmio64");
                 assert!(15 == 9 + <<Real<Mmio32> as Interface>::array_reference as
-                    ::tock_registers::Block>::SIZE, "offset mismatch for bus Mmio32");
+                    ::tock_registers::Span>::SIZE, "offset mismatch for bus Mmio32");
                 assert!(15 == 9 + <<Real<Mmio64> as Interface>::array_reference as
-                    ::tock_registers::Block>::SIZE, "offset mismatch for bus Mmio64");
+                    ::tock_registers::Span>::SIZE, "offset mismatch for bus Mmio64");
                 assert!(17 == 15 + <<Real<Mmio32> as Interface>::flat_array_definition as
-                    ::tock_registers::Block>::SIZE, "offset mismatch for bus Mmio32");
+                    ::tock_registers::Span>::SIZE, "offset mismatch for bus Mmio32");
                 assert!(17 == 15 + <<Real<Mmio64> as Interface>::flat_array_definition as
-                    ::tock_registers::Block>::SIZE, "offset mismatch for bus Mmio64");
+                    ::tock_registers::Span>::SIZE, "offset mismatch for bus Mmio64");
             };
             mod sealed { pub trait Bus {} }
             #real_comment pub struct Real<B: Bus> {
@@ -201,9 +201,9 @@ fn all_field_types_example() {
                     }
                 }
             }
-            impl<B: Bus> ::tock_registers::Block for Real<B> {
+            impl<B: Bus> ::tock_registers::Span for Real<B> {
                 type Address = B;
-                const SIZE: usize = <B as Bus>::BLOCK_SIZE;
+                const SIZE: usize = <B as Bus>::SIZE;
                 unsafe fn new(address: B) -> Self {
                     Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
                 }
@@ -222,7 +222,7 @@ fn all_field_types_example() {
             for real_scalar_definition<B> { #[inline] fn clone(&self) -> Self { *self } }
             impl<B: Bus> ::tock_registers::internal::core::marker::Copy
             for real_scalar_definition<B> {}
-            impl<B: Bus> ::tock_registers::Block for real_scalar_definition<B> {
+            impl<B: Bus> ::tock_registers::Span for real_scalar_definition<B> {
                 type Address = B;
                 const SIZE: usize = <B as ::tock_registers::DataTypeBus<u8>>::PADDED_SIZE;
                 unsafe fn new(address: B) -> Self {
@@ -250,7 +250,7 @@ fn all_field_types_example() {
             for real_array_definition<B> { #[inline] fn clone(&self) -> Self { *self } }
             impl<B: Bus> ::tock_registers::internal::core::marker::Copy
             for real_array_definition<B> {}
-            impl<B: Bus> ::tock_registers::Block for real_array_definition<B> {
+            impl<B: Bus> ::tock_registers::Span for real_array_definition<B> {
                 type Address = B;
                 const SIZE: usize = <B as ::tock_registers::DataTypeBus<u8>>::PADDED_SIZE;
                 unsafe fn new(address: B) -> Self {
@@ -276,7 +276,7 @@ fn all_field_types_example() {
             for real_flat_array_definition<B> { #[inline] fn clone(&self) -> Self { *self } }
             impl<B: Bus> ::tock_registers::internal::core::marker::Copy
             for real_flat_array_definition<B> {}
-            impl<B: Bus> ::tock_registers::Block for real_flat_array_definition<B> {
+            impl<B: Bus> ::tock_registers::Span for real_flat_array_definition<B> {
                 type Address = B;
                 const SIZE: usize = <B as ::tock_registers::DataTypeBus<u8>>::PADDED_SIZE;
                 unsafe fn new(address: B) -> Self {

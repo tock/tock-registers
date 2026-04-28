@@ -3,7 +3,7 @@
 // Copyright Tock Contributors 2026.
 // Copyright Better Bytes 2026.
 
-use crate::{internal::RealPhantom, Address, Block};
+use crate::{internal::RealPhantom, Address, Span};
 use core::marker::PhantomData;
 
 /// Interface for an array of registers (or register blocks, or register arrays). Each register
@@ -98,12 +98,12 @@ pub trait Len {
 
 /// Real implementation of RegisterArray.
 // Safety invariant: `address` points to an array of `L::LEN` consecutive `Element` registers.
-pub struct RealRegisterArray<Element: Block, L: Len> {
+pub struct RealRegisterArray<Element: Span, L: Len> {
     address: Element::Address,
     _phantom: (RealPhantom, PhantomData<L>),
 }
 
-impl<Element: Block, L: Len> RealRegisterArray<Element, L> {
+impl<Element: Span, L: Len> RealRegisterArray<Element, L> {
     /// Constructs an accessor for the register array at the given address.
     /// # Safety
     /// 1. `address` must point to a register array on the bus corresponding to `Self::Address`.
@@ -121,7 +121,7 @@ impl<Element: Block, L: Len> RealRegisterArray<Element, L> {
     }
 }
 
-impl<Element: Block, L: Len> Block for RealRegisterArray<Element, L> {
+impl<Element: Span, L: Len> Span for RealRegisterArray<Element, L> {
     type Address = Element::Address;
     const SIZE: usize = Element::SIZE * L::LEN;
 
@@ -135,14 +135,14 @@ impl<Element: Block, L: Len> Block for RealRegisterArray<Element, L> {
     type Borrowed<'b> = RealRegisterArray<Element::Borrowed<'b>, L>;
 }
 
-impl<Element: Block, L: Len> Clone for RealRegisterArray<Element, L> {
+impl<Element: Span, L: Len> Clone for RealRegisterArray<Element, L> {
     fn clone(&self) -> Self {
         *self
     }
 }
-impl<Element: Block, L: Len> Copy for RealRegisterArray<Element, L> {}
+impl<Element: Span, L: Len> Copy for RealRegisterArray<Element, L> {}
 
-impl<Element: Block, L: Len> RegisterArray<L> for RealRegisterArray<Element, L> {
+impl<Element: Span, L: Len> RegisterArray<L> for RealRegisterArray<Element, L> {
     type Element = Element;
 
     unsafe fn get_unchecked(self, index: usize) -> Element {
@@ -150,8 +150,8 @@ impl<Element: Block, L: Len> RegisterArray<L> for RealRegisterArray<Element, L> 
         // Safety:
         // We know `address` points to an array of `L::LEN` `Element`s. The caller guaranteed that
         // `index < L::LEN`, so index * Element::SIZE is within the array's bounds. That guarantees
-        // that this offset falls within the bounds of a register block (as the array itself is a
-        // register block).
+        // that this offset falls within the bounds of a register span (as the array itself is a
+        // register span).
         let address = unsafe { self.address.byte_add(offset) };
         // Safety: `address` was a correctly calculated index into the array, and we know the
         // element type is `Element`, so `address` points to an `Element`.

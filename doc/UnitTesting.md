@@ -92,4 +92,4 @@ mod tests {
 }
 ```
 
-See [../examples/rng.rs] for the complete example.
+See [examples/rng.rs](../examples/rng.rs) for the complete example.

@@ -3,6 +3,10 @@
 // Copyright Tock Contributors 2026.
 // Copyright Better Bytes 2026.
 
+//! Tests the generated code in a crate using the `#![no_implicit_prelude]` attribute. All of the
+//! generated code should use #tock_registers to access items from tock_registers and
+//! #tock_registers::internal::core to access items from core.
+
 #![no_implicit_prelude]
 
 use ::tock_registers::{Read, Write};

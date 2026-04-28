@@ -72,7 +72,7 @@ fn scalar_definition() {
                 #[inline] fn clone(&self) -> Self { *self }
             }
             impl<B: Bus> ::tock_registers::internal::core::marker::Copy for Real<B> {}
-            impl<B: Bus> ::tock_registers::Block for Real<B> {
+            impl<B: Bus> ::tock_registers::Span for Real<B> {
                 type Address = B;
                 const SIZE: usize = <B as ::tock_registers::DataTypeBus<u8>>::PADDED_SIZE;
                 unsafe fn new(address: B) -> Self {
@@ -155,7 +155,7 @@ fn array_definition() {
                 #[inline] fn clone(&self) -> Self { *self }
             }
             impl<B: Bus> ::tock_registers::internal::core::marker::Copy for Element<B> {}
-            impl<B: Bus> ::tock_registers::Block for Element<B> {
+            impl<B: Bus> ::tock_registers::Span for Element<B> {
                 type Address = B;
                 const SIZE: usize = <B as ::tock_registers::DataTypeBus<u8>>::PADDED_SIZE;
                 unsafe fn new(address: B) -> Self {

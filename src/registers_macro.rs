@@ -33,7 +33,7 @@
 /// }
 /// ```
 /// Note that many details, such as trait bounds and trait sealing, are omitted for clarity. `Real`
-/// implements several traits: [`Block`](crate::Block), [`Read`], [`Write`], and `Interface`.
+/// implements several traits: [`Span`](crate::Span), [`Read`], [`Write`], and `Interface`.
 ///
 /// To use the generated register type, use `Real::new` to construct a handle that points to the
 /// register, then use the [`Read`] and/or [`Write`] traits to access the register.
@@ -207,7 +207,7 @@
 /// the register's block size. If a `#[aliased]` register extends beyond the end of the
 /// non-`#[aliased]` registers, then that register will exist outside the register block's
 /// boundaries! That may or may not be what you wanted. If in doubt, put a padding field at the end
-/// to make sure the total block size is correct.
+/// to make sure the total size is correct.
 ///
 /// # Visibility
 /// You can specify the visibility of the generated modules:

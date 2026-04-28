@@ -30,7 +30,7 @@ fn scalar_definition_example() {
             #interface_comment
             pub trait Interface: ::tock_registers::Register<DataType = u8> + Read + Write {}
             #bus_comment pub trait Bus:
-                // Bus needs this bound so that the Block impl for Real<B> can access PADDED_SIZE.
+                // Bus needs this bound so that the Span impl for Real<B> can access PADDED_SIZE.
                 // It would be ideal to be able to bound BusRead/BusWrite as well, as that would
                 // allow us to remove the `where` clause from the `Interface for Real<B>` impl.
                 // However, we have to get those trait names from the operations' macros, and you
@@ -61,7 +61,7 @@ fn scalar_definition_example() {
                 #[inline] fn clone(&self) -> Self { *self }
             }
             impl<B: Bus> ::tock_registers::internal::core::marker::Copy for Real<B> {}
-            impl<B: Bus> ::tock_registers::Block for Real<B> {
+            impl<B: Bus> ::tock_registers::Span for Real<B> {
                 type Address = B;
                 const SIZE: usize = <B as ::tock_registers::DataTypeBus<u8>>::PADDED_SIZE;
                 unsafe fn new(address: B) -> Self {
@@ -132,7 +132,7 @@ fn flat_array_definition_example() {
                 #[inline] fn clone(&self) -> Self { *self }
             }
             impl<B: Bus> ::tock_registers::internal::core::marker::Copy for Element<B> {}
-            impl<B: Bus> ::tock_registers::Block for Element<B> {
+            impl<B: Bus> ::tock_registers::Span for Element<B> {
                 type Address = B;
                 const SIZE: usize = <B as ::tock_registers::DataTypeBus<u8>>::PADDED_SIZE;
                 unsafe fn new(address: B) -> Self {
@@ -207,7 +207,7 @@ fn nested_array_definition_example() {
                 #[inline] fn clone(&self) -> Self { *self }
             }
             impl<B: Bus> ::tock_registers::internal::core::marker::Copy for Element<B> {}
-            impl<B: Bus> ::tock_registers::Block for Element<B> {
+            impl<B: Bus> ::tock_registers::Span for Element<B> {
                 type Address = B;
                 const SIZE: usize = <B as ::tock_registers::DataTypeBus<u8>>::PADDED_SIZE;
                 unsafe fn new(address: B) -> Self {
@@ -371,7 +371,7 @@ fn generic_operation() {
                 #[inline] fn clone(&self) -> Self { *self }
             }
             impl<B: Bus> ::tock_registers::internal::core::marker::Copy for Real<B> {}
-            impl<B: Bus> ::tock_registers::Block for Real<B> {
+            impl<B: Bus> ::tock_registers::Span for Real<B> {
                 type Address = B;
                 const SIZE: usize = <B as ::tock_registers::DataTypeBus<u8>>::PADDED_SIZE;
                 unsafe fn new(address: B) -> Self {

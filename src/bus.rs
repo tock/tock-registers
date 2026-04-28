@@ -48,26 +48,25 @@ pub unsafe trait Bus<T: UIntLike>: Address {
     const PADDED_SIZE: usize;
 }
 
-/// An accessor for a block of registers. Every Real type implements this. This trait is used to
-/// construct the register blocks, including sub-blocks for larger register blocks and elements of
-/// arrays.
-pub trait Block: Copy {
+/// An accessor for a span of registers. Every Real type implements this. This trait is used to
+/// construct the register accessors, including fields of register blocks and elements of arrays.
+pub trait Span: Copy {
     type Address: Address;
-    /// Size this blocks occupies in the address space. Depends on the address type.
+    /// Size this register span occupies in the address space. Depends on the address type.
     const SIZE: usize;
 
-    /// Constructs an accessor for a register block.
+    /// Constructs an accessor for a register span.
     /// # Safety
     /// 1. `address` must point to register(s) on the bus corresponding to `Self::Address`.
     /// 2. The register(s)' definition (as provided to the [`registers`](macro@crate::registers)
     ///    macro) must correctly describe the pointed-to register(s).
-    /// 3. The returned register block accessor must not be used in a way that causes data races.
+    /// 3. The returned register span accessor must not be used in a way that causes data races.
     ///    The exact requirements depend on the hardware, but it's usually best to access a
-    ///    register block from only one thread at a time.
+    ///    register span from only one thread at a time.
     unsafe fn new(address: Self::Address) -> Self;
 
     /// Type of this register with its bus wrapped in BorrowedBus.
-    type Borrowed<'b>: Block<Address = BorrowedBus<'b, Self::Address>>;
+    type Borrowed<'b>: Span<Address = BorrowedBus<'b, Self::Address>>;
 }
 
 /// An alias for `Bus<D::Value>`. Used so you don't have to write
@@ -108,7 +107,7 @@ impl<'b, A: Address> Address for BorrowedBus<'b, A> {
         Self {
             // Safety: This is the same Bus as A, even though it is a distinct type. Therefore, the
             // caller of this function already guaranteed that self.address is the correct type,
-            // and promised that adding `offset` will remain within the register block.
+            // and promised that adding `offset` will remain within the register span.
             address: unsafe { self.address.byte_add(offset) },
             _phantom: PhantomData,
         }
@@ -120,15 +119,15 @@ unsafe impl<'b, T: UIntLike, A: Address + Bus<T>> Bus<T> for BorrowedBus<'b, A> 
     const PADDED_SIZE: usize = A::PADDED_SIZE;
 }
 
-/// A utility for sharing a register block between threads.
+/// A utility for sharing a register span between threads.
 ///
 /// Unlike the `Real` structs, this implements [`Send`], so it can be moved between threads (using
-/// something like a channel or mutex). To access the register block, call
-/// [`borrow`](RegisterSender::borrow) to get a temporary handle to the register block.
+/// something like a channel or mutex). To access the register span, call
+/// [`borrow`](RegisterSender::borrow) to get a temporary handle to the register span.
 ///
 /// Note that a bus can choose whether RegisterSender works with it by deciding whether to
 /// implement Send.
-pub struct RegisterSender<R: Block>
+pub struct RegisterSender<R: Span>
 where
     R::Address: Send,
 {
@@ -139,19 +138,19 @@ where
 
 // Safety: RegisterSender is not Copy or Sync, so only one thread can have an active borrow at a
 // time. That means the hierarchy of Real<> structs can only be accessed from one thread at a time.
-unsafe impl<R: Block> Send for RegisterSender<R> where R::Address: Send {}
+unsafe impl<R: Span> Send for RegisterSender<R> where R::Address: Send {}
 
-impl<R: Block> RegisterSender<R>
+impl<R: Span> RegisterSender<R>
 where
     R::Address: Send,
 {
-    /// Constructs a new RegisterSender for the given register block.
+    /// Constructs a new RegisterSender for the given register span.
     /// # Safety
     /// 1. `address` must point to register(s) on the bus corresponding to `Self::Address`.
     /// 2. The register(s)' definition (as provided to the [`registers`](macro@crate::registers)
     ///    macro) must correctly describe the pointed-to register(s).
     /// 3. Nothing other than handles returned by [`borrow`](Self::borrow) (and handles derived
-    ///    from them) may be used to access this register block.
+    ///    from them) may be used to access this register span.
     pub unsafe fn new(address: R::Address) -> Self {
         Self {
             address,
@@ -164,7 +163,7 @@ where
     /// returned handles must be dropped before the `RegisterSender` can be sent to another thread.
     pub fn borrow(&self) -> R::Borrowed<'_> {
         let borrowed_bus = BorrowedBus::new(self.address);
-        // Safety: All of the requirements for Block::new() were met by the caller when they called
+        // Safety: All of the requirements for Span::new() were met by the caller when they called
         // `RegisterSender::new`.
         unsafe { R::Borrowed::new(borrowed_bus) }
     }

@@ -3,7 +3,8 @@
 // Copyright Tock Contributors 2026.
 // Copyright Better Bytes 2026.
 
-//! Input parser.
+//! Input parser. The best reference for what this does is the [ast] module, as the doc comment on
+//! each AST type shows that type's definition syntax.
 
 use crate::ast::{Definition, Field, FieldDef, Input, PerBusInt, RegisterSpec, Value};
 use syn::parse::{Parse, ParseStream};
