@@ -3,15 +3,13 @@
 // Copyright Tock Contributors 2026.
 // Copyright Better Bytes 2026.
 
-// TODO: Investigate creating an external code generation binary for users who want to review the
-//       generated code before building.
 // TODO: Rename `registers!`? Also rename ast::Definition to correspond, then add the following
 //       terms to the glossary: <whatever ast::Definition is renamed to>, register block, single
 //       register, register definition, register reference, scalar register definition, scalar
 //       register reference, array register definition, array register reference.
 // TODO: Re-evaluate mod/file structure in tock-registers.
 // TODO: Implement #[bus] to specify a default bus (outputs Real<B: Bus = #bus>), update the
-//       src/registers_macro.rs docs.
+//       src/registers_macro.rs docs. Don't forget to update expand_macros!
 // TODO: Add #![no_std] to examples/tests where possible.
 // TODO: Translate a Tock driver that uses register arrays.
 // TODO: Implement a RegisterArray iterator.
@@ -44,116 +42,8 @@
 // TODO: Do we want to remove the trailing commas after declarations? Easy to do, but a bit harder
 //       to revert (have some Punctuated iterator code that I don't want to rewrite).
 
-mod ast;
-mod block;
-#[cfg(test)]
-mod block_test_all_fields;
-#[cfg(test)]
-mod block_test_docs;
-#[cfg(test)]
-mod block_test_empty;
-#[cfg(test)]
-mod block_test_offsets;
-mod parse;
-#[cfg(test)]
-mod parse_tests;
-mod single;
-#[cfg(test)]
-mod single_test_basic;
-#[cfg(test)]
-mod single_test_docs;
-#[cfg(test)]
-mod test_util;
-
-use ast::{Input, RegisterSpec, Value};
-use proc_macro2::TokenStream;
-use quote::quote;
-use std::mem::replace;
-use syn::{parse_macro_input, Ident, Path, PathArguments};
-
-// The implementation of the registers! macro. If you're new to this macro's codebase, look at the
-// `ast` module first. Understanding the AST is important for understanding both the parsing module
-// and the code generation modules.
 #[proc_macro]
 pub fn registers(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    generate(parse_macro_input!(input as Input)).into()
-}
-
-/// Returns the generated code for a registers! invocation.
-fn generate(input: Input) -> TokenStream {
-    let mut out = TokenStream::new();
-    for definition in input.definitions {
-        out.extend(match &definition.value {
-            Value::Single(register) => {
-                single::generate(&input.tock_registers, &definition, register)
-            }
-            Value::Block(fields) => block::generate(&input.tock_registers, &definition, fields),
-        });
-    }
-    out
-}
-
-/// Generates the Real struct for a register definition (one that has an operations list).
-/// `struct_name` is the name of the struct to generate, which may not match the name of the
-/// register.
-fn register_definition(
-    tock_registers: &Path,
-    docs: TokenStream,
-    struct_name: &Ident,
-    register: &RegisterSpec,
-    operations: &[Path],
-) -> TokenStream {
-    let new_comment = new_doc_comment();
-    let element_type = &register.element_type;
-    let mut op_macros = Vec::with_capacity(operations.len());
-    let mut op_generics = Vec::with_capacity(operations.len());
-    for mut path in operations.iter().cloned() {
-        let last = path.segments.last_mut().expect("empty operation path");
-        op_generics.push(replace(&mut last.arguments, PathArguments::None));
-        op_macros.push(path);
-    }
-    quote! {
-        #docs pub struct #struct_name<B: Bus> {
-            address: B,
-            _phantom: #tock_registers::internal::RealPhantom,
-        }
-        impl<B: Bus> #struct_name<B> {
-            #new_comment pub const unsafe fn new(address: B) -> Self {
-                Self { address, _phantom: #tock_registers::internal::RealPhantom::new() }
-            }
-        }
-        impl<B: Bus> #tock_registers::internal::core::clone::Clone for #struct_name<B> {
-            #[inline] fn clone(&self) -> Self { *self }
-        }
-        impl<B: Bus> #tock_registers::internal::core::marker::Copy for #struct_name<B> {}
-        impl<B: Bus> #tock_registers::Span for #struct_name<B> {
-            type Address = B;
-            const SIZE: usize = <B as #tock_registers::DataTypeBus<#element_type>>::PADDED_SIZE;
-            unsafe fn new(address: B) -> Self {
-                Self { address, _phantom: #tock_registers::internal::RealPhantom::new()  }
-            }
-            type Borrowed<'b> = #struct_name<#tock_registers::BorrowedBus<'b, B>>;
-        }
-        impl<B: Bus> #tock_registers::Register for #struct_name<B> {
-            type DataType = #element_type;
-        }
-        #(#op_macros!(real_impl, #struct_name, #element_type, #op_generics,);)*
-    }
-}
-
-/// Returns the block comment for the `new` function for a register or register block.
-fn new_doc_comment() -> TokenStream {
-    quote! {
-        /// Constructs an accessor for this register or register block.
-        /// # Safety
-        /// 1. `address` must point to register(s) on the bus corresponding to
-        ///    `B`.
-        /// 2. The register(s)' definition (as provided to the
-        ///    `tock_registers::registers!` macro) must correctly describe the
-        ///    pointed-to register(s).
-        /// 3. The returned register accessor must not be used in a way that
-        ///    causes data races. The exact requirements depend on the hardware,
-        ///    but it's usually best to access a register from only one thread
-        ///    at a time.
-    }
+    let (Ok(out) | Err(out)) = tock_registers_codegen::registers(input.into());
+    out.into()
 }

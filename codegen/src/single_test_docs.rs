@@ -8,13 +8,12 @@
 //! 1. Doc comments that should be copied from the input are copied correctly.
 //! 2. Generated doc comments are correct.
 
-use crate::{generate, test_util::assert_tokens_eq};
+use crate::{registers, test_util::assert_tokens_eq};
 use quote::quote;
-use syn::parse_quote;
 
 #[test]
 fn scalar_definition() {
-    let input = parse_quote! {
+    let input = quote! {
         ::tock_registers
         //! Doc comment A
         //! Doc comment B
@@ -87,12 +86,12 @@ fn scalar_definition() {
                 Self: ::tock_registers::Register<DataType = u8> + Read + Write {}
         }
     };
-    assert_tokens_eq(generate(input), expected);
+    assert_tokens_eq(registers(input).unwrap(), expected);
 }
 
 #[test]
 fn array_definition() {
-    let input = parse_quote! {
+    let input = quote! {
         ::tock_registers
         //! Doc comment A
         //! Doc comment B
@@ -172,12 +171,12 @@ fn array_definition() {
                 Element<B>: ::tock_registers::Register<DataType = u8> + Read + Write {}
         }
     };
-    assert_tokens_eq(generate(input), expected);
+    assert_tokens_eq(registers(input).unwrap(), expected);
 }
 
 #[test]
 fn scalar_reference() {
-    let input = parse_quote! {
+    let input = quote! {
         ::tock_registers
         //! Doc comment A
         //! Doc comment B
@@ -214,12 +213,12 @@ fn scalar_reference() {
             impl<B: Bus> Interface for Real<B> where Self: status::Interface {}
         }
     };
-    assert_tokens_eq(generate(input), expected);
+    assert_tokens_eq(registers(input).unwrap(), expected);
 }
 
 #[test]
 fn array_reference() {
-    let input = parse_quote! {
+    let input = quote! {
         ::tock_registers
         //! Doc comment A
         //! Doc comment B
@@ -262,5 +261,5 @@ fn array_reference() {
             impl<B: Bus> Interface for Real<B> where status::Real<B>: status::Interface {}
         }
     };
-    assert_tokens_eq(generate(input), expected);
+    assert_tokens_eq(registers(input).unwrap(), expected);
 }

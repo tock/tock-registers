@@ -4,13 +4,12 @@
 // Copyright Better Bytes 2026.
 
 use crate::block::{bus_doc_comment, interface_doc_comment, real_doc_comment};
-use crate::{generate, new_doc_comment, test_util::assert_tokens_eq};
+use crate::{new_doc_comment, registers, test_util::assert_tokens_eq};
 use quote::quote;
-use syn::parse_quote;
 
 #[test]
 fn empty() {
-    let input = parse_quote! {
+    let input = quote! {
         ::tock_registers
         #[buses(Mmio32, Mmio64)]
         pub foo {}
@@ -64,5 +63,5 @@ fn empty() {
             }
         }
     };
-    assert_tokens_eq(generate(input), expected);
+    assert_tokens_eq(registers(input).unwrap(), expected);
 }

@@ -3,7 +3,7 @@
 # Copyright Tock Contributors 2022.
 
 [workspace]
-members = ["multi_crate_test/child", "multi_crate_test/parent"]
+members = ["expand_macros", "multi_crate_test/child", "multi_crate_test/parent"]
 
 [workspace.package]
 version = "0.10.1"
@@ -16,6 +16,11 @@ edition = "2021"
 # This must be kept in sync with rust-toolchain.toml; please see that file for
 # more information.
 rust-version = "1.82"
+
+[workspace.dependencies]
+proc-macro2 = { default-features = false, version = "1.0.106" }
+quote = { default-features = false, version = "1.0.45" }
+tock-registers-codegen = { path = "codegen", version = "=0.10.1" }
 
 [package]
 name = "tock-registers"
@@ -36,12 +41,17 @@ path = "macros"
 version = "=0.10.1"
 
 [features]
-default = ["register_types"]
+default = ["proc_macros", "register_types"]
+
+# Includes the tock-registers-macros crate, which provides tock-registers'
+# procedural macros. Note that macros may also require the register_types
+# feature.
+proc_macros = ["dep:tock-registers-macros"]
 
 # Include actual register types (except LocalRegisterCopy). Disabling
 # the feature makes this an interface-only library and removes all
 # usage of unsafe code
-register_types = ["dep:tock-registers-macros"]
+register_types = []
 
 [lints.clippy]
 # CLIPPY CONFIGURATION

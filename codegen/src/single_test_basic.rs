@@ -6,15 +6,14 @@
 use crate::single::{
     bus_doc_comment, interface_doc_comment, real_alias_doc_comment, struct_doc_comment,
 };
-use crate::{generate, new_doc_comment, test_util::assert_tokens_eq};
+use crate::{new_doc_comment, registers, test_util::assert_tokens_eq};
 use quote::quote;
-use syn::parse_quote;
 
 /// This serves two purposes: it tests the code generation of single scalar register definitions,
 /// and also documents (via comments) some of the trickier parts of the generated code.
 #[test]
 fn scalar_definition_example() {
-    let input = parse_quote! {
+    let input = quote! {
         ::tock_registers
         #[buses(Mmio32, Mmio64)]
         pub foo: u8 { Read, Write },
@@ -83,7 +82,7 @@ fn scalar_definition_example() {
                 + Read + Write {}
         }
     };
-    assert_tokens_eq(generate(input), expected);
+    assert_tokens_eq(registers(input).unwrap(), expected);
 }
 
 /// This serves two purposes: it tests the code generation of single flat (non-nested) array
@@ -91,7 +90,7 @@ fn scalar_definition_example() {
 /// generated code.
 #[test]
 fn flat_array_definition_example() {
-    let input = parse_quote! {
+    let input = quote! {
         ::tock_registers
         #[buses(Mmio32, Mmio64)]
         pub foo: [u8; 2] { Read, Write }
@@ -153,7 +152,7 @@ fn flat_array_definition_example() {
                 Element<B>: ::tock_registers::Register<DataType = u8> + Read + Write {}
         }
     };
-    assert_tokens_eq(generate(input), expected);
+    assert_tokens_eq(registers(input).unwrap(), expected);
 }
 
 /// This serves two purposes: it tests the code generation of single nested array register
@@ -161,7 +160,7 @@ fn flat_array_definition_example() {
 /// code.
 #[test]
 fn nested_array_definition_example() {
-    let input = parse_quote! {
+    let input = quote! {
         ::tock_registers
         #[buses(Mmio32, Mmio64)]
         pub foo: [[u8; 2]; 3] { Read, Write }
@@ -224,14 +223,14 @@ fn nested_array_definition_example() {
                 Element<B>: ::tock_registers::Register<DataType = u8> + Read + Write {}
         }
     };
-    assert_tokens_eq(generate(input), expected);
+    assert_tokens_eq(registers(input).unwrap(), expected);
 }
 
 /// This serves two purposes: it tests the code generation of single scalar register references,
 /// and also documents (via comments) some of the trickier parts of the generated code.
 #[test]
 fn scalar_reference_example() {
-    let input = parse_quote! {
+    let input = quote! {
         ::tock_registers
         #[buses(Mmio32, Mmio64)]
         pub foo: status,
@@ -258,14 +257,14 @@ fn scalar_reference_example() {
                 Self: status::Interface {}
         }
     };
-    assert_tokens_eq(generate(input), expected);
+    assert_tokens_eq(registers(input).unwrap(), expected);
 }
 
 /// This serves two purposes: it tests the code generation of single flat array register
 /// references, and also documents (via comments) some of the trickier parts of the generated code.
 #[test]
 fn flat_array_reference_example() {
-    let input = parse_quote! {
+    let input = quote! {
         ::tock_registers
         #[buses(Mmio32, Mmio64)]
         pub foo: [status; 2],
@@ -293,14 +292,14 @@ fn flat_array_reference_example() {
             impl<B: Bus> Interface for Real<B> where status::Real<B>: status::Interface {}
         }
     };
-    assert_tokens_eq(generate(input), expected);
+    assert_tokens_eq(registers(input).unwrap(), expected);
 }
 
 /// This serves two purposes: it tests the code generation of single nested array register
 /// references, and also documents (via comments) some of the trickier parts of the generated code.
 #[test]
 fn nested_array_reference_example() {
-    let input = parse_quote! {
+    let input = quote! {
         ::tock_registers
         #[buses(Mmio32, Mmio64)]
         pub foo: [[status; 2]; 3],
@@ -330,14 +329,14 @@ fn nested_array_reference_example() {
             impl<B: Bus> Interface for Real<B> where status::Real<B>: status::Interface {}
         }
     };
-    assert_tokens_eq(generate(input), expected);
+    assert_tokens_eq(registers(input).unwrap(), expected);
 }
 
 /// Verifies that generic arguments on operations are correctly copied to the output (they need to
 /// be split off the operation path for the operation macro invocation).
 #[test]
 fn generic_operation() {
-    let input = parse_quote! {
+    let input = quote! {
         ::tock_registers
         #[buses(Mmio32)]
         foo: u8 { Dance<Waltz> },
@@ -387,5 +386,5 @@ fn generic_operation() {
                 Self: ::tock_registers::Register<DataType = u8> + Dance<Waltz> {}
         }
     };
-    assert_tokens_eq(generate(input), expected);
+    assert_tokens_eq(registers(input).unwrap(), expected);
 }

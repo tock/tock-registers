@@ -16,7 +16,7 @@ use syn::{Attribute, Ident, LitInt, Path, TypePath, Visibility};
 /// ```
 /// # use tock_registers::{Mmio32, Read, Write};
 /// # fn main() {}
-/// tock_registers_macros::registers! {
+/// tock_registers::internal::registers! {
 ///     ::tock_registers             // The prepended $crate
 ///     //! Global doc comment       // This doc comment should attach to everything in the macro.
 ///     #![buses(Mmio32)]            // Global buses attribute

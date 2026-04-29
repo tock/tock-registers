@@ -14,6 +14,7 @@ use core::marker::PhantomData;
 /// It's possible for a crate that is not libcore to be named `core` in a calling crate. Re-export
 /// so registers! can reliably find libcore.
 pub use core;
+#[cfg(feature = "proc_macros")]
 pub use tock_registers_macros::registers;
 
 /// Phantom type to make Real structs !Send and !Sync.

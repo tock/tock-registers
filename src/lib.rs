@@ -68,7 +68,7 @@ pub mod interfaces;
 #[cfg(feature = "register_types")]
 pub mod internal;
 pub mod macros;
-#[cfg(feature = "register_types")]
+#[cfg(all(feature = "proc_macros", feature = "register_types"))]
 mod registers_macro;
 
 #[cfg(feature = "register_types")]

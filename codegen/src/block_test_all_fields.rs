@@ -6,7 +6,7 @@
 use crate::block::{
     bus_doc_comment, field_struct_doc_comment, interface_doc_comment, real_doc_comment,
 };
-use crate::{generate, new_doc_comment, test_util::assert_tokens_eq};
+use crate::{new_doc_comment, registers, test_util::assert_tokens_eq};
 use quote::quote;
 use syn::parse_quote;
 
@@ -14,7 +14,7 @@ use syn::parse_quote;
 /// generated code.
 #[test]
 fn all_field_types_example() {
-    let input = parse_quote! {
+    let input = quote! {
         ::tock_registers
         #[buses(Mmio32, Mmio64)]
         pub foo {
@@ -291,5 +291,5 @@ fn all_field_types_example() {
             Read!(real_impl, real_flat_array_definition, u8,,);
         }
     };
-    assert_tokens_eq(generate(input), expected);
+    assert_tokens_eq(registers(input).unwrap(), expected);
 }

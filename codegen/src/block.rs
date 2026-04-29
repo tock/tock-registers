@@ -7,7 +7,7 @@ use super::register_definition;
 use crate::ast::{Definition, Field, FieldDef, PerBusInt};
 use crate::new_doc_comment;
 use proc_macro2::TokenStream;
-use quote::{quote, quote_spanned};
+use quote::{format_ident, quote, quote_spanned};
 use syn::{spanned::Spanned, Ident, Path, TypePath};
 
 /// Generates the module for a register block.
@@ -86,7 +86,7 @@ pub fn generate(tock_registers: &Path, definition: &Definition, fields: &[Field]
         if let Some(operations) = &register.operations {
             interface_bound =
                 quote![#tock_registers::Register<DataType = #element_type> #(+ #operations)*];
-            let real_name = Ident::new(&format!("real_{name}"), name.span());
+            let real_name = format_ident!("real_{name}");
             real = quote![#real_name<B>];
             let bus_trait = quote![#tock_registers::DataTypeBus<#element_type>];
             bus_bounds.extend(quote![+ #bus_trait]);
@@ -133,7 +133,7 @@ pub fn generate(tock_registers: &Path, definition: &Definition, fields: &[Field]
             type #name: #interface_bound;
             #(#docs)* fn #name(self) -> Self::#name;
         });
-        let name_offset = Ident::new(&format!("{name}_offset"), name.span());
+        let name_offset = format_ident!("{name}_offset");
         // match that handles the difference between scalar offset definitions and array offset
         // definitions (moves the value of the name_offset fields between the Bus trait definition
         // and impls).

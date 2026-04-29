@@ -1,0 +1,40 @@
+# Licensed under the Apache License, Version 2.0 or the MIT License.
+# SPDX-License-Identifier: Apache-2.0 OR MIT
+# Copyright Tock Contributors 2026.
+# Copyright Better Bytes 2026.
+
+# This is the implementation of tock-registers' procedural macros, distributed
+# as a normal library crate. Projects can use this crate if they want to use the
+# generated code for a tock-registers macro invocation outside the context of a
+# procedural macro. Note that the generated code is not stable; this crate must
+# be the exact same version as tock-registers.
+
+[package]
+name = "tock-registers-codegen"
+version.workspace = true
+authors.workspace = true
+description = "Code generation library for tock-registers"
+edition.workspace = true
+homepage.workspace = true
+license.workspace = true
+readme.workspace = true
+repository.workspace = true
+
+[dependencies]
+proc-macro2.workspace = true
+quote.workspace = true
+
+[dependencies.syn]
+default-features = false
+features = ["clone-impls", "full", "parsing", "printing", "proc-macro"]
+version = "2.0.117"
+
+[dev-dependencies]
+pretty_assertions = "1.4.1"
+prettyplease = "0.2.37"
+tock-registers = { path = ".." }
+
+[dev-dependencies.syn]
+default-features = false
+features = ["extra-traits"]
+version = "2.0.117"
