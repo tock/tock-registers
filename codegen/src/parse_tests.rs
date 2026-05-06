@@ -22,7 +22,7 @@ fn field() {
                 docs: vec![parse_quote![#[doc = r"A"]], parse_quote![#[doc = r"B"]]],
                 aliased: false,
                 name: parse_quote![a],
-                definition: RegisterSpec {
+                spec: RegisterSpec {
                     element_type: parse_quote![b],
                     array_sizes: vec![],
                     operations: None,
@@ -52,7 +52,7 @@ fn field() {
                 docs: vec![],
                 aliased: true,
                 name: parse_quote![a],
-                definition: RegisterSpec {
+                spec: RegisterSpec {
                     element_type: parse_quote![u8],
                     array_sizes: vec![],
                     operations: Some(vec![parse_quote![Read]]),
@@ -86,7 +86,7 @@ fn field_def() {
             docs: vec![],
             aliased: false,
             name: parse_quote![a],
-            definition: RegisterSpec {
+            spec: RegisterSpec {
                 element_type: parse_quote![status],
                 array_sizes: vec![],
                 operations: None,

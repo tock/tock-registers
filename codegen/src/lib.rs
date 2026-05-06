@@ -47,12 +47,10 @@ use syn::{parse2, Ident, Path, PathArguments};
 pub fn register_layouts(input: TokenStream) -> Result<TokenStream, TokenStream> {
     let input: Input = parse2(input).map_err(|e| e.to_compile_error())?;
     let mut out = TokenStream::new();
-    for definition in input.definitions {
-        out.extend(match &definition.value {
-            Value::Single(register) => {
-                single::generate(&input.tock_registers, &definition, register)
-            }
-            Value::Block(fields) => block::generate(&input.tock_registers, &definition, fields),
+    for layout in input.layouts {
+        out.extend(match &layout.value {
+            Value::Single(register) => single::generate(&input.tock_registers, &layout, register),
+            Value::Block(fields) => block::generate(&input.tock_registers, &layout, fields),
         });
     }
     Ok(out)

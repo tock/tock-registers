@@ -13,8 +13,7 @@
 //! trip this up. We're open to having the CLI expanded, in case you want to e.g. add flags to
 //! write the output into a file.
 
-use clap::{arg, ArgAction::SetTrue, Command};
-#[cfg(feature = "prettyplease")]
+use clap::{arg, Command};
 use prettyplease::unparse;
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
@@ -27,10 +26,6 @@ fn main() {
     let cli = Command::new(env!("CARGO_PKG_NAME"))
         .author(env!("CARGO_PKG_AUTHORS"))
         .about(env!("CARGO_PKG_DESCRIPTION"))
-        // We support this argument whether or not `prettyplease` is enabled, although it does
-        // nothing if `prettyplease` is disabled. That allows scripts to always pass -u if they
-        // want unformatted output and work with expand_macros binaries compiled either way.
-        .arg(arg!(-u --unformatted "Do not pretty-print the expanded code").action(SetTrue))
         .arg(arg!(<FILE>));
     let args = cli.get_matches();
 
@@ -46,7 +41,7 @@ fn main() {
     });
 
     let mut errored = false;
-    let mut printer = Printer::new(file.shebang, file.attrs, args.get_flag("unformatted"));
+    let mut printer = Printer::new(file.shebang, file.attrs);
     for item in file.items {
         let Macro(ref mac) = item else {
             printer.push_item(item);
@@ -105,42 +100,33 @@ fn parse_items(input: ParseStream) -> Result<Vec<Item>> {
 
 /// Handles formatting the output code (if enabled) and printing it to stdout.
 struct Printer {
-    /// `Some()` if we're pretty-printing the output, `None` otherwise.
-    #[cfg(feature = "prettyplease")]
+    /// Pretty-printing is not always possible: it can fail if syn is unable to parse an Item. In
+    /// that case, this Printer will switch to dumping unformatted tokens as they are pushed rather
+    /// than collecting them into a File. If that happens, this will be switched to `None`.
     file: Option<File>,
 }
 
 impl Printer {
-    fn new(shebang: Option<String>, attrs: Vec<Attribute>, _unformatted: bool) -> Printer {
-        let file = File {
-            shebang,
-            attrs,
-            items: Vec::new(),
-        };
-        #[cfg(feature = "prettyplease")]
-        if !_unformatted {
-            return Printer { file: Some(file) };
-        }
-        print_unformatted(file);
+    fn new(shebang: Option<String>, attrs: Vec<Attribute>) -> Printer {
         Printer {
-            #[cfg(feature = "prettyplease")]
-            file: None,
+            file: Some(File {
+                shebang,
+                attrs,
+                items: Vec::new(),
+            }),
         }
     }
 
     fn push_item(&mut self, item: Item) {
-        #[cfg(feature = "prettyplease")]
-        if let Some(ref mut file) = self.file {
-            file.items.push(item);
-            return;
+        match &mut self.file {
+            Some(file) => file.items.push(item),
+            None => println!("{}", item.into_token_stream()),
         }
-        println!("{}", item.into_token_stream());
     }
 
     /// Pushes a raw token stream to the file. Note that this will disable formatting (as it is
     /// assumed that these tokens could not be parsed as an Item).
     fn push_tokens(&mut self, tokens: TokenStream) {
-        #[cfg(feature = "prettyplease")]
         if let Some(file) = self.file.take() {
             print_unformatted(file);
         }
@@ -149,7 +135,6 @@ impl Printer {
 
     /// Pretty-prints the file, if we are able to format it. If not, this does nothing.
     fn finish(self) {
-        #[cfg(feature = "prettyplease")]
         if let Some(file) = self.file {
             println!("{}", unparse(&file));
         }

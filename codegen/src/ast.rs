@@ -37,33 +37,33 @@ pub struct Input {
     /// The $crate passed in by the register_layouts! macro_rules macro (used to refer to the
     /// tock_registers crate).
     pub tock_registers: Path,
-    pub definitions: Vec<Definition>,
+    pub layouts: Vec<Layout>,
 }
 
-/// An individual register or register block definition.
+/// An individual register or register block layout.
 ///
 /// ```
 /// # use tock_registers::{Read, Write};
 /// # fn main() {}
 /// tock_registers::mmio32_register_layouts! {
-///     // `a` is a Definition
+///     // `a` is a Layout
 ///     a: u8 { Read, Write },
 ///
-///     // `b` is a Definition, and it includes the doc comment before it.
+///     // `b` is a Layout, and it includes the doc comment before it.
 ///     /// Doc comment
 ///     pub b: [a; 2],
 ///
-///     // `foo` is a Definition, and it includes the doc comment and attributes before it.
+///     // `foo` is a Layout, and it includes the doc comment and attributes before it.
 ///     /// Doc comment
 ///     pub foo {
-///         0 => c: u8 { Read },  // Individual fields are `Field`s, not Definitions
+///         0 => c: u8 { Read },  // Individual fields are `Field`s, not Layouts
 ///         1 => _: 1,
 ///         2 => d: a,
 ///         3 => e: [b; 2],
 ///     }
 /// }
 /// ```
-pub struct Definition {
+pub struct Layout {
     /// Doc comments, converted into outer attributes.
     pub docs: Vec<Attribute>,
     pub buses: Vec<TypePath>,
@@ -73,8 +73,7 @@ pub struct Definition {
 }
 
 /// The part of a register that begins after the register's name. For individual register
-/// definitions, this starts with the colon, and in register blocks this begins with the opening
-/// brace.
+/// layouts, this starts with the colon, and in register blocks this begins with the opening brace.
 ///
 /// ```
 /// # use tock_registers::{Read, Write};
@@ -102,7 +101,7 @@ pub enum Value {
     Single(RegisterSpec),
 }
 
-/// An individual field definition in a register block. A Field can be padding or a register.
+/// An individual field in a register block. A Field can be padding or a register.
 ///
 /// ```
 /// # use tock_registers::{Read, Write};
@@ -166,7 +165,7 @@ pub enum FieldDef {
         docs: Vec<Attribute>,
         aliased: bool,
         name: Ident,
-        definition: RegisterSpec,
+        spec: RegisterSpec,
     },
 }
 
@@ -216,7 +215,7 @@ impl Index<usize> for PerBusInt {
 }
 
 /// A single register specification. A register specification can appear in two places: as its own
-/// top-level definition or as a field within a register block. The specification can either be an
+/// top-level layout or as a field within a register block. The specification can either be an
 /// inline register definition (specifies the register's DataType and operations) or a register
 /// reference (whic refers to a register definition elsewhere). The RegisterSpec begins immediately
 /// after the register's name (i.e. it includes the ':').

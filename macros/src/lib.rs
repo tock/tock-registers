@@ -3,12 +3,6 @@
 // Copyright Tock Contributors 2026.
 // Copyright Better Bytes 2026.
 
-// TODO: Bugfix: Currently, expand_macros_test can race with basic_test and miri_test (it can
-//       modify tests/expanded.rs while the others are using it). Fix that.
-// TODO: Rename ast::Definition to ast::Layout, then add the following terms to the glossary:
-//       layout, register block, single register, register definition, register reference, scalar
-//       register definition, scalar register reference, array register definition, array register
-//       reference.
 // TODO: Re-evaluate mod/file structure in tock-registers.
 // TODO: Implement #[bus] to specify a default bus (outputs Real<B: Bus = #bus>), update the
 //       src/registers_macro.rs docs. Don't forget to update expand_macros!

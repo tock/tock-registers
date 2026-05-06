@@ -4,14 +4,14 @@
 // Copyright Better Bytes 2026.
 
 use super::register_definition;
-use crate::ast::{Definition, Field, FieldDef, PerBusInt};
+use crate::ast::{Field, FieldDef, Layout, PerBusInt};
 use crate::new_doc_comment;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote, quote_spanned};
 use syn::{spanned::Spanned, Ident, Path, TypePath};
 
 /// Generates the module for a register block.
-pub fn generate(tock_registers: &Path, definition: &Definition, fields: &[Field]) -> TokenStream {
+pub fn generate(tock_registers: &Path, layout: &Layout, fields: &[Field]) -> TokenStream {
     // At a high level, this function has:
     //
     // 1. A set of variable declarations (of type TokenStream or Vec<TokenStream>)
@@ -30,16 +30,16 @@ pub fn generate(tock_registers: &Path, definition: &Definition, fields: &[Field]
     // in this function as well. I suggest starting from block_test_all_fields.
 
     // Step 1: variable declarations
-    let docs = &definition.docs;
-    let visibility = &definition.visibility;
-    let name = &definition.name;
+    let docs = &layout.docs;
+    let visibility = &layout.visibility;
+    let name = &layout.name;
     let interface_comment = interface_doc_comment();
     let mut interface_fields = TokenStream::new();
     let mut len_definitions = TokenStream::new();
     let bus_comment = bus_doc_comment();
     let mut bus_bounds = TokenStream::new();
     let mut bus_offset_decls = TokenStream::new();
-    let buses = &definition.buses;
+    let buses = &layout.buses;
     // cumulative_sizes is empty if the current cumulative size is unknown (due to a padding field
     // with no specified size).
     let mut cumulative_sizes: Vec<_> = (0..buses.len()).map(|_| quote![0]).collect();
@@ -73,8 +73,8 @@ pub fn generate(tock_registers: &Path, definition: &Definition, fields: &[Field]
                 docs,
                 aliased,
                 name,
-                definition,
-            } => (docs, *aliased, name, definition),
+                spec,
+            } => (docs, *aliased, name, spec),
         };
         // The rest of this loop body is for register fields. It consists of a series of
         // conditionals and loops that all switch/iterate on a different aspect of the field.

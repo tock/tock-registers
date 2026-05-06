@@ -108,7 +108,7 @@ impl<Element: Span, L: Len> RealRegisterArray<Element, L> {
     /// # Safety
     /// 1. `address` must point to a register array on the bus corresponding to `Self::Address`.
     /// 2. The register array's definition (as provided to the
-    ///    [`register_layouts`](macro@crate::register_layouts) macro) must correctly describe the
+    ///    [`register_layouts`](crate::register_layouts) macro) must correctly describe the
     ///    pointed-to register array.
     /// 3. The returned register array accessor must not be used in a way that causes data races.
     ///    The exact requirements depend on the hardware, but it's usually best to access registers

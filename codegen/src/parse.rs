@@ -6,7 +6,7 @@
 //! Input parser. The best reference for what this does is the [ast] module, as the doc comment on
 //! each AST type shows that type's definition syntax.
 
-use crate::ast::{Definition, Field, FieldDef, Input, PerBusInt, RegisterSpec, Value};
+use crate::ast::{Field, FieldDef, Input, Layout, PerBusInt, RegisterSpec, Value};
 use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
@@ -16,36 +16,35 @@ use syn::{braced, bracketed, AttrStyle, Attribute, Error, LitInt, Meta, Result, 
 impl Parse for Input {
     fn parse(input: ParseStream) -> Result<Input> {
         let tock_registers = input.parse()?;
-        // Parse attributes that apply to all definitions.
-        let (docs, buses) = definition_attributes(Attribute::parse_inner(input)?)?;
-        let definitions: Result<_> = Punctuated::<Definition, Token![,]>::parse_terminated(input)?
+        // Parse attributes that apply to all layouts.
+        let (docs, buses) = layout_attributes(Attribute::parse_inner(input)?)?;
+        let layouts: Result<_> = Punctuated::<Layout, Token![,]>::parse_terminated(input)?
             .into_iter()
-            .map(|mut definition| {
-                // Prepend the global (inner attribute) docs to each Definition's local (outer
+            .map(|mut layout| {
+                // Prepend the global (inner attribute) docs to each Layout's local (outer
                 // attribute) docs).
-                definition.docs = docs.iter().cloned().chain(definition.docs).collect();
-                // Combine the Definition's buses specification with the global buses
-                // specification.
-                if definition.buses.is_empty() {
+                layout.docs = docs.iter().cloned().chain(layout.docs).collect();
+                // Combine the Layout's buses specification with the global buses specification.
+                if layout.buses.is_empty() {
                     if buses.is_empty() {
-                        return Err(Error::new(definition.name.span(), "no #[buses] specified"));
+                        return Err(Error::new(layout.name.span(), "no #[buses] specified"));
                     }
-                    definition.buses = buses.clone();
+                    layout.buses = buses.clone();
                 }
-                Ok(definition)
+                Ok(layout)
             })
             .collect();
         Ok(Input {
             tock_registers,
-            definitions: definitions?,
+            layouts: layouts?,
         })
     }
 }
 
-impl Parse for Definition {
-    fn parse(input: ParseStream) -> Result<Definition> {
-        let (docs, buses) = definition_attributes(Attribute::parse_outer(input)?)?;
-        Ok(Definition {
+impl Parse for Layout {
+    fn parse(input: ParseStream) -> Result<Layout> {
+        let (docs, buses) = layout_attributes(Attribute::parse_outer(input)?)?;
+        Ok(Layout {
             docs,
             buses,
             visibility: input.parse()?,
@@ -55,10 +54,10 @@ impl Parse for Definition {
     }
 }
 
-/// Parses attributes that belong on a Definition. If no `#[buses(...)]` is specified, returns an
-/// empty buses. The attributes are returned in order (docs, buses), and are converted into outer
+/// Parses attributes that belong on a Layout. If no `#[buses(...)]` is specified, returns an empty
+/// `buses`. The attributes are returned in order (docs, buses), and are converted into outer
 /// attributes.
-fn definition_attributes(attributes: Vec<Attribute>) -> Result<(Vec<Attribute>, Vec<TypePath>)> {
+fn layout_attributes(attributes: Vec<Attribute>) -> Result<(Vec<Attribute>, Vec<TypePath>)> {
     let mut docs = Vec::new();
     let mut buses: Option<Attribute> = None;
     for mut attr in attributes {
@@ -187,7 +186,7 @@ impl Parse for FieldDef {
             docs: Vec::new(),
             aliased: false,
             name: input.parse()?,
-            definition: input.parse()?,
+            spec: input.parse()?,
         })
     }
 }

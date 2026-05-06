@@ -4,22 +4,18 @@
 // Copyright Better Bytes 2026.
 
 use super::register_definition;
-use crate::ast::{Definition, RegisterSpec};
+use crate::ast::{Layout, RegisterSpec};
 use proc_macro2::{Span, TokenStream};
 use quote::{quote, quote_spanned};
 use syn::{spanned::Spanned, Ident, Path};
 
 /// Generates the module for a single register definition.
-pub fn generate(
-    tock_registers: &Path,
-    definition: &Definition,
-    register: &RegisterSpec,
-) -> TokenStream {
+pub fn generate(tock_registers: &Path, layout: &Layout, register: &RegisterSpec) -> TokenStream {
     // At a high level, this function has:
     //
     // 1. A set of variable declarations, mostly of type TokenStream
     // 2. A series of loops/conditionals, each of which switch/iterate on a different aspect of the
-    //    definition.
+    //    layout.
     // 3. A final quote! invocation that combines the variable declarations into the output code.
     //
     // This pattern avoids a lot of code duplication that would occur if we tried to generate each
@@ -36,15 +32,15 @@ pub fn generate(
     let is_scalar = register.array_sizes.is_empty();
     let is_definition = register.operations.is_some();
     let element_type = &register.element_type;
-    let docs = &definition.docs;
-    let visibility = &definition.visibility;
-    let name = &definition.name;
+    let docs = &layout.docs;
+    let visibility = &layout.visibility;
+    let name = &layout.name;
     let mut allows = TokenStream::new();
     let interface_comment = interface_doc_comment();
     let element_bound;
     let bus_comment = bus_doc_comment();
     let bus_bound;
-    let buses = &definition.buses;
+    let buses = &layout.buses;
     let element_definition;
     let mut real;
 

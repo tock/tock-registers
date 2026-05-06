@@ -4,6 +4,10 @@
 
 .PHONY: test
 test: miri_test basic_test expand_macros_test
+	@printf '%s%s\n%s\n%s%s\n' "$$(tput bold)" \
+		'*********************' \
+		'* Tests all passed! *' \
+		'*********************' "$$(tput sgr0)"
 
 # Rustup currently lacks the locking needed for concurrent use:
 # https://github.com/rust-lang/rustup/issues/988. In particular, running
@@ -28,17 +32,13 @@ basic_test: toolchain
 	+cargo fmt --all --check
 
 # Tests the expand_macros binary.
-# Rust inhibits many `unused` warnings on code emitted by proc macros. However,
-# this test bypasses the proc macro mechanism, so we have to do that allow
-# ourselves. We also have to skip rustfmt so cango fmt --check doesn't fail.
 .PHONY: expand_macros_test
 expand_macros_test: toolchain
-	echo '#![allow(unused)] #![cfg_attr(rustfmt, rustfmt::skip)]' \
-		> tests/expanded.rs
 	+RUSTFLAGS="-D warnings" cargo run -p tock-registers-expand-macros \
-		--release -- tests/all_block_fields.rs >> tests/expanded.rs
-	+RUSTFLAGS="-D warnings" cargo test --features=register_types \
-		--no-default-features --test expanded
+		--release -- expand_macros/test/src/unexpanded.rs \
+		> expand_macros/test/src/lib.rs
+	+RUSTFLAGS="-D warnings" cargo test \
+		--manifest-path=expand_macros/test/Cargo.toml
 
 .PHONY: miri_test
 miri_test:
