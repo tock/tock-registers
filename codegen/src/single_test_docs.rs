@@ -8,7 +8,7 @@
 //! 1. Doc comments that should be copied from the input are copied correctly.
 //! 2. Generated doc comments are correct.
 
-use crate::{registers, test_util::assert_tokens_eq};
+use crate::{register_layouts, test_util::assert_tokens_eq};
 use quote::quote;
 
 #[test]
@@ -57,8 +57,8 @@ fn scalar_definition() {
                 /// 1. `address` must point to register(s) on the bus corresponding to
                 ///    `B`.
                 /// 2. The register(s)' definition (as provided to the
-                ///    `tock_registers::registers!` macro) must correctly describe the
-                ///    pointed-to register(s).
+                ///    `tock_registers::register_layouts!` macro) must correctly
+                ///    describe the pointed-to register(s).
                 /// 3. The returned register accessor must not be used in a way that
                 ///    causes data races. The exact requirements depend on the hardware,
                 ///    but it's usually best to access a register from only one thread
@@ -86,7 +86,7 @@ fn scalar_definition() {
                 Self: ::tock_registers::Register<DataType = u8> + Read + Write {}
         }
     };
-    assert_tokens_eq(registers(input).unwrap(), expected);
+    assert_tokens_eq(register_layouts(input).unwrap(), expected);
 }
 
 #[test]
@@ -140,8 +140,8 @@ fn array_definition() {
                 /// 1. `address` must point to register(s) on the bus corresponding to
                 ///    `B`.
                 /// 2. The register(s)' definition (as provided to the
-                ///    `tock_registers::registers!` macro) must correctly describe the
-                ///    pointed-to register(s).
+                ///    `tock_registers::register_layouts!` macro) must correctly
+                ///    describe the pointed-to register(s).
                 /// 3. The returned register accessor must not be used in a way that
                 ///    causes data races. The exact requirements depend on the hardware,
                 ///    but it's usually best to access a register from only one thread
@@ -171,7 +171,7 @@ fn array_definition() {
                 Element<B>: ::tock_registers::Register<DataType = u8> + Read + Write {}
         }
     };
-    assert_tokens_eq(registers(input).unwrap(), expected);
+    assert_tokens_eq(register_layouts(input).unwrap(), expected);
 }
 
 #[test]
@@ -213,7 +213,7 @@ fn scalar_reference() {
             impl<B: Bus> Interface for Real<B> where Self: status::Interface {}
         }
     };
-    assert_tokens_eq(registers(input).unwrap(), expected);
+    assert_tokens_eq(register_layouts(input).unwrap(), expected);
 }
 
 #[test]
@@ -261,5 +261,5 @@ fn array_reference() {
             impl<B: Bus> Interface for Real<B> where status::Real<B>: status::Interface {}
         }
     };
-    assert_tokens_eq(registers(input).unwrap(), expected);
+    assert_tokens_eq(register_layouts(input).unwrap(), expected);
 }

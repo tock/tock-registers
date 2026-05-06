@@ -11,7 +11,7 @@
 
 use ::tock_registers::{Read, Write};
 
-::tock_registers::mmio32_registers! {
+::tock_registers::mmio32_register_layouts! {
     // An individual register, which can be re-used later.
     // Roughly equivalent to (from tock registers v1):
     //     type Status = ReadOnly<u8>;

@@ -3,10 +3,12 @@
 // Copyright Tock Contributors 2026.
 // Copyright Better Bytes 2026.
 
-// TODO: Rename `registers!`? Also rename ast::Definition to correspond, then add the following
-//       terms to the glossary: <whatever ast::Definition is renamed to>, register block, single
-//       register, register definition, register reference, scalar register definition, scalar
-//       register reference, array register definition, array register reference.
+// TODO: Bugfix: Currently, expand_macros_test can race with basic_test and miri_test (it can
+//       modify tests/expanded.rs while the others are using it). Fix that.
+// TODO: Rename ast::Definition to ast::Layout, then add the following terms to the glossary:
+//       layout, register block, single register, register definition, register reference, scalar
+//       register definition, scalar register reference, array register definition, array register
+//       reference.
 // TODO: Re-evaluate mod/file structure in tock-registers.
 // TODO: Implement #[bus] to specify a default bus (outputs Real<B: Bus = #bus>), update the
 //       src/registers_macro.rs docs. Don't forget to update expand_macros!
@@ -36,14 +38,11 @@
 // TODO: Re-evaluate which `syn` features we need (is full necessary?).
 
 // Questions to ask the group:
-// TODO: Do we want to rename something? We have the Register trait, registers module, and
-//       registers! macro. Maybe we need to rename registers! ? When we do the rename, maybe rename
-//       `ast::Definition` too (to distinguish it from register definitions).
 // TODO: Do we want to remove the trailing commas after declarations? Easy to do, but a bit harder
 //       to revert (have some Punctuated iterator code that I don't want to rewrite).
 
 #[proc_macro]
-pub fn registers(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    let (Ok(out) | Err(out)) = tock_registers_codegen::registers(input.into());
+pub fn register_layouts(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let (Ok(out) | Err(out)) = tock_registers_codegen::register_layouts(input.into());
     out.into()
 }

@@ -3,20 +3,20 @@
 // Copyright Tock Contributors 2026.
 // Copyright Better Bytes 2026.
 
-//! The Abstract Syntax Tree for a registers! invocation.
+//! The Abstract Syntax Tree for a register_layouts! invocation.
 
 use std::ops::Index;
 use syn::{Attribute, Ident, LitInt, Path, TypePath, Visibility};
 
-/// Represents the full input to the registers! procedural macro. Note that
-/// `tock_registers::registers!` prepends `$crate` to the input provided by the user, so that the
-/// generated code can refer to tock_registers even if the user has renamed the crate. Therefore,
-/// after `tock_registers::registers!` is expanded, the full input looks like:
+/// Represents the full input to the register_layouts! procedural macro. Note that
+/// `tock_registers::register_layouts!` prepends `$crate` to the input provided by the user, so
+/// that the generated code can refer to tock_registers even if the user has renamed the crate.
+/// Therefore, after `tock_registers::register_layouts!` is expanded, the full input looks like:
 ///
 /// ```
 /// # use tock_registers::{Mmio32, Read, Write};
 /// # fn main() {}
-/// tock_registers::internal::registers! {
+/// tock_registers::internal::register_layouts! {
 ///     ::tock_registers             // The prepended $crate
 ///     //! Global doc comment       // This doc comment should attach to everything in the macro.
 ///     #![buses(Mmio32)]            // Global buses attribute
@@ -34,7 +34,7 @@ use syn::{Attribute, Ident, LitInt, Path, TypePath, Visibility};
 /// }
 /// ```
 pub struct Input {
-    /// The $crate passed in by the registers! macro_rules macro (used to refer to the
+    /// The $crate passed in by the register_layouts! macro_rules macro (used to refer to the
     /// tock_registers crate).
     pub tock_registers: Path,
     pub definitions: Vec<Definition>,
@@ -45,7 +45,7 @@ pub struct Input {
 /// ```
 /// # use tock_registers::{Read, Write};
 /// # fn main() {}
-/// tock_registers::mmio32_registers! {
+/// tock_registers::mmio32_register_layouts! {
 ///     // `a` is a Definition
 ///     a: u8 { Read, Write },
 ///
@@ -79,7 +79,7 @@ pub struct Definition {
 /// ```
 /// # use tock_registers::{Read, Write};
 /// # fn main() {}
-/// tock_registers::mmio32_registers! {
+/// tock_registers::mmio32_register_layouts! {
 ///     aa: u8 { Read, Write },
 ///     //^^^^^^^^^^^^^^^^^^^^ Value::Single
 ///
@@ -107,7 +107,7 @@ pub enum Value {
 /// ```
 /// # use tock_registers::{Read, Write};
 /// # fn main() {}
-/// tock_registers::mmio32_registers! {
+/// tock_registers::mmio32_register_layouts! {
 ///     a: u8 { Read, Write },
 ///
 ///     pub foo {
@@ -140,7 +140,7 @@ pub struct Field {
 /// ```
 /// # use tock_registers::Read;
 /// # fn main() {}
-/// tock_registers::mmio32_registers! {
+/// tock_registers::mmio32_register_layouts! {
 ///     status: u8 { Read },
 ///
 ///     foo {
@@ -177,7 +177,7 @@ pub enum FieldDef {
 /// ```
 /// # use tock_registers::{Mmio32, Mmio64, Read, Write};
 /// # fn main() {}
-/// tock_registers::registers! {
+/// tock_registers::register_layouts! {
 ///     #[buses(Mmio32, Mmio64)]
 ///     foo {
 ///         0 => c: u8 { Read },
@@ -224,7 +224,7 @@ impl Index<usize> for PerBusInt {
 /// ```
 /// # use tock_registers::{Read, Write};
 /// # fn main() {}
-/// tock_registers::mmio32_registers! {
+/// tock_registers::mmio32_register_layouts! {
 ///     pub pin: u8 { Read, Write },
 ///     //     ^^^^^^^^^^^^^^^^^^^^ Top-level RegisterSpec defining a new register
 ///     pub pin_pair: [pin; 2],

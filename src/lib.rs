@@ -67,9 +67,9 @@ pub mod fields;
 pub mod interfaces;
 #[cfg(feature = "register_types")]
 pub mod internal;
-pub mod macros;
 #[cfg(all(feature = "proc_macros", feature = "register_types"))]
-mod registers_macro;
+mod layouts;
+pub mod macros;
 
 #[cfg(feature = "register_types")]
 pub mod registers;
@@ -86,6 +86,9 @@ mod bus;
 #[cfg(feature = "register_types")]
 pub use bus::{Address, BorrowedBus, Bus, DataTypeBus, RegisterSender, Span};
 
+mod data_type;
+pub use data_type::{DataType, Register};
+
 mod fake_register;
 #[cfg(feature = "register_types")]
 pub use fake_register::FakeRegisterArray;
@@ -100,9 +103,6 @@ mod read;
 #[cfg(feature = "register_types")]
 pub use read::BusRead;
 pub use read::Read;
-
-mod register_trait;
-pub use register_trait::{DataType, Register};
 
 mod write;
 #[cfg(feature = "register_types")]

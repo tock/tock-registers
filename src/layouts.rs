@@ -4,15 +4,15 @@
 // Copyright Better Bytes 2026.
 
 /// Macro that defines registers and register blocks (peripherals). See `README.md` for a
-/// high-level overview; this documentation is an in-depth explanation of `registers!`'s
+/// high-level overview; this documentation is an in-depth explanation of `register_layouts!`'s
 /// capabilities.
 ///
 /// # The simplest example: a scalar primitive register.
 /// A basic register definition looks like:
 /// ```
 /// # fn main() {}
-/// use tock_registers::{registers, Mmio32, Read, Write};
-/// registers! {
+/// use tock_registers::{register_layouts, Mmio32, Read, Write};
+/// register_layouts! {
 ///     #[buses(Mmio32)]
 ///     ctrl: u8 { Read, Write },
 /// }
@@ -43,21 +43,21 @@
 /// in a [`FakeRegister`](crate::FakeRegister) with whatever behavior the test case needs. See
 /// `doc/UnitTesting.md` in the tock-registers repository for more information.
 ///
-/// # mmio32_registers and mmio64_registers
-/// Instead of writing `#[buses(Mmio32)]` or `#[buses(Mmio64)]` every time you call `registers!`,
-/// you can use [`mmio32_registers!`](crate::mmio32_registers) or
-/// [`mmio64_registers!`](crate::mmio64_registers). The rest of the examples on this page will use
-/// `mmio32_registers` for brevity.
+/// # mmio32_register_layouts and mmio64_register_layouts
+/// Instead of writing `#[buses(Mmio32)]` or `#[buses(Mmio64)]` every time you call
+/// `register_layouts!`, you can use [`mmio32_register_layouts!`](crate::mmio32_register_layouts)
+/// or [`mmio64_register_layouts!`](crate::mmio64_register_layouts). The rest of the examples on
+/// this page will use `mmio32_register_layouts` for brevity.
 ///
 /// # Bitfield registers
 /// A register's type can be a bitfield:
 /// ```
 /// # fn main() {}
-/// use tock_registers::{mmio32_registers, register_bitfields, Read, Write};
+/// use tock_registers::{mmio32_register_layouts, register_bitfields, Read, Write};
 /// register_bitfields! [u8,
 ///     Control [OFF 0, ON 1],
 /// ];
-/// mmio32_registers! {
+/// mmio32_register_layouts! {
 ///     ctrl: Control::Register { Read, Write },
 /// }
 /// ```
@@ -66,8 +66,8 @@
 /// You can define register arrays as well:
 /// ```
 /// # fn main() {}
-/// use tock_registers::{mmio32_registers, Read, Write};
-/// mmio32_registers! {
+/// use tock_registers::{mmio32_register_layouts, Read, Write};
+/// mmio32_register_layouts! {
 ///     buttons: [u8; 8] { Read },
 ///
 ///     // You can nest array types as well.
@@ -82,8 +82,8 @@
 /// Registers can be references to other registers:
 /// ```
 /// # fn main() {}
-/// use tock_registers::{mmio32_registers, Read};
-/// mmio32_registers! {
+/// use tock_registers::{mmio32_register_layouts, Read};
+/// mmio32_register_layouts! {
 ///     // The original register definition.
 ///     button: u8 { Read },
 ///
@@ -103,8 +103,8 @@
 /// You can declare a block of registers:
 /// ```
 /// # fn main() {}
-/// use tock_registers::{mmio32_registers, Read, Write};
-/// mmio32_registers! {
+/// use tock_registers::{mmio32_register_layouts, Read, Write};
+/// mmio32_register_layouts! {
 ///     uart {
 ///         0 => status: u8 { Read },
 ///         1 => ctrl: u16 { Read, Write },
@@ -140,11 +140,11 @@
 /// The fields of register blocks can be arrays, references, and arrays of references:
 /// ```
 /// # fn main() {}
-/// use tock_registers::{mmio32_registers, register_bitfields, Read, Write};
+/// use tock_registers::{mmio32_register_layouts, register_bitfields, Read, Write};
 /// register_bitfields! [u8,
 ///     Control [OFF 0, INPUT 1, OUTPUT 2],
 /// ];
-/// mmio32_registers! {
+/// mmio32_register_layouts! {
 ///     gpio_pin {
 ///         0 => control: Control::Register { Read, Write },
 ///         1 => value: u8 { Read, Write },
@@ -163,8 +163,8 @@
 /// insert a padding field where the gap is:
 /// ```
 /// # fn main() {}
-/// use tock_registers::{mmio32_registers, Read, Write};
-/// mmio32_registers! {
+/// use tock_registers::{mmio32_register_layouts, Read, Write};
+/// mmio32_register_layouts! {
 ///     uart {
 ///         0 => status: u8 { Read },
 ///
@@ -186,11 +186,11 @@
 /// overlap registers:
 /// ```
 /// # fn main() {}
-/// use tock_registers::{mmio32_registers, register_bitfields, Read, Write};
+/// use tock_registers::{mmio32_register_layouts, register_bitfields, Read, Write};
 /// register_bitfields! [u8,
 ///     Control [OFF 0, ON 1],
 /// ];
-/// mmio32_registers! {
+/// mmio32_register_layouts! {
 ///     /// Uart with an unusual property: the "control" register and "status" register are located
 ///     /// at the same offset. Writes go to the control register, while reads go to the status
 ///     /// register.
@@ -213,8 +213,8 @@
 /// You can specify the visibility of the generated modules:
 /// ```
 /// # fn main() {}
-/// use tock_registers::{mmio32_registers, Read};
-/// mmio32_registers! {
+/// use tock_registers::{mmio32_register_layouts, Read};
+/// mmio32_register_layouts! {
 ///     pub button: u8 { Read },     // pub mod button { ... }
 ///     pub(crate) button2: button,  // pub(crate) mod button2 { ... }
 ///     button_array: [button; 8],   // mod button2 { ... }
@@ -227,8 +227,8 @@
 /// tock-registers does not provide the LiteX bus types):
 /// ```
 /// # fn main() {}
-/// use tock_registers::{registers, Mmio32, Mmio64, Read, Write};
-/// registers! {
+/// use tock_registers::{register_layouts, Mmio32, Mmio64, Read, Write};
+/// register_layouts! {
 ///     #[buses(Mmio32, Mmio64)]
 ///     rng {
 ///         0 => ctrl: u8 { Read, Write },
@@ -242,8 +242,8 @@
 /// offsets apply to each bus in the order the buses are specified:
 /// ```
 /// # fn main() {}
-/// use tock_registers::{registers, Mmio32, Mmio64, Read, Write};
-/// registers! {
+/// use tock_registers::{register_layouts, Mmio32, Mmio64, Read, Write};
+/// register_layouts! {
 ///     #[buses(Mmio32, Mmio64)]
 ///     dma_rng {
 ///         0 => address: usize { Read, Write },
@@ -257,12 +257,12 @@
 /// ```
 ///
 /// If you're writing multiple definitions, then instead of writing `#[buses()]` on each
-/// definition, you can put a single `#![buses()]` attribute at the top of the `registers!`
+/// definition, you can put a single `#![buses()]` attribute at the top of the `register_layouts!`
 /// invocation to set the default buses for all definitions:
 /// ```
 /// # fn main() {}
-/// use tock_registers::{registers, Mmio32, Mmio64, Read, Write};
-/// registers! {
+/// use tock_registers::{register_layouts, Mmio32, Mmio64, Read, Write};
+/// register_layouts! {
 ///     #![buses(Mmio32, Mmio64)]
 ///
 ///     // Both `button` and `led` support both 32-bit and 64-bit MMIO.
@@ -276,12 +276,12 @@
 /// ```
 ///
 /// # Doc comments
-/// `registers!` supports doc comments:
+/// `register_layouts!` supports doc comments:
 /// ```
 /// # fn main() {}
-/// use tock_registers::{mmio32_registers, Read, Write};
-/// mmio32_registers! {
-///     //! This is an inner doc comment, which must appear at the top of the registers!
+/// use tock_registers::{mmio32_register_layouts, Read, Write};
+/// mmio32_register_layouts! {
+///     //! This is an inner doc comment, which must appear at the top of the register_layouts!
 ///     //! invocation (before any definitions). Inner doc comments are copied onto every generated
 ///     //! module.
 ///
@@ -298,52 +298,52 @@
 /// [`Read`]: trait@crate::Read
 /// [`Write`]: trait@crate::Write
 #[macro_export]
-macro_rules! registers {
+macro_rules! register_layouts {
     {$($arguments:tt)*} => {
-        $crate::internal::registers!($crate $($arguments)*);
+        $crate::internal::register_layouts!($crate $($arguments)*);
     }
 }
 
-/// An alias for [`registers!`] with `#![buses(Mmio32)]` at the top. In other words:
+/// An alias for [`register_layouts!`] with `#![buses(Mmio32)]` at the top. In other words:
 /// ```
-/// use tock_registers::{mmio32_registers, Mmio32};
-/// mmio32_registers! {
+/// use tock_registers::{mmio32_register_layouts, Mmio32};
+/// mmio32_register_layouts! {
 ///     // Register definitions here
 /// }
 /// ```
 /// is equivalent to:
 /// ```
-/// use tock_registers::{registers, Mmio32};
-/// registers! {
+/// use tock_registers::{register_layouts, Mmio32};
+/// register_layouts! {
 ///     #![buses(Mmio32)]
 ///     // Register definitions here
 /// }
 /// ```
 #[macro_export]
-macro_rules! mmio32_registers {
+macro_rules! mmio32_register_layouts {
     {$($arguments:tt)*} => {
-        $crate::internal::registers!($crate #![buses($crate::Mmio32)] $($arguments)*);
+        $crate::internal::register_layouts!($crate #![buses($crate::Mmio32)] $($arguments)*);
     }
 }
 
-/// An alias for [`registers!] with `#![buses(Mmio64)]` at the top. In other words:
+/// An alias for [`register_layouts!] with `#![buses(Mmio64)]` at the top. In other words:
 /// ```
-/// use tock_registers::{mmio64_registers, Mmio64};
-/// mmio64_registers! {
+/// use tock_registers::{mmio64_register_layouts, Mmio64};
+/// mmio64_register_layouts! {
 ///     // Register definitions here
 /// }
 /// ```
 /// is equivalent to:
 /// ```
-/// use tock_registers::{registers, Mmio64};
-/// registers! {
+/// use tock_registers::{register_layouts, Mmio64};
+/// register_layouts! {
 ///     #![buses(Mmio64)]
 ///     // Register definitions here
 /// }
 /// ```
 #[macro_export]
-macro_rules! mmio64_registers {
+macro_rules! mmio64_register_layouts {
     {$($arguments:tt)*} => {
-        $crate::internal::registers!($crate #![buses($crate::Mmio64)] $($arguments)*);
+        $crate::internal::register_layouts!($crate #![buses($crate::Mmio64)] $($arguments)*);
     }
 }

@@ -33,18 +33,18 @@ use quote::quote;
 use std::mem::replace;
 use syn::{parse2, Ident, Path, PathArguments};
 
-/// Returns the generated code for a `tock_registers_macro::registers!` invocation.
+/// Returns the generated code for a `tock_registers_macro::register_layouts!` invocation.
 ///
 /// # Input
-/// `tock_registers::registers!` prepends `$crate` to the tokens passed to
-/// `tock_registers_macro::registers!`, so that the generated code knows how to find the
+/// `tock_registers::register_layouts!` prepends `$crate` to the tokens passed to
+/// `tock_registers_macro::register_layouts!`, so that the generated code knows how to find the
 /// `tock_registers` crate. Therefore, this function needs `input` to start with the path to the
 /// `tock_registers` crate.
 ///
 /// # Return value
 /// If an error is encountered, Err() is returned and the contained TokenStream produces a compiler
 /// error.
-pub fn registers(input: TokenStream) -> Result<TokenStream, TokenStream> {
+pub fn register_layouts(input: TokenStream) -> Result<TokenStream, TokenStream> {
     let input: Input = parse2(input).map_err(|e| e.to_compile_error())?;
     let mut out = TokenStream::new();
     for definition in input.definitions {
@@ -114,8 +114,8 @@ fn new_doc_comment() -> TokenStream {
         /// 1. `address` must point to register(s) on the bus corresponding to
         ///    `B`.
         /// 2. The register(s)' definition (as provided to the
-        ///    `tock_registers::registers!` macro) must correctly describe the
-        ///    pointed-to register(s).
+        ///    `tock_registers::register_layouts!` macro) must correctly
+        ///    describe the pointed-to register(s).
         /// 3. The returned register accessor must not be used in a way that
         ///    causes data races. The exact requirements depend on the hardware,
         ///    but it's usually best to access a register from only one thread

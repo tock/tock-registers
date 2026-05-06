@@ -3,16 +3,16 @@
 // Copyright Tock Contributors 2026.
 // Copyright Better Bytes 2026.
 
-//! Demonstrates registers!'s support for generic buses and operations (and doubles as a test that
-//! registers!'s generated code compiles in those cases).
+//! Demonstrates register_layouts!'s support for generic buses and operations (and doubles as a
+//! test that register_layouts!'s generated code compiles in those cases).
 
 use std::fmt::Debug;
 use std::ptr::{read_volatile, NonNull};
-use tock_registers::{registers, Address, Bus, BusRead, Read, RegisterArray, Span};
+use tock_registers::{register_layouts, Address, Bus, BusRead, Read, RegisterArray, Span};
 
 // -----------------------------------------------------------------------------
-// Partial implementation of LiteX buses, to test registers!'s support for
-// generic buses.
+// Partial implementation of LiteX buses, to test register_layouts!'s support
+// for generic buses.
 // -----------------------------------------------------------------------------
 
 #[derive(Clone, Copy)]
@@ -98,7 +98,7 @@ pub struct Basket;
 #[derive(Debug)]
 pub struct Disco;
 
-registers! {
+register_layouts! {
     #![buses(LiteX<8, 32>, LiteX<32, 32>)]
 
     a: u8 { Read, Dance<Tango>, Dance<Waltz> },

@@ -21,7 +21,7 @@ use quote::{quote, ToTokens};
 use std::{fs::read_to_string, process::exit};
 use syn::parse::{ParseStream, Parser};
 use syn::{parse_file, Attribute, File, Item, Item::Macro, Result};
-use tock_registers_codegen::registers;
+use tock_registers_codegen::register_layouts;
 
 fn main() {
     let cli = Command::new(env!("CARGO_PKG_NAME"))
@@ -67,18 +67,15 @@ fn main() {
 
         // Check which macro this is, and if it is recognized call that macro's implementation.
         let tokens = &mac.mac.tokens;
-        let result = match name {
-            _ if name.ident == "registers" => registers(quote![::tock_registers #tokens]),
-            _ if name.ident == "mmio32_registers" => {
-                registers(quote![::tock_registers #![buses(::tock_registers::Mmio32)] #tokens])
-            }
-            _ if name.ident == "mmio64_registers" => {
-                registers(quote![::tock_registers #![buses(::tock_registers::Mmio64)] #tokens])
-            }
-            _ => {
-                printer.push_item(item);
-                continue;
-            }
+        let result = if name.ident == "register_layouts" {
+            register_layouts(quote![::tock_registers #tokens])
+        } else if name.ident == "mmio32_register_layouts" {
+            register_layouts(quote![::tock_registers #![buses(::tock_registers::Mmio32)] #tokens])
+        } else if name.ident == "mmio64_register_layouts" {
+            register_layouts(quote![::tock_registers #![buses(::tock_registers::Mmio64)] #tokens])
+        } else {
+            printer.push_item(item);
+            continue;
         };
 
         // Push the result to the printer (as an Item if they successfully parse).

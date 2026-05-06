@@ -10,15 +10,15 @@ README](https://github.com/tock/tock-registers/tree/v0.10.1) instead.
 
 ## Defining registers
 
-Note: `registers!` has several pieces of functionality that are not described in
-this document. See its Rustdoc for complete documentation.
+Note: `register_layouts!` has several pieces of functionality that are not
+described in this document. See its Rustdoc for complete documentation.
 
-A register block is defined using the `registers!` macro:
+A register block is defined using the `register_layouts!` macro:
 
 ```rust
-use tock_registers::{registers, Mmio32, Read, Write};
+use tock_registers::{register_layouts, Mmio32, Read, Write};
 
-registers! {
+register_layouts! {
     // Specifies that these registers are memory-mapped IO registers with 32-bit
     // addresses.
     #![buses(Mmio32)]
@@ -51,7 +51,7 @@ registers! {
 }
 ```
 
-The `registers!` macro tests that you specified the fields (registers and
+The `register_layouts!` macro tests that you specified the fields (registers and
 padding) in the order of increasing offset, with no gaps.
 
 The macro generates a module that is designed to be used both on real hardware
@@ -93,15 +93,15 @@ See [Unit Testing](doc/UnitTesting.md) for information on how to test code that
 uses tock-registers.
 
 The visibility of the generated module matches the visibility of its definition
-in the `registers!` macro. In other words, you can make the module public using
-the `pub` keyword just before the module name:
+in the `register_layouts!` macro. In other words, you can make the module public
+using the `pub` keyword just before the module name:
 
 ```rust
-use tock_registers::{mmio32_registers, Read};
+use tock_registers::{mmio32_register_layouts, Read};
 
-// mmio32_registers! is shorthand for registers! with the Mmio32 bus.
-// mmio64_registers exists as well.
-mmio32_registers! {
+// mmio32_register_layouts! is shorthand for register_layouts! with the Mmio32
+// bus. mmio64_register_layouts exists as well.
+mmio32_register_layouts! {
     pub peripheral {
         0 => status: u8 { Read },
     }
@@ -282,8 +282,8 @@ types that tock-registers does not directly support.
 ## Example: Using registers and bitfields
 
 Assuming we have defined a `peripheral` module and the corresponding bitfields
-as in the previous two sections. We also have an immutable reference to the
-`peripheral::Real` instance named `registers`.
+as in the previous two sections. We also have a `peripheral::Real` instance
+named `registers`.
 
 ```rust
 // -----------------------------------------------------------------------------
@@ -471,7 +471,7 @@ description of the naming convention for each:
 ```rust
 use tock_registers::registers::ReadWrite;
 
-registers! {
+register_layouts! {
     registers {
         // The register name in the struct should be a lowercase version of the
         // register abbreviation, as written in the datasheet:

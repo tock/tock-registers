@@ -6,7 +6,7 @@
 use crate::single::{
     bus_doc_comment, interface_doc_comment, real_alias_doc_comment, struct_doc_comment,
 };
-use crate::{new_doc_comment, registers, test_util::assert_tokens_eq};
+use crate::{new_doc_comment, register_layouts, test_util::assert_tokens_eq};
 use quote::quote;
 
 /// This serves two purposes: it tests the code generation of single scalar register definitions,
@@ -82,7 +82,7 @@ fn scalar_definition_example() {
                 + Read + Write {}
         }
     };
-    assert_tokens_eq(registers(input).unwrap(), expected);
+    assert_tokens_eq(register_layouts(input).unwrap(), expected);
 }
 
 /// This serves two purposes: it tests the code generation of single flat (non-nested) array
@@ -152,7 +152,7 @@ fn flat_array_definition_example() {
                 Element<B>: ::tock_registers::Register<DataType = u8> + Read + Write {}
         }
     };
-    assert_tokens_eq(registers(input).unwrap(), expected);
+    assert_tokens_eq(register_layouts(input).unwrap(), expected);
 }
 
 /// This serves two purposes: it tests the code generation of single nested array register
@@ -223,7 +223,7 @@ fn nested_array_definition_example() {
                 Element<B>: ::tock_registers::Register<DataType = u8> + Read + Write {}
         }
     };
-    assert_tokens_eq(registers(input).unwrap(), expected);
+    assert_tokens_eq(register_layouts(input).unwrap(), expected);
 }
 
 /// This serves two purposes: it tests the code generation of single scalar register references,
@@ -257,7 +257,7 @@ fn scalar_reference_example() {
                 Self: status::Interface {}
         }
     };
-    assert_tokens_eq(registers(input).unwrap(), expected);
+    assert_tokens_eq(register_layouts(input).unwrap(), expected);
 }
 
 /// This serves two purposes: it tests the code generation of single flat array register
@@ -292,7 +292,7 @@ fn flat_array_reference_example() {
             impl<B: Bus> Interface for Real<B> where status::Real<B>: status::Interface {}
         }
     };
-    assert_tokens_eq(registers(input).unwrap(), expected);
+    assert_tokens_eq(register_layouts(input).unwrap(), expected);
 }
 
 /// This serves two purposes: it tests the code generation of single nested array register
@@ -329,7 +329,7 @@ fn nested_array_reference_example() {
             impl<B: Bus> Interface for Real<B> where status::Real<B>: status::Interface {}
         }
     };
-    assert_tokens_eq(registers(input).unwrap(), expected);
+    assert_tokens_eq(register_layouts(input).unwrap(), expected);
 }
 
 /// Verifies that generic arguments on operations are correctly copied to the output (they need to
@@ -386,5 +386,5 @@ fn generic_operation() {
                 Self: ::tock_registers::Register<DataType = u8> + Dance<Waltz> {}
         }
     };
-    assert_tokens_eq(registers(input).unwrap(), expected);
+    assert_tokens_eq(register_layouts(input).unwrap(), expected);
 }

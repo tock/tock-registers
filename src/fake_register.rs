@@ -13,8 +13,8 @@ use core::marker::PhantomData;
 ///
 /// ```
 /// # use std::cell::Cell;
-/// # use tock_registers::{mmio32_registers, FakeRegister, LocalRegisterCopy, NoAccess, Read, Safe};
-/// mmio32_registers! {
+/// # use tock_registers::{FakeRegister, LocalRegisterCopy, NoAccess, Read, Safe};
+/// tock_registers::mmio32_register_layouts! {
 ///     /// A random number generator, which simply returns a random byte on each read.
 ///     rng {
 ///         0 => random_byte: u8 { Read },
@@ -197,9 +197,9 @@ impl sealed::Access for Unsafe {}
 ///
 /// ```
 /// # use std::cell::Cell;
-/// # use tock_registers::{mmio32_registers, FakeRegister, FakeRegisterArray};
+/// # use tock_registers::{mmio32_register_layouts, FakeRegister, FakeRegisterArray};
 /// # use tock_registers::{LocalRegisterCopy, Read, Write, Safe};
-/// mmio32_registers! {
+/// mmio32_register_layouts! {
 ///     /// An array of registers that remember values written into them.
 ///     storage {
 ///         0 => scratch: [u8; 4] { Read, Write },

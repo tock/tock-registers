@@ -3,13 +3,13 @@
 // Copyright Tock Contributors 2026.
 // Copyright Better Bytes 2026.
 
-//! This example shows where you can use doc comments in a registers! invocation.
+//! This example shows where you can use doc comments in a register_layouts! invocation.
 
-use tock_registers::{mmio32_registers, Read, Write};
+use tock_registers::{mmio32_register_layouts, Read, Write};
 
-mmio32_registers! {
-    //! Inner doc comment on the registers! invocation itself. This doc comment will be copied onto
-    //! every generated module.
+mmio32_register_layouts! {
+    //! Inner doc comment on the register_layouts! invocation itself. This doc comment will be
+    //! copied onto every generated module.
 
     /// Doc comment on a register definition.
     pub scalar_definition: u8 { Read },

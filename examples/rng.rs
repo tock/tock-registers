@@ -3,9 +3,9 @@
 // Copyright Tock Contributors 2026.
 // Copyright Better Bytes 2026.
 
-use tock_registers::{mmio32_registers, Mmio32, Read};
+use tock_registers::{mmio32_register_layouts, Mmio32, Read};
 
-mmio32_registers! {
+mmio32_register_layouts! {
     /// Registers for a hardware device that generates random numbers.
     pub rng {
         /// This register returns a new random value on every read. It can be read concurrently by

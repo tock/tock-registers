@@ -56,8 +56,8 @@ pub trait RegisterArray<L: Len>: Copy {
 /// However, when you have a nested array in a register block:
 /// ```
 /// # fn main() {}
-/// # use tock_registers::{mmio32_registers, Read, Write};
-/// mmio32_registers! {
+/// # use tock_registers::{mmio32_register_layouts, Read, Write};
+/// mmio32_register_layouts! {
 ///     foo {
 ///         0 => a: [[[u8; 2]; 2]; 2] { Read, Write },
 ///     }
@@ -78,8 +78,8 @@ pub trait RegisterArray<L: Len>: Copy {
 /// not solve the issue:
 /// ```
 /// # fn main() {}
-/// # use tock_registers::{mmio32_registers, Read, Write};
-/// mmio32_registers! {
+/// # use tock_registers::{mmio32_register_layouts, Read, Write};
+/// mmio32_register_layouts! {
 ///     a: [u8; 2] { Read, Write },
 ///     b: [a; 2],
 ///     foo {
@@ -108,8 +108,8 @@ impl<Element: Span, L: Len> RealRegisterArray<Element, L> {
     /// # Safety
     /// 1. `address` must point to a register array on the bus corresponding to `Self::Address`.
     /// 2. The register array's definition (as provided to the
-    ///    [`registers`](macro@crate::registers) macro) must correctly describe the pointed-to
-    ///    register array.
+    ///    [`register_layouts`](macro@crate::register_layouts) macro) must correctly describe the
+    ///    pointed-to register array.
     /// 3. The returned register array accessor must not be used in a way that causes data races.
     ///    The exact requirements depend on the hardware, but it's usually best to access registers
     ///    from only one thread at a time.

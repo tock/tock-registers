@@ -10,9 +10,9 @@
 //! relies on do not exist). This regression test prevents us from reintroducing that error, as it
 //! managed to slip by all the other tests.
 
-use tock_registers::{mmio32_registers, Read, Register, RegisterArray, Write};
+use tock_registers::{mmio32_register_layouts, Read, Register, RegisterArray, Write};
 
-mmio32_registers! {
+mmio32_register_layouts! {
     pub a: [u8; 2] { Read, Write },
     pub b: [a; 2],
     pub c: [b; 2],
