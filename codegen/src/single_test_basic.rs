@@ -334,11 +334,13 @@ fn nested_array_reference_example() {
 
 /// Verifies that generic arguments on operations are correctly copied to the output (they need to
 /// be split off the operation path for the operation macro invocation).
+///
+/// This also doubles as the test for `#[bus]`.
 #[test]
 fn generic_operation() {
     let input = quote! {
         ::tock_registers
-        #[buses(Mmio32)]
+        #[bus(Mmio32)]
         foo: u8 { Dance<Waltz> },
     };
     let interface_comment = interface_doc_comment();
@@ -357,7 +359,7 @@ fn generic_operation() {
             impl<B: Bus> Bus for ::tock_registers::BorrowedBus<'_, B> {}
             impl<B: Bus> sealed::Bus for ::tock_registers::BorrowedBus<'_, B> {}
             mod sealed { pub trait Bus {} }
-            #struct_comment pub struct Real<B: Bus> {
+            #struct_comment pub struct Real<B: Bus = Mmio32> {
                 address: B,
                 _phantom: ::tock_registers::internal::RealPhantom,
             }

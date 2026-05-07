@@ -3,8 +3,8 @@
 // Copyright Tock Contributors 2026.
 // Copyright Better Bytes 2026.
 
-use super::register_definition;
 use crate::ast::{Layout, RegisterSpec};
+use crate::register_definition;
 use proc_macro2::{Span, TokenStream};
 use quote::{quote, quote_spanned};
 use syn::{spanned::Spanned, Ident, Path};
@@ -40,7 +40,7 @@ pub fn generate(tock_registers: &Path, layout: &Layout, register: &RegisterSpec)
     let element_bound;
     let bus_comment = bus_doc_comment();
     let bus_bound;
-    let buses = &layout.buses;
+    let buses = layout.bus.as_slice();
     let element_definition;
     let mut real;
 
@@ -61,6 +61,7 @@ pub fn generate(tock_registers: &Path, layout: &Layout, register: &RegisterSpec)
         element_definition = register_definition(
             tock_registers,
             struct_doc_comment(is_scalar),
+            &layout.bus.generic_default(),
             &Ident::new(struct_name, Span::call_site()),
             register,
             operations,

@@ -61,11 +61,10 @@
 // If we don't build any actual register types, we don't need unsafe code in
 // this crate
 #![cfg_attr(not(feature = "register_types"), forbid(unsafe_code))]
-#![warn(unsafe_op_in_unsafe_fn)]
+#![forbid(unsafe_op_in_unsafe_fn)]
 
 pub mod fields;
 pub mod interfaces;
-#[cfg(feature = "register_types")]
 pub mod internal;
 #[cfg(all(feature = "proc_macros", feature = "register_types"))]
 mod layouts;

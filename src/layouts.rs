@@ -13,7 +13,7 @@
 /// # fn main() {}
 /// use tock_registers::{register_layouts, Mmio32, Read, Write};
 /// register_layouts! {
-///     #[buses(Mmio32)]
+///     #[bus(Mmio32)]
 ///     ctrl: u8 { Read, Write },
 /// }
 /// ```
@@ -29,7 +29,7 @@
 ///     pub trait Bus {}
 ///     impl Bus for Mmio32 {}
 ///     #[derive(Clone, Copy)]
-///     pub struct Real<B: Bus>(B);
+///     pub struct Real<B: Bus = Mmio32>(B);
 /// }
 /// ```
 /// Note that many details, such as trait bounds and trait sealing, are omitted for clarity. `Real`
@@ -44,7 +44,7 @@
 /// `doc/UnitTesting.md` in the tock-registers repository for more information.
 ///
 /// # mmio32_register_layouts and mmio64_register_layouts
-/// Instead of writing `#[buses(Mmio32)]` or `#[buses(Mmio64)]` every time you call
+/// Instead of writing `#[bus(Mmio32)]` or `#[bus(Mmio64)]` every time you call
 /// `register_layouts!`, you can use [`mmio32_register_layouts!`](crate::mmio32_register_layouts)
 /// or [`mmio64_register_layouts!`](crate::mmio64_register_layouts). The rest of the examples on
 /// this page will use `mmio32_register_layouts` for brevity.
@@ -237,6 +237,9 @@
 /// }
 /// ```
 ///
+/// Using `#[buses]` removes the default `Bus` type from the definition of the `Real` struct, so
+/// you will have to specify the bus any time you use `Real`.
+///
 /// Sometimes, such as for LiteX peripherals or peripherals that use `usize` registers, the offsets
 /// might depend on which bus is used. In that case, you can specify an array of offsets. The
 /// offsets apply to each bus in the order the buses are specified:
@@ -319,10 +322,12 @@ macro_rules! register_layouts {
 ///     // Register definitions here
 /// }
 /// ```
+// Note: Anytime this is changed, expand_macros should be updated as well, as it has to duplicate
+// this definition!
 #[macro_export]
 macro_rules! mmio32_register_layouts {
     {$($arguments:tt)*} => {
-        $crate::internal::register_layouts!($crate #![buses($crate::Mmio32)] $($arguments)*);
+        $crate::internal::register_layouts!($crate #![bus($crate::Mmio32)] $($arguments)*);
     }
 }
 
@@ -341,9 +346,11 @@ macro_rules! mmio32_register_layouts {
 ///     // Register definitions here
 /// }
 /// ```
+// Note: Anytime this is changed, expand_macros should be updated as well, as it has to duplicate
+// this definition!
 #[macro_export]
 macro_rules! mmio64_register_layouts {
     {$($arguments:tt)*} => {
-        $crate::internal::register_layouts!($crate #![buses($crate::Mmio64)] $($arguments)*);
+        $crate::internal::register_layouts!($crate #![bus($crate::Mmio64)] $($arguments)*);
     }
 }

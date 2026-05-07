@@ -28,6 +28,10 @@ register_layouts! {
     }
 }
 
+tock_registers::mmio64_register_layouts! {
+    d: a,
+}
+
 // Uncomment this to verify that tock_registers is being used without the proc_macros feature (this
 // should fail to build with an "unresolved import" error).
 //use tock_registers::register_layouts;

@@ -6,7 +6,7 @@
 //! Input parser. The best reference for what this does is the [ast] module, as the doc comment on
 //! each AST type shows that type's definition syntax.
 
-use crate::ast::{Field, FieldDef, Input, Layout, PerBusInt, RegisterSpec, Value};
+use crate::ast::{BusAttr, Field, FieldDef, Input, Layout, PerBusInt, RegisterSpec, Value};
 use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
@@ -17,7 +17,7 @@ impl Parse for Input {
     fn parse(input: ParseStream) -> Result<Input> {
         let tock_registers = input.parse()?;
         // Parse attributes that apply to all layouts.
-        let (docs, buses) = layout_attributes(Attribute::parse_inner(input)?)?;
+        let (docs, bus) = layout_attributes(Attribute::parse_inner(input)?)?;
         let layouts: Result<_> = Punctuated::<Layout, Token![,]>::parse_terminated(input)?
             .into_iter()
             .map(|mut layout| {
@@ -25,11 +25,11 @@ impl Parse for Input {
                 // attribute) docs).
                 layout.docs = docs.iter().cloned().chain(layout.docs).collect();
                 // Combine the Layout's buses specification with the global buses specification.
-                if layout.buses.is_empty() {
-                    if buses.is_empty() {
-                        return Err(Error::new(layout.name.span(), "no #[buses] specified"));
+                if layout.bus.as_slice().is_empty() {
+                    if bus.as_slice().is_empty() {
+                        return Err(Error::new(layout.name.span(), "no bus specified"));
                     }
-                    layout.buses = buses.clone();
+                    layout.bus = bus.clone();
                 }
                 Ok(layout)
             })
@@ -43,10 +43,10 @@ impl Parse for Input {
 
 impl Parse for Layout {
     fn parse(input: ParseStream) -> Result<Layout> {
-        let (docs, buses) = layout_attributes(Attribute::parse_outer(input)?)?;
+        let (docs, bus) = layout_attributes(Attribute::parse_outer(input)?)?;
         Ok(Layout {
             docs,
-            buses,
+            bus,
             visibility: input.parse()?,
             name: input.parse()?,
             value: input.parse()?,
@@ -54,41 +54,42 @@ impl Parse for Layout {
     }
 }
 
-/// Parses attributes that belong on a Layout. If no `#[buses(...)]` is specified, returns an empty
-/// `buses`. The attributes are returned in order (docs, buses), and are converted into outer
-/// attributes.
-fn layout_attributes(attributes: Vec<Attribute>) -> Result<(Vec<Attribute>, Vec<TypePath>)> {
+/// Parses attributes that belong on a Layout. If no `#[bus]` or `#[buses(...)]` is specified,
+/// returns an empty `BusAttr::Buses`. Doc comments are converted into outer attributes and the
+/// attributes are returned in order (docs, buses).
+fn layout_attributes(attributes: Vec<Attribute>) -> Result<(Vec<Attribute>, BusAttr)> {
     let mut docs = Vec::new();
-    let mut buses: Option<Attribute> = None;
+    let mut bus: Option<Attribute> = None;
     for mut attr in attributes {
         attr.style = AttrStyle::Outer;
         match attr.path() {
             p if p.is_ident("doc") => docs.push(attr),
-            p if p.is_ident("buses") => {
-                if let Some(prev_buses) = buses {
-                    let mut error = Error::new_spanned(attr, "multiple #[buses()] attributes");
+            p if p.is_ident("bus") || p.is_ident("buses") => {
+                if let Some(prev_bus) = bus {
+                    let mut error = Error::new_spanned(attr, "multiple bus attributes");
                     error.combine(Error::new_spanned(
-                        prev_buses,
-                        "note: #[buses()] already specified here",
+                        prev_bus,
+                        "note: bus already specified here",
                     ));
                     return Err(error);
                 }
-                buses = Some(attr);
+                bus = Some(attr);
             }
             p => return Err(Error::new(p.span(), "unknown attribute")),
         }
     }
-    let Some(buses) = buses else {
-        return Ok((docs, Vec::new()));
+    let bus = match bus {
+        Some(bus) if bus.path().is_ident("bus") => BusAttr::Bus(bus.parse_args()?),
+        Some(buses) => {
+            let punctuated = buses.parse_args_with(Punctuated::<_, Token![,]>::parse_terminated)?;
+            if punctuated.is_empty() {
+                return Err(Error::new_spanned(buses, "buses list cannot be empty"));
+            }
+            BusAttr::Buses(punctuated.into_iter().collect())
+        }
+        None => BusAttr::Buses(Vec::new()),
     };
-    let buses_vec: Vec<_> = buses
-        .parse_args_with(Punctuated::<_, Token![,]>::parse_terminated)?
-        .into_iter()
-        .collect();
-    if buses_vec.is_empty() {
-        return Err(Error::new_spanned(buses, "buses list cannot be empty"));
-    }
-    Ok((docs, buses_vec))
+    Ok((docs, bus))
 }
 
 impl Parse for Value {

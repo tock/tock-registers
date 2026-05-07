@@ -3,9 +3,8 @@
 // Copyright Tock Contributors 2026.
 // Copyright Better Bytes 2026.
 
-use super::register_definition;
 use crate::ast::{Field, FieldDef, Layout, PerBusInt};
-use crate::new_doc_comment;
+use crate::{new_doc_comment, register_definition};
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote, quote_spanned};
 use syn::{spanned::Spanned, Ident, Path, TypePath};
@@ -39,13 +38,14 @@ pub fn generate(tock_registers: &Path, layout: &Layout, fields: &[Field]) -> Tok
     let bus_comment = bus_doc_comment();
     let mut bus_bounds = TokenStream::new();
     let mut bus_offset_decls = TokenStream::new();
-    let buses = &layout.buses;
+    let buses = layout.bus.as_slice();
     // cumulative_sizes is empty if the current cumulative size is unknown (due to a padding field
     // with no specified size).
     let mut cumulative_sizes: Vec<_> = (0..buses.len()).map(|_| quote![0]).collect();
     let mut bus_offset_defs: Vec<_> = (0..buses.len()).map(|_| TokenStream::new()).collect();
     let mut borrowed_bus_defs = TokenStream::new();
     let mut offset_tests = TokenStream::new();
+    let bus_default = layout.bus.generic_default();
     let real_comment = real_doc_comment();
     let new_comment = new_doc_comment();
     let mut interface_bounds = TokenStream::new();
@@ -93,6 +93,7 @@ pub fn generate(tock_registers: &Path, layout: &Layout, fields: &[Field]) -> Tok
             real_structs.extend(register_definition(
                 tock_registers,
                 field_struct_doc_comment(name),
+                &bus_default,
                 &real_name,
                 register,
                 operations,
@@ -206,7 +207,7 @@ pub fn generate(tock_registers: &Path, layout: &Layout, fields: &[Field]) -> Tok
             impl<B: Bus> sealed::Bus for #tock_registers::BorrowedBus<'_, B> {}
             #[allow(clippy::eq_op)] const _: () = { #offset_tests };
             mod sealed { pub trait Bus {} }
-            #real_comment pub struct Real<B: Bus> {
+            #real_comment pub struct Real<B: Bus #bus_default> {
                 address: B,
                 _phantom: #tock_registers::internal::RealPhantom,
             }

@@ -5,7 +5,9 @@
 
 //! The Abstract Syntax Tree for a register_layouts! invocation.
 
-use std::ops::Index;
+use proc_macro2::TokenStream;
+use quote::quote;
+use std::{ops::Index, slice};
 use syn::{Attribute, Ident, LitInt, Path, TypePath, Visibility};
 
 /// Represents the full input to the register_layouts! procedural macro. Note that
@@ -33,6 +35,7 @@ use syn::{Attribute, Ident, LitInt, Path, TypePath, Visibility};
 ///     }
 /// }
 /// ```
+#[cfg_attr(test, derive(Debug))]
 pub struct Input {
     /// The $crate passed in by the register_layouts! macro_rules macro (used to refer to the
     /// tock_registers crate).
@@ -63,13 +66,43 @@ pub struct Input {
 ///     }
 /// }
 /// ```
+///
+/// When a Layout is parsed, if no `#[bus]` or `#[buses]` attribute is present, `bus` will be set
+/// to `BusAttr::Buses(vec![])`. The Parse impl for `Input` will correct the `bus` entry.
+#[cfg_attr(test, derive(Debug))]
 pub struct Layout {
     /// Doc comments, converted into outer attributes.
     pub docs: Vec<Attribute>,
-    pub buses: Vec<TypePath>,
+    pub bus: BusAttr,
     pub visibility: Visibility,
     pub name: Ident,
     pub value: Value,
+}
+
+/// The `#[bus]` or `#[buses]` attribute for a layout.
+#[cfg_attr(test, derive(Debug, PartialEq))]
+#[derive(Clone)]
+pub enum BusAttr {
+    Bus(TypePath),
+    Buses(Vec<TypePath>),
+}
+
+impl BusAttr {
+    pub fn as_slice(&self) -> &[TypePath] {
+        match self {
+            BusAttr::Bus(bus) => slice::from_ref(bus),
+            BusAttr::Buses(buses) => buses,
+        }
+    }
+
+    /// Returns the `= <Bus>` default type for the `B: Bus` argument on a real struct, or an empty
+    /// stream if there is no such bound.
+    pub fn generic_default(&self) -> TokenStream {
+        match self {
+            BusAttr::Bus(bus) => quote![= #bus],
+            BusAttr::Buses(_) => TokenStream::new(),
+        }
+    }
 }
 
 /// The part of a register that begins after the register's name. For individual register
@@ -96,6 +129,7 @@ pub struct Layout {
 ///     }
 /// }
 /// ```
+#[cfg_attr(test, derive(Debug))]
 pub enum Value {
     Block(Vec<Field>),
     Single(RegisterSpec),

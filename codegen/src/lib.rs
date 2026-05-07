@@ -62,6 +62,7 @@ pub fn register_layouts(input: TokenStream) -> Result<TokenStream, TokenStream> 
 fn register_definition(
     tock_registers: &Path,
     docs: TokenStream,
+    bus_default: &TokenStream,
     struct_name: &Ident,
     register: &RegisterSpec,
     operations: &[Path],
@@ -76,7 +77,7 @@ fn register_definition(
         op_macros.push(path);
     }
     quote! {
-        #docs pub struct #struct_name<B: Bus> {
+        #docs pub struct #struct_name<B: Bus #bus_default> {
             address: B,
             _phantom: #tock_registers::internal::RealPhantom,
         }

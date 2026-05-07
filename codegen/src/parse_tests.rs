@@ -3,9 +3,75 @@
 // Copyright Tock Contributors 2026.
 // Copyright Better Bytes 2026.
 
-use crate::ast::{Field, FieldDef, PerBusInt, RegisterSpec};
+use crate::ast::{Field, FieldDef, Input, PerBusInt, RegisterSpec};
 use quote::quote;
 use syn::{parse2, parse_quote, TypePath};
+
+// Verifies that outer and inner #[bus] and #[buses] attributes are combined correctly.
+#[test]
+fn bus() {
+    use crate::ast::BusAttr::{Bus, Buses};
+
+    let error = parse2::<Input>(quote![::tock_registers b: a]).unwrap_err();
+    assert!(error.to_string().contains("no bus specified"));
+
+    // Shortcuts so the assert_eq!() calls don't line-wrap.
+    let mmio32 = || parse_quote![Mmio32];
+    let mmio64 = || parse_quote![Mmio64];
+    let mmio32null = || parse_quote![Mmio32Nullable];
+
+    let input: Input = parse_quote! {
+        ::tock_registers
+        #[bus(Mmio32)] a: r,
+        #[buses(Mmio32)] b: r,
+        #[buses(Mmio32, Mmio64)] c: r,
+    };
+    assert_eq!(input.layouts[0].bus, Bus(mmio32()));
+    assert_eq!(input.layouts[1].bus, Buses(vec![mmio32()]));
+    assert_eq!(input.layouts[2].bus, Buses(vec![mmio32(), mmio64()]));
+
+    let input: Input = parse_quote! {
+        ::tock_registers #![bus(Mmio32)]
+        a: r,
+        #[bus(Mmio64)] b: r,
+        #[buses(Mmio64)] c: r,
+        #[buses(Mmio32Nullable, Mmio64)] d: r,
+    };
+    assert_eq!(input.layouts[0].bus, Bus(mmio32()));
+    assert_eq!(input.layouts[1].bus, Bus(mmio64()));
+    assert_eq!(input.layouts[2].bus, Buses(vec![mmio64()]));
+    assert_eq!(input.layouts[3].bus, Buses(vec![mmio32null(), mmio64()]));
+
+    let input: Input = parse_quote! {
+        ::tock_registers #![buses(Mmio32)]
+        a: r,
+        #[bus(Mmio64)] b: r,
+        #[buses(Mmio64)] c: r,
+        #[buses(Mmio32Nullable, Mmio64)] d: r,
+    };
+    assert_eq!(input.layouts[0].bus, Buses(vec![mmio32()]));
+    assert_eq!(input.layouts[1].bus, Bus(mmio64()));
+    assert_eq!(input.layouts[2].bus, Buses(vec![mmio64()]));
+    assert_eq!(input.layouts[3].bus, Buses(vec![mmio32null(), mmio64()]));
+
+    let input: Input = parse_quote! {
+        ::tock_registers #![buses(Mmio32, Mmio32Nullable)]
+        a: r,
+        #[bus(Mmio64)] b: r,
+        #[buses(Mmio64)] c: r,
+        #[buses(Mmio32Nullable, Mmio64)] d: r,
+    };
+    assert_eq!(input.layouts[0].bus, Buses(vec![mmio32(), mmio32null()]));
+    assert_eq!(input.layouts[1].bus, Bus(mmio64()));
+    assert_eq!(input.layouts[2].bus, Buses(vec![mmio64()]));
+    assert_eq!(input.layouts[3].bus, Buses(vec![mmio32null(), mmio64()]));
+
+    let error = parse2::<Input>(quote![::tock_registers #![bus(A)] #![buses(B)] b: a]).unwrap_err();
+    assert!(error.to_string().contains("multiple bus attributes"));
+
+    let error = parse2::<Input>(quote![::tock_registers #[buses(A)] #[bus(B)] b: a]).unwrap_err();
+    assert!(error.to_string().contains("multiple bus attributes"));
+}
 
 #[test]
 fn field() {

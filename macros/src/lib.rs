@@ -3,9 +3,6 @@
 // Copyright Tock Contributors 2026.
 // Copyright Better Bytes 2026.
 
-// TODO: Re-evaluate mod/file structure in tock-registers.
-// TODO: Implement #[bus] to specify a default bus (outputs Real<B: Bus = #bus>), update the
-//       src/registers_macro.rs docs. Don't forget to update expand_macros!
 // TODO: Add #![no_std] to examples/tests where possible.
 // TODO: Translate a Tock driver that uses register arrays.
 // TODO: Implement a RegisterArray iterator.

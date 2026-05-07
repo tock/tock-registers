@@ -11,7 +11,7 @@ use quote::quote;
 fn empty() {
     let input = quote! {
         ::tock_registers
-        #[buses(Mmio32, Mmio64)]
+        #[bus(Mmio32)]
         pub foo {}
     };
     let interface_comment = interface_doc_comment();
@@ -31,15 +31,13 @@ fn empty() {
             }
             impl Bus for Mmio32 { const SIZE: usize = 0; }
             impl sealed::Bus for Mmio32 {}
-            impl Bus for Mmio64 { const SIZE: usize = 0; }
-            impl sealed::Bus for Mmio64 {}
             impl<B: Bus> Bus for ::tock_registers::BorrowedBus<'_, B> {
                 const SIZE: usize = <B as Bus>::SIZE;
             }
             impl<B: Bus> sealed::Bus for ::tock_registers::BorrowedBus<'_, B> {}
             #[allow(clippy::eq_op)] const _: () = {};
             mod sealed { pub trait Bus {} }
-            #real_comment pub struct Real<B: Bus> {
+            #real_comment pub struct Real<B: Bus = Mmio32> {
                 address: B,
                 _phantom: ::tock_registers::internal::RealPhantom,
             }

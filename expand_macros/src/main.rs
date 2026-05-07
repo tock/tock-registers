@@ -65,9 +65,9 @@ fn main() {
         let result = if name.ident == "register_layouts" {
             register_layouts(quote![::tock_registers #tokens])
         } else if name.ident == "mmio32_register_layouts" {
-            register_layouts(quote![::tock_registers #![buses(::tock_registers::Mmio32)] #tokens])
+            register_layouts(quote![::tock_registers #![bus(::tock_registers::Mmio32)] #tokens])
         } else if name.ident == "mmio64_register_layouts" {
-            register_layouts(quote![::tock_registers #![buses(::tock_registers::Mmio64)] #tokens])
+            register_layouts(quote![::tock_registers #![bus(::tock_registers::Mmio64)] #tokens])
         } else {
             printer.push_item(item);
             continue;
