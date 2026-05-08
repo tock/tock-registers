@@ -4,7 +4,7 @@
 // Copyright Better Bytes 2026.
 
 #[cfg(feature = "register_types")]
-use crate::{array::Len, RegisterArray};
+use crate::{array::Len, RegisterArray, UnsafeRead, UnsafeWrite};
 use crate::{DataType, LocalRegisterCopy, Read, Register, Write};
 #[cfg(feature = "register_types")]
 use core::marker::PhantomData;
@@ -141,6 +141,27 @@ impl<Data: Copy, DT: DataType, R: Access, W: Access> Register for FakeRegister<D
 impl<Data: Copy, DT: DataType, W: Access> Read for FakeRegister<Data, DT, Safe, W> {
     fn get(self) -> DT::Value {
         (self.read)(self.data).get()
+    }
+}
+
+#[cfg(feature = "register_types")]
+impl<Data: Copy, DT: DataType, W: Access> UnsafeRead for FakeRegister<Data, DT, Unsafe, W> {
+    unsafe fn get(self) -> DT::Value {
+        // Safety: There may or not actually be any safety requirements because this is a fake
+        // rather than the real hardware, but either way the caller has complied with the
+        // register's safety requirements.
+        unsafe { (self.read)(self.data) }.get()
+    }
+}
+
+#[cfg(feature = "register_types")]
+impl<Data: Copy, DT: DataType, R: Access> UnsafeWrite for FakeRegister<Data, DT, R, Unsafe> {
+    unsafe fn set(self, value: DT::Value) {
+        let value = LocalRegisterCopy::new(value);
+        // Safety: There may or not actually be any safety requirements because this is a fake
+        // rather than the real hardware, but either way the caller has complied with the
+        // register's safety requirements.
+        unsafe { (self.write)(self.data, value) }
     }
 }
 

@@ -272,7 +272,7 @@ ReadWrite (implemented for all Read + Write registers):
                                                //  leaving other fields unchanged
 ```
 
-In addition to `Read` and `Write`, tock-registers also provide the `UnsafeRead`
+In addition to `Read` and `Write`, tock-registers also provides the `UnsafeRead`
 and `UnsafeWrite` operations for hardware registers that are unsafe (such as DMA
 peripherals).
 

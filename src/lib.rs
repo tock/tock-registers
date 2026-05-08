@@ -103,6 +103,16 @@ mod read;
 pub use read::BusRead;
 pub use read::Read;
 
+#[cfg(feature = "register_types")]
+mod unsafe_read;
+#[cfg(feature = "register_types")]
+pub use unsafe_read::UnsafeRead;
+
+#[cfg(feature = "register_types")]
+mod unsafe_write;
+#[cfg(feature = "register_types")]
+pub use unsafe_write::UnsafeWrite;
+
 mod write;
 #[cfg(feature = "register_types")]
 pub use write::BusWrite;
