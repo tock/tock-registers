@@ -3,8 +3,13 @@
 // Copyright Tock Contributors 2026.
 // Copyright Better Bytes 2026.
 
-// If you're new to this macro's codebase, look at the `ast` module first. Understanding the AST is
-// important for understanding both the parsing module and the code generation modules.
+// If you're new to this macro's codebase, look at:
+// 1. The `ast` module. The rustdoc contains an explanation of the input grammar, and understanding
+//    the AST is important for understanding both the parsing module and the code generation
+//    modules.
+// 2. The generated code in `single_test_scalar`, then `single_test_array`, then
+//    `block_test_all_fields`. Nonobvious parts of the generated code are documented in those test
+//    cases.
 
 mod ast;
 mod block;
@@ -21,9 +26,11 @@ mod parse;
 mod parse_tests;
 mod single;
 #[cfg(all(test, not(miri)))]
-mod single_test_basic;
+mod single_test_array;
 #[cfg(all(test, not(miri)))]
 mod single_test_docs;
+#[cfg(all(test, not(miri)))]
+mod single_test_scalar;
 #[cfg(all(test, not(miri)))]
 mod test_util;
 

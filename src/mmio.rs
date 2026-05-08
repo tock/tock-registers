@@ -178,3 +178,55 @@ bus_impls!(Mmio64, Mmio64Nullable, u32, 4);
 bus_impls!(Mmio64, Mmio64Nullable, u64, 8);
 bus_impls!(Mmio64, Mmio64Nullable, u128, 16);
 bus_impls!(Mmio64, Mmio64Nullable, usize, 8);
+
+/// An alias for [`register_layouts!`](crate::register_layouts) with `#![bus(Mmio32)]` at the top.
+/// In other words:
+/// ```
+/// use tock_registers::{mmio32_register_layouts, Mmio32};
+/// mmio32_register_layouts! {
+///     // Register definitions here
+/// }
+/// ```
+/// is equivalent to:
+/// ```
+/// use tock_registers::{register_layouts, Mmio32};
+/// register_layouts! {
+///     #![bus(Mmio32)]
+///     // Register definitions here
+/// }
+/// ```
+// Note: Anytime this is changed, expand_macros should be updated as well, as it has to duplicate
+// this definition!
+#[cfg(feature = "proc_macros")]
+#[macro_export]
+macro_rules! mmio32_register_layouts {
+    {$($arguments:tt)*} => {
+        $crate::internal::register_layouts!($crate #![bus($crate::Mmio32)] $($arguments)*);
+    }
+}
+
+/// An alias for [`register_layouts!`](crate::register_layouts) with `#![bus(Mmio64)]` at the top.
+/// In other words:
+/// ```
+/// use tock_registers::{mmio64_register_layouts, Mmio64};
+/// mmio64_register_layouts! {
+///     // Register definitions here
+/// }
+/// ```
+/// is equivalent to:
+/// ```
+/// use tock_registers::{register_layouts, Mmio64};
+/// register_layouts! {
+///     #![bus(Mmio64)]
+///     // Register definitions here
+/// }
+/// ```
+// Note: Anytime this is changed, expand_macros should be updated as well, as it has to duplicate
+// this definition!
+#[cfg(feature = "proc_macros")]
+#[macro_export]
+macro_rules! mmio64_register_layouts {
+    {$($arguments:tt)*} => {
+        $crate::internal::register_layouts!($crate #![bus($crate::Mmio64)] $($arguments)*);
+    }
+}

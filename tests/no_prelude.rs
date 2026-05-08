@@ -8,6 +8,7 @@
 //! #tock_registers::internal::core to access items from core.
 
 #![no_implicit_prelude]
+#![no_std]
 
 use ::tock_registers::{Read, Write};
 

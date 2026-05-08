@@ -7,6 +7,8 @@
 //! "multiple items in scope" errors if the generated code isn't careful about which traits are in
 //! scope).
 
+#![no_std]
+
 use tock_registers::{mmio32_register_layouts, Read, Write};
 
 mmio32_register_layouts! {

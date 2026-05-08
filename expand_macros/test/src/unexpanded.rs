@@ -7,6 +7,8 @@
 // the proc macro mechanism, so we have to do that allow ourselves.
 #![allow(unused)]
 
+#![no_std]
+
 use tock_registers::{Mmio32, Mmio64, Read, Write};
 
 // We intentionally test a couple different macro paths: different macro names, and with or without

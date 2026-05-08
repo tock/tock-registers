@@ -3,7 +3,9 @@
 // Copyright Tock Contributors 2026.
 // Copyright Better Bytes 2026.
 
-use std::cell::Cell;
+#![no_std]
+
+use core::cell::Cell;
 use tock_registers::{
     mmio32_register_layouts, FakeRegister, FakeRegisterArray, LocalRegisterCopy, NoAccess, Read,
     RegisterArray, Safe, Write,

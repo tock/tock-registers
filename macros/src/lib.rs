@@ -3,22 +3,19 @@
 // Copyright Tock Contributors 2026.
 // Copyright Better Bytes 2026.
 
-// TODO: Add #![no_std] to examples/tests where possible.
-// TODO: Translate a Tock driver that uses register arrays.
-// TODO: Implement a RegisterArray iterator.
-// TODO: Rebalance file sizes.
 // TODO: Move the real_* structs into a real:: module? impls would stay in the root.
+// TODO: Implement UnsafeRead/UnsafeWrite. No subtrait relationship b/c method name collisions.
+// TODO: Implement a RegisterArray iterator.
 // TODO: Implement a "clippy test" -> a crate that uses tock-registers with as many lints as
 //       possible enabled (to verify we don't trip any of them).
-// TODO: Verify that offset/size lists match the number of buses.
 // TODO: Improve parse error handling. There might be three classes of errors:
 //       1. Errors which immediately terminate parsing (e.g. unexpected token)
 //       2. Errors which prevent generating code, but allow parsing to continue (e.g. register
 //          reference must be to a module)
 //       3. Errors where we can still generate code (e.g. multiple #[aliased] attributes)
+// TODO: Verify that offset/size lists match the number of buses.
 // TODO: Implement UnimplementedRegister, add to operation documentation.
 // TODO: Implement macro that automatically provides the type defs for Interface trait impls.
-// TODO: Implement UnsafeRead/UnsafeWrite. No subtrait relationship b/c method name collisions.
 // TODO: Implement a arm64_secure_vm feature (see the TODO in src/mmio.rs).
 // TODO: Update the top-level crate doc comment. It should probably match or be similar to
 //       the README.
