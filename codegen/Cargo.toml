@@ -3,12 +3,6 @@
 # Copyright Tock Contributors 2026.
 # Copyright Better Bytes 2026.
 
-# This is the implementation of tock-registers' procedural macros, distributed
-# as a normal library crate. Projects can use this crate if they want to use the
-# generated code for a tock-registers macro invocation outside the context of a
-# procedural macro. Note that the generated code is not stable; this crate must
-# be the exact same version as tock-registers.
-
 [package]
 name = "tock-registers-codegen"
 version.workspace = true

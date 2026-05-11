@@ -10,19 +10,20 @@ README](https://github.com/tock/tock-registers/tree/v0.10.1) instead.
 
 ## Defining registers
 
-Note: `register_layouts!` has several pieces of functionality that are not
-described in this document. See its Rustdoc for complete documentation.
+Note: tock-registers has several pieces of functionality that are not described
+in this document, including support for [non-MMIO
+registers](doc/AddingRegisterTypes.md). See the Rustdoc for
+[`register_layouts!`](src/layouts.rs) for complete documentation.
 
-A register block is defined using the `register_layouts!` macro:
+A register block is defined using the
+`mmio32_register_layouts!`/`mmio64_register_layouts!` macros:
 
 ```rust
-use tock_registers::{register_layouts, Mmio32, Read, Write};
+use tock_registers::{mmio32_register_layouts, Mmio32, Read, Write};
 
-register_layouts! {
-    // Specifies that these registers are memory-mapped IO registers with 32-bit
-    // addresses.
-    #![buses(Mmio32)]
-
+// Specifies that these registers are memory-mapped IO registers with 32-bit
+// addresses.
+mmio32_register_layouts! {
     /// Documentation for `peripheral`.
     peripheral {
         // Control register: read-write. `Control` is defined using the
@@ -51,8 +52,8 @@ register_layouts! {
 }
 ```
 
-The `register_layouts!` macro tests that you specified the fields (registers and
-padding) in the order of increasing offset, with no gaps.
+The fields (registers and padding) must be in order of increasing offset with no
+gaps.
 
 The macro generates a module that is designed to be used both on real hardware
 and in a unit test environment. Therefore, the module contains traits and a
@@ -93,14 +94,12 @@ See [Unit Testing](doc/UnitTesting.md) for information on how to test code that
 uses tock-registers.
 
 The visibility of the generated module matches the visibility of its definition
-in the `register_layouts!` macro. In other words, you can make the module public
-using the `pub` keyword just before the module name:
+in the macro invocation. In other words, you can make the module public using
+the `pub` keyword just before the module name:
 
 ```rust
 use tock_registers::{mmio32_register_layouts, Read};
 
-// mmio32_register_layouts! is shorthand for register_layouts! with the Mmio32
-// bus. mmio64_register_layouts exists as well.
 mmio32_register_layouts! {
     pub peripheral {
         0 => status: u8 { Read },
@@ -471,7 +470,7 @@ description of the naming convention for each:
 ```rust
 use tock_registers::registers::ReadWrite;
 
-register_layouts! {
+mmio32_register_layouts! {
     registers {
         // The register name in the struct should be a lowercase version of the
         // register abbreviation, as written in the datasheet:

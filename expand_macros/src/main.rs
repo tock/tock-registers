@@ -3,16 +3,6 @@
 // Copyright Tock Contributors 2026.
 // Copyright Better Bytes 2026.
 
-//! This tool is rather simplistic. It does not process `use` statements or understand if the
-//! tock-registers crate has been renamed. It simply looks for macro invocations that match the
-//! names of known tock-registers macros. The only flexibility it allows is for a leading
-//! `tock_registers::` or `::tock_registers::`.
-//!
-//! If you are using this as part of your build system or code control system, consider moving your
-//! tock-register macro invocations into their own files. That way, there's less unrelated code to
-//! trip this up. We're open to having the CLI expanded, in case you want to e.g. add flags to
-//! write the output into a file.
-
 use clap::{arg, Command};
 use prettyplease::unparse;
 use proc_macro2::TokenStream;

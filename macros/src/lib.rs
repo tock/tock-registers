@@ -3,9 +3,9 @@
 // Copyright Tock Contributors 2026.
 // Copyright Better Bytes 2026.
 
-// TODO: Add READMEs for every crate.
 // TODO: Implement a "clippy test" -> a crate that uses tock-registers with as many lints as
-//       possible enabled (to verify we don't trip any of them).
+//       possible enabled (to verify we don't trip any of them). Note: if this runs on nightly,
+//       enable the never_type feature (and maybe other features) to get all clippy lints.
 // TODO: Implement UnimplementedRegister, add to operation documentation.
 // TODO: Implement a arm64_secure_vm feature (see the TODO in src/mmio.rs).
 // TODO: Implement a RegisterArray iterator.
