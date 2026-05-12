@@ -18,25 +18,54 @@ impl Parse for Input {
         let tock_registers = input.parse()?;
         // Parse attributes that apply to all layouts.
         let (docs, bus) = layout_attributes(Attribute::parse_inner(input)?)?;
-        let layouts: Result<_> = Punctuated::<Layout, Token![,]>::parse_terminated(input)?
-            .into_iter()
-            .map(|mut layout| {
-                // Prepend the global (inner attribute) docs to each Layout's local (outer
-                // attribute) docs).
-                layout.docs = docs.iter().cloned().chain(layout.docs).collect();
-                // Combine the Layout's buses specification with the global buses specification.
-                if layout.bus.as_slice().is_empty() {
-                    if bus.as_slice().is_empty() {
-                        return Err(Error::new(layout.name.span(), "no bus specified"));
-                    }
-                    layout.bus = bus.clone();
+        let punctuated = Punctuated::<Layout, Token![,]>::parse_terminated(input)?;
+        let mut layouts = Vec::with_capacity(punctuated.len());
+        for mut layout in punctuated {
+            // Prepend the global (inner attribute) docs to each Layout's local (outer attribute)
+            // docs).
+            layout.docs = docs.iter().cloned().chain(layout.docs).collect();
+            // Combine the Layout's buses specification with the global buses specification.
+            if layout.bus.as_slice().is_empty() {
+                if bus.as_slice().is_empty() {
+                    return Err(Error::new(layout.name.span(), "no bus specified"));
                 }
-                Ok(layout)
-            })
-            .collect();
+                layout.bus = bus.clone();
+            }
+            let Value::Block(fields) = &layout.value else {
+                layouts.push(layout);
+                continue;
+            };
+            for field in fields {
+                if let PerBusInt::Array(offsets) = &field.offsets {
+                    if offsets.len() != layout.bus.len() {
+                        return Err(Error::new(
+                            offsets[0].span(),
+                            format!(
+                                "number of offsets ({}) does not match number of buses ({})",
+                                offsets.len(),
+                                layout.bus.len()
+                            ),
+                        ));
+                    };
+                }
+                if let FieldDef::Padding(Some(PerBusInt::Array(sizes))) = &field.field_def {
+                    if sizes.len() != layout.bus.len() {
+                        return Err(Error::new(
+                            sizes[0].span(),
+                            format!(
+                                "number of sizes ({}) does not match number of buses ({})",
+                                sizes.len(),
+                                layout.bus.len()
+                            ),
+                        ));
+                    }
+                }
+            }
+            layouts.push(layout);
+        }
         Ok(Input {
             tock_registers,
-            layouts: layouts?,
+            layouts,
         })
     }
 }
@@ -201,7 +230,7 @@ impl Parse for PerBusInt {
         bracketed!(contents in input);
         let ints = Punctuated::<_, Token![,]>::parse_terminated(&contents)?;
         if ints.is_empty() {
-            return Err(Error::new(contents.span(), "offset list cannot be empty"));
+            return Err(Error::new(contents.span(), "list cannot be empty"));
         }
         Ok(PerBusInt::Array(ints.into_iter().collect()))
     }

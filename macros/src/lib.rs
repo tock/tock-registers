@@ -3,21 +3,22 @@
 // Copyright Tock Contributors 2026.
 // Copyright Better Bytes 2026.
 
-// TODO: Implement UnimplementedRegister, add to operation documentation.
-// TODO: Implement a arm64_secure_vm feature (see the TODO in src/mmio.rs).
-// TODO: Implement a RegisterArray iterator.
-// TODO: Implement macro that automatically provides the type defs for Interface trait impls.
 // TODO: Investigate adding typestates into the API
 //       (https://github.com/jrvanwhy/tock-registers/pull/6).
 //       Can we use the lifetime pattern that GhostCell uses to tie state types to the particular
 //       register handle? (briefly mentioned in the presentation on 2026-04-29)
+// TODO: Implement UnimplementedRegister, add to operation documentation.
+// TODO: Implement a arm64_secure_vm feature (see the TODO in src/mmio.rs).
+// TODO: Implement a RegisterArray iterator.
+// TODO: Add an x86 port bus.
 // TODO: Improve parse error handling. There might be three classes of errors:
 //       1. Errors which immediately terminate parsing (e.g. unexpected token)
 //       2. Errors which prevent generating code, but allow parsing to continue (e.g. register
 //          reference must be to a module)
 //       3. Errors where we can still generate code (e.g. multiple #[aliased] attributes)
-// TODO: Verify that offset/size lists match the number of buses.
+// TODO: Implement macro that automatically provides the type defs for Interface trait impls.
 // TODO: Re-evaluate which `syn` features we need (is full necessary?).
+// TODO: LiteX buses
 // TODO: Update the top-level crate doc comment. It should probably match or be similar to
 //       the README.
 

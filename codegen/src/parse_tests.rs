@@ -73,6 +73,23 @@ fn bus() {
     assert!(error.to_string().contains("multiple bus attributes"));
 }
 
+// Verifies that an error is correctly returned if the number of offsets of a field or the number
+// of sizes for padding does not match the number of buses for that layout.
+#[test]
+fn bus_count_mismatches() {
+    let error =
+        parse2::<Input>(quote![::tock_registers #[bus(Port)] a { [0, 1] => a: u8 { Read } } ])
+            .unwrap_err()
+            .to_string();
+    assert!(error.contains("number of offsets (2) does not match number of buses (1)"));
+
+    let error =
+        parse2::<Input>(quote![::tock_registers #![buses(Mmio32, Port)] a { 0 => _: [1] } ])
+            .unwrap_err()
+            .to_string();
+    assert!(error.contains("number of sizes (1) does not match number of buses (2)"));
+}
+
 #[test]
 fn field() {
     let field: Field = parse_quote! {

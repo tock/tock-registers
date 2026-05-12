@@ -103,6 +103,14 @@ impl BusAttr {
             BusAttr::Buses(_) => TokenStream::new(),
         }
     }
+
+    /// Returns the number of buses.
+    pub fn len(&self) -> usize {
+        match self {
+            BusAttr::Bus(_) => 1,
+            BusAttr::Buses(buses) => buses.len(),
+        }
+    }
 }
 
 /// The part of a register that begins after the register's name. For individual register
