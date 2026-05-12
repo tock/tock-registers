@@ -125,7 +125,7 @@ impl<Element: Span, L: Len> Span for RealRegisterArray<Element, L> {
     type Address = Element::Address;
     const SIZE: usize = Element::SIZE * L::LEN;
 
-    unsafe fn new(address: Element::Address) -> RealRegisterArray<Element, L> {
+    unsafe fn with_addr(address: Element::Address) -> RealRegisterArray<Element, L> {
         RealRegisterArray {
             address,
             _phantom: Default::default(),
@@ -155,6 +155,6 @@ impl<Element: Span, L: Len> RegisterArray<L> for RealRegisterArray<Element, L> {
         let address = unsafe { self.address.byte_add(offset) };
         // Safety: `address` was a correctly calculated index into the array, and we know the
         // element type is `Element`, so `address` points to an `Element`.
-        unsafe { Element::new(address) }
+        unsafe { Element::with_addr(address) }
     }
 }

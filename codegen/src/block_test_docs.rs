@@ -8,7 +8,7 @@
 //! 1. Doc comments that should be copied from the input are copied correctly.
 //! 2. Generated doc comments are correct.
 
-use crate::{register_layouts, test_util::assert_tokens_eq};
+use crate::{register_layouts, test_util::assert_tokens_eq, Env::ProcMacro};
 use quote::quote;
 
 #[test]
@@ -45,8 +45,7 @@ fn doc_comments() {
         /// Doc comment E
         /// Doc comment F
         pub mod foo {
-            #![allow(clippy::expl_impl_clone_on_copy)]
-            #![allow(nonstandard_style)]
+            #![allow(non_camel_case_types)]
             use super::*;
             /// Trait representing this register block. Driver code can use this trait to work with
             /// both real hardware and fake implementations of the peripheral (for unit testing).
@@ -86,6 +85,7 @@ fn doc_comments() {
                     array_reference<1usize> { const LEN: usize = 3; }
             }
             /// Buses supported by this register block.
+            #[allow(clippy::trait_duplication_in_bounds)]
             pub trait Bus: ::tock_registers::Address + ::tock_registers::DataTypeBus<u8> +
                 ::tock_registers::DataTypeBus<u8> + a::Bus + b::Bus + sealed::Bus
             {
@@ -109,25 +109,33 @@ fn doc_comments() {
                 const SIZE: usize = <B as Bus>::SIZE;
             }
             impl<B: Bus> sealed::Bus for ::tock_registers::BorrowedBus<'_, B> {}
-            #[allow(clippy::eq_op)] const _: () = {
-                assert!(0 == 0, "offset mismatch for bus Mmio32");
-                assert!(0 == 0, "offset mismatch for bus Mmio64");
-                assert!(1 == 0 + <<Real<Mmio32> as Interface>::scalar_definition as
-                    ::tock_registers::Span>::SIZE, "offset mismatch for bus Mmio32");
-                assert!(1 == 0 + <<Real<Mmio64> as Interface>::scalar_definition as
-                    ::tock_registers::Span>::SIZE, "offset mismatch for bus Mmio64");
-                assert!(7 == 1 + <<Real<Mmio32> as Interface>::array_definition as
-                    ::tock_registers::Span>::SIZE, "offset mismatch for bus Mmio32");
-                assert!(7 == 1 + <<Real<Mmio64> as Interface>::array_definition as
-                    ::tock_registers::Span>::SIZE, "offset mismatch for bus Mmio64");
-                assert!(8 == 7 + <<Real<Mmio32> as Interface>::scalar_reference as
-                    ::tock_registers::Span>::SIZE, "offset mismatch for bus Mmio32");
-                assert!(8 == 7 + <<Real<Mmio64> as Interface>::scalar_reference as
-                    ::tock_registers::Span>::SIZE, "offset mismatch for bus Mmio64");
+            const _: () = {
+                assert!(0 == ::tock_registers::internal::core::convert::identity(0),
+                    "offset mismatch for bus Mmio32");
+                assert!(0 == ::tock_registers::internal::core::convert::identity(0),
+                    "offset mismatch for bus Mmio64");
+                assert!(1 == ::tock_registers::internal::core::convert::identity(0 + <<Real<Mmio32>
+                    as Interface>::scalar_definition as ::tock_registers::Span>::SIZE),
+                    "offset mismatch for bus Mmio32");
+                assert!(1 == ::tock_registers::internal::core::convert::identity(0 + <<Real<Mmio64>
+                    as Interface>::scalar_definition as ::tock_registers::Span>::SIZE),
+                    "offset mismatch for bus Mmio64");
+                assert!(7 == ::tock_registers::internal::core::convert::identity(1 + <<Real<Mmio32>
+                    as Interface>::array_definition as ::tock_registers::Span>::SIZE),
+                    "offset mismatch for bus Mmio32");
+                assert!(7 == ::tock_registers::internal::core::convert::identity(1 + <<Real<Mmio64>
+                    as Interface>::array_definition as ::tock_registers::Span>::SIZE),
+                    "offset mismatch for bus Mmio64");
+                assert!(8 == ::tock_registers::internal::core::convert::identity(7 + <<Real<Mmio32>
+                    as Interface>::scalar_reference as ::tock_registers::Span>::SIZE),
+                    "offset mismatch for bus Mmio32");
+                assert!(8 == ::tock_registers::internal::core::convert::identity(7 + <<Real<Mmio64>
+                    as Interface>::scalar_reference as ::tock_registers::Span>::SIZE),
+                    "offset mismatch for bus Mmio64");
             };
             mod sealed { pub trait Bus {} }
             /// Struct implementing [Interface] for use with the real hardware.
-            pub struct Real<B: Bus> {
+            #[derive(Clone)] pub struct Real<B: Bus> {
                 address: B,
                 _phantom: ::tock_registers::internal::RealPhantom,
             }
@@ -146,9 +154,6 @@ fn doc_comments() {
                 pub const unsafe fn new(address: B) -> Self {
                     Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
                 }
-            }
-            impl<B: Bus> ::tock_registers::internal::core::clone::Clone for Real<B> {
-                #[inline] fn clone(&self) -> Self { *self }
             }
             impl<B: Bus> ::tock_registers::internal::core::marker::Copy for Real<B> {}
             impl<B: Bus> Interface for Real<B>
@@ -194,14 +199,14 @@ fn doc_comments() {
             impl<B: Bus> ::tock_registers::Span for Real<B> {
                 type Address = B;
                 const SIZE: usize = <B as Bus>::SIZE;
-                unsafe fn new(address: B) -> Self {
+                unsafe fn with_addr(address: B) -> Self {
                     Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
                 }
                 type Borrowed<'b> = Real<::tock_registers::BorrowedBus<'b, B>>;
             }
             #[doc =
                 "Struct that provides access to the `scalar_definition` register on real hardware."]
-            pub struct real_scalar_definition<B: Bus> {
+            #[derive(Clone)] pub struct real_scalar_definition<B: Bus> {
                 address: B,
                 _phantom: ::tock_registers::internal::RealPhantom,
             }
@@ -221,14 +226,12 @@ fn doc_comments() {
                     Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
                 }
             }
-            impl<B: Bus> ::tock_registers::internal::core::clone::Clone
-            for real_scalar_definition<B> { #[inline] fn clone(&self) -> Self { *self } }
             impl<B: Bus> ::tock_registers::internal::core::marker::Copy
             for real_scalar_definition<B> {}
             impl<B: Bus> ::tock_registers::Span for real_scalar_definition<B> {
                 type Address = B;
                 const SIZE: usize = <B as ::tock_registers::DataTypeBus<u8>>::PADDED_SIZE;
-                unsafe fn new(address: B) -> Self {
+                unsafe fn with_addr(address: B) -> Self {
                     Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
                 }
                 type Borrowed<'b> = real_scalar_definition<::tock_registers::BorrowedBus<'b, B>>;
@@ -240,7 +243,7 @@ fn doc_comments() {
             Write!(real_impl, real_scalar_definition, u8,,);
             #[doc =
                 "Struct that provides access to the `array_definition` register on real hardware."]
-            pub struct real_array_definition<B: Bus> {
+            #[derive(Clone)] pub struct real_array_definition<B: Bus> {
                 address: B,
                 _phantom: ::tock_registers::internal::RealPhantom,
             }
@@ -260,14 +263,12 @@ fn doc_comments() {
                     Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
                 }
             }
-            impl<B: Bus> ::tock_registers::internal::core::clone::Clone
-            for real_array_definition<B> { #[inline] fn clone(&self) -> Self { *self } }
             impl<B: Bus> ::tock_registers::internal::core::marker::Copy
             for real_array_definition<B> {}
             impl<B: Bus> ::tock_registers::Span for real_array_definition<B> {
                 type Address = B;
                 const SIZE: usize = <B as ::tock_registers::DataTypeBus<u8>>::PADDED_SIZE;
-                unsafe fn new(address: B) -> Self {
+                unsafe fn with_addr(address: B) -> Self {
                     Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
                 }
                 type Borrowed<'b> = real_array_definition<::tock_registers::BorrowedBus<'b, B>>;
@@ -279,5 +280,5 @@ fn doc_comments() {
             Write!(real_impl, real_array_definition, u8,,);
         }
     };
-    assert_tokens_eq(register_layouts(input).unwrap(), expected);
+    assert_tokens_eq(register_layouts(input, ProcMacro).unwrap(), expected);
 }

@@ -6,7 +6,7 @@
 use crate::single::{
     bus_doc_comment, interface_doc_comment, real_alias_doc_comment, struct_doc_comment,
 };
-use crate::{new_doc_comment, register_layouts, test_util::assert_tokens_eq};
+use crate::{new_doc_comment, register_layouts, test_util::assert_tokens_eq, Env::External};
 use quote::quote;
 
 /// This serves two purposes: it tests the code generation of single scalar register definitions,
@@ -24,8 +24,7 @@ fn scalar_definition_example() {
     let new_comment = new_doc_comment();
     let expected = quote! {
         pub mod foo {
-            #![allow(clippy::expl_impl_clone_on_copy)]
-            use super::*;
+            #![allow(dead_code)] use super::*;
             #interface_comment
             pub trait Interface: ::tock_registers::Register<DataType = u8> + Read + Write {}
             #bus_comment pub trait Bus:
@@ -44,7 +43,7 @@ fn scalar_definition_example() {
             impl<B: Bus> Bus for ::tock_registers::BorrowedBus<'_, B> {}
             impl<B: Bus> sealed::Bus for ::tock_registers::BorrowedBus<'_, B> {}
             mod sealed { pub trait Bus {} }
-            #struct_comment pub struct Real<B: Bus> {
+            #struct_comment #[derive(Clone)] pub struct Real<B: Bus> {
                 address: B,
                 _phantom: ::tock_registers::internal::RealPhantom,
             }
@@ -53,17 +52,14 @@ fn scalar_definition_example() {
                     Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
                 }
             }
-            // We could just use `#[derive(Clone, Copy)]` on `Real`, but that generates
-            // more-complex code than necessary (it has unnecessary trait bounds and calls
-            // B::clone). Instead, this macro emits the Clone + Copy impls directly.
-            impl<B: Bus> ::tock_registers::internal::core::clone::Clone for Real<B> {
-                #[inline] fn clone(&self) -> Self { *self }
-            }
+            // We could just use `#[derive(Copy)]` on `Real`, but that generates more-complex code
+            // than necessary (it has unnecessary trait bounds). Instead, this macro emits the Copy
+            // impl directly.
             impl<B: Bus> ::tock_registers::internal::core::marker::Copy for Real<B> {}
             impl<B: Bus> ::tock_registers::Span for Real<B> {
                 type Address = B;
                 const SIZE: usize = <B as ::tock_registers::DataTypeBus<u8>>::PADDED_SIZE;
-                unsafe fn new(address: B) -> Self {
+                unsafe fn with_addr(address: B) -> Self {
                     Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
                 }
                 type Borrowed<'b> = Real<::tock_registers::BorrowedBus<'b, B>>;
@@ -82,7 +78,7 @@ fn scalar_definition_example() {
                 + Read + Write {}
         }
     };
-    assert_tokens_eq(register_layouts(input).unwrap(), expected);
+    assert_tokens_eq(register_layouts(input, External).unwrap(), expected);
 }
 
 /// This serves two purposes: it tests the code generation of single scalar register references,
@@ -99,7 +95,7 @@ fn scalar_reference_example() {
     let real_alias_comment = real_alias_doc_comment();
     let expected = quote! {
         pub mod foo {
-            use super::*;
+            #![allow(dead_code)] use super::*;
             #interface_comment pub trait Interface: status::Interface {}
             #bus_comment pub trait Bus: status::Bus + sealed::Bus {}
             impl Bus for Mmio32 {}
@@ -116,7 +112,7 @@ fn scalar_reference_example() {
                 Self: status::Interface {}
         }
     };
-    assert_tokens_eq(register_layouts(input).unwrap(), expected);
+    assert_tokens_eq(register_layouts(input, External).unwrap(), expected);
 }
 
 /// Verifies that generic arguments on operations are correctly copied to the output (they need to
@@ -136,8 +132,7 @@ fn generic_operation() {
     let new_comment = new_doc_comment();
     let expected = quote! {
         mod foo {
-            #![allow(clippy::expl_impl_clone_on_copy)]
-            use super::*;
+            #![allow(dead_code)] use super::*;
             #interface_comment
             pub trait Interface: ::tock_registers::Register<DataType = u8> + Dance<Waltz> {}
             #bus_comment pub trait Bus: ::tock_registers::DataTypeBus<u8> + sealed::Bus {}
@@ -146,7 +141,7 @@ fn generic_operation() {
             impl<B: Bus> Bus for ::tock_registers::BorrowedBus<'_, B> {}
             impl<B: Bus> sealed::Bus for ::tock_registers::BorrowedBus<'_, B> {}
             mod sealed { pub trait Bus {} }
-            #struct_comment pub struct Real<B: Bus = Mmio32> {
+            #struct_comment #[derive(Clone)] pub struct Real<B: Bus = Mmio32> {
                 address: B,
                 _phantom: ::tock_registers::internal::RealPhantom,
             }
@@ -155,14 +150,11 @@ fn generic_operation() {
                     Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
                 }
             }
-            impl<B: Bus> ::tock_registers::internal::core::clone::Clone for Real<B> {
-                #[inline] fn clone(&self) -> Self { *self }
-            }
             impl<B: Bus> ::tock_registers::internal::core::marker::Copy for Real<B> {}
             impl<B: Bus> ::tock_registers::Span for Real<B> {
                 type Address = B;
                 const SIZE: usize = <B as ::tock_registers::DataTypeBus<u8>>::PADDED_SIZE;
-                unsafe fn new(address: B) -> Self {
+                unsafe fn with_addr(address: B) -> Self {
                     Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
                 }
                 type Borrowed<'b> = Real<::tock_registers::BorrowedBus<'b, B>>;
@@ -175,5 +167,5 @@ fn generic_operation() {
                 Self: ::tock_registers::Register<DataType = u8> + Dance<Waltz> {}
         }
     };
-    assert_tokens_eq(register_layouts(input).unwrap(), expected);
+    assert_tokens_eq(register_layouts(input, External).unwrap(), expected);
 }

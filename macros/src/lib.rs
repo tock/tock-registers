@@ -3,9 +3,6 @@
 // Copyright Tock Contributors 2026.
 // Copyright Better Bytes 2026.
 
-// TODO: Implement a "clippy test" -> a crate that uses tock-registers with as many lints as
-//       possible enabled (to verify we don't trip any of them). Note: if this runs on nightly,
-//       enable the never_type feature (and maybe other features) to get all clippy lints.
 // TODO: Implement UnimplementedRegister, add to operation documentation.
 // TODO: Implement a arm64_secure_vm feature (see the TODO in src/mmio.rs).
 // TODO: Implement a RegisterArray iterator.
@@ -28,8 +25,10 @@
 // TODO: Do we want to remove the trailing commas after declarations? Easy to do, but a bit harder
 //       to revert (have some Punctuated iterator code that I don't want to rewrite).
 
+use tock_registers_codegen::Env::ProcMacro;
+
 #[proc_macro]
 pub fn register_layouts(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    let (Ok(out) | Err(out)) = tock_registers_codegen::register_layouts(input.into());
+    let (Ok(out) | Err(out)) = tock_registers_codegen::register_layouts(input.into(), ProcMacro);
     out.into()
 }

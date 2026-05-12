@@ -8,7 +8,7 @@
 //! 1. Doc comments that should be copied from the input are copied correctly.
 //! 2. Generated doc comments are correct.
 
-use crate::{register_layouts, test_util::assert_tokens_eq};
+use crate::{register_layouts, test_util::assert_tokens_eq, Env::ProcMacro};
 use quote::quote;
 
 #[test]
@@ -32,7 +32,6 @@ fn scalar_definition() {
         /// Doc comment E
         /// Doc comment F
         pub mod foo {
-            #![allow(clippy::expl_impl_clone_on_copy)]
             use super::*;
             /// Trait representing this register's operations. Driver code can use this trait to work
             /// with both real hardware and fake implementations of the register (for unit testing).
@@ -47,7 +46,7 @@ fn scalar_definition() {
             impl<B: Bus> sealed::Bus for ::tock_registers::BorrowedBus<'_, B> {}
             mod sealed { pub trait Bus {} }
             /// Struct that implements [Interface] for use with the real hardware.
-            pub struct Real<B: Bus> {
+            #[derive(Clone)] pub struct Real<B: Bus> {
                 address: B,
                 _phantom: ::tock_registers::internal::RealPhantom,
             }
@@ -67,14 +66,11 @@ fn scalar_definition() {
                     Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
                 }
             }
-            impl<B: Bus> ::tock_registers::internal::core::clone::Clone for Real<B> {
-                #[inline] fn clone(&self) -> Self { *self }
-            }
             impl<B: Bus> ::tock_registers::internal::core::marker::Copy for Real<B> {}
             impl<B: Bus> ::tock_registers::Span for Real<B> {
                 type Address = B;
                 const SIZE: usize = <B as ::tock_registers::DataTypeBus<u8>>::PADDED_SIZE;
-                unsafe fn new(address: B) -> Self {
+                unsafe fn with_addr(address: B) -> Self {
                     Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
                 }
                 type Borrowed<'b> = Real<::tock_registers::BorrowedBus<'b, B>>;
@@ -86,7 +82,7 @@ fn scalar_definition() {
                 Self: ::tock_registers::Register<DataType = u8> + Read + Write {}
         }
     };
-    assert_tokens_eq(register_layouts(input).unwrap(), expected);
+    assert_tokens_eq(register_layouts(input, ProcMacro).unwrap(), expected);
 }
 
 #[test]
@@ -110,7 +106,6 @@ fn array_definition() {
         /// Doc comment E
         /// Doc comment F
         pub mod foo {
-            #![allow(clippy::expl_impl_clone_on_copy)]
             use super::*;
             /// Trait representing this register's operations. Driver code can use this trait to work
             /// with both real hardware and fake implementations of the register (for unit testing).
@@ -130,7 +125,7 @@ fn array_definition() {
             /// Implementation of an element of this register array for use with real hardware.
             /// This implements the tock_registers::Register trait as well as any operation traits
             /// specified in the register definition.
-            pub struct Element<B: Bus> {
+            #[derive(Clone)] pub struct Element<B: Bus> {
                 address: B,
                 _phantom: ::tock_registers::internal::RealPhantom,
             }
@@ -150,14 +145,11 @@ fn array_definition() {
                     Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
                 }
             }
-            impl<B: Bus> ::tock_registers::internal::core::clone::Clone for Element<B> {
-                #[inline] fn clone(&self) -> Self { *self }
-            }
             impl<B: Bus> ::tock_registers::internal::core::marker::Copy for Element<B> {}
             impl<B: Bus> ::tock_registers::Span for Element<B> {
                 type Address = B;
                 const SIZE: usize = <B as ::tock_registers::DataTypeBus<u8>>::PADDED_SIZE;
-                unsafe fn new(address: B) -> Self {
+                unsafe fn with_addr(address: B) -> Self {
                     Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
                 }
                 type Borrowed<'b> = Element<::tock_registers::BorrowedBus<'b, B>>;
@@ -171,7 +163,7 @@ fn array_definition() {
                 Element<B>: ::tock_registers::Register<DataType = u8> + Read + Write {}
         }
     };
-    assert_tokens_eq(register_layouts(input).unwrap(), expected);
+    assert_tokens_eq(register_layouts(input, ProcMacro).unwrap(), expected);
 }
 
 #[test]
@@ -213,7 +205,7 @@ fn scalar_reference() {
             impl<B: Bus> Interface for Real<B> where Self: status::Interface {}
         }
     };
-    assert_tokens_eq(register_layouts(input).unwrap(), expected);
+    assert_tokens_eq(register_layouts(input, ProcMacro).unwrap(), expected);
 }
 
 #[test]
@@ -261,5 +253,5 @@ fn array_reference() {
             impl<B: Bus> Interface for Real<B> where status::Real<B>: status::Interface {}
         }
     };
-    assert_tokens_eq(register_layouts(input).unwrap(), expected);
+    assert_tokens_eq(register_layouts(input, ProcMacro).unwrap(), expected);
 }

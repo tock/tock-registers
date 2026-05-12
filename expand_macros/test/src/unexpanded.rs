@@ -3,10 +3,6 @@
 // Copyright Tock Contributors 2026.
 // Copyright Better Bytes 2026.
 
-// Rust inhibits many `unused` warnings on code emitted by proc macros. However, this test bypasses
-// the proc macro mechanism, so we have to do that allow ourselves.
-#![allow(unused)]
-
 #![no_std]
 
 use tock_registers::{Mmio32, Mmio64, Read, Write};

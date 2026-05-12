@@ -4,13 +4,13 @@
 // Copyright Better Bytes 2026.
 
 use crate::ast::{Field, FieldDef, Layout, PerBusInt};
-use crate::{new_doc_comment, register_definition};
+use crate::{new_doc_comment, register_definition, Env};
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote, quote_spanned};
 use syn::{spanned::Spanned, Ident, Path, TypePath};
 
 /// Generates the module for a register block.
-pub fn generate(tock_registers: &Path, layout: &Layout, fields: &[Field]) -> TokenStream {
+pub fn generate(env: Env, tock_registers: &Path, layout: &Layout, fields: &[Field]) -> TokenStream {
     // At a high level, this function has:
     //
     // 1. A set of variable declarations (of type TokenStream or Vec<TokenStream>)
@@ -29,6 +29,10 @@ pub fn generate(tock_registers: &Path, layout: &Layout, fields: &[Field]) -> Tok
     // in this function as well. I suggest starting from block_test_all_fields.
 
     // Step 1: variable declarations
+    let env_allows = match env {
+        Env::External => quote![,dead_code,non_upper_case_globals],
+        Env::ProcMacro => quote![],
+    };
     let docs = &layout.docs;
     let visibility = &layout.visibility;
     let name = &layout.name;
@@ -58,7 +62,13 @@ pub fn generate(tock_registers: &Path, layout: &Layout, fields: &[Field]) -> Tok
         // fields, so the rest of the body of this loop does not need to special-case for padding.
         let (docs, aliased, name, register) = match &field.field_def {
             FieldDef::Padding(sizes) => {
-                add_offset_tests(&mut offset_tests, buses, &cumulative_sizes, &field.offsets);
+                add_offset_tests(
+                    tock_registers,
+                    &mut offset_tests,
+                    buses,
+                    &cumulative_sizes,
+                    &field.offsets,
+                );
                 cumulative_sizes.clear();
                 if let Some(sizes) = sizes {
                     for bus_idx in 0..buses.len() {
@@ -151,7 +161,13 @@ pub fn generate(tock_registers: &Path, layout: &Layout, fields: &[Field]) -> Tok
         });
         // if that handles aliased vs. non-aliased fields.
         if !aliased {
-            add_offset_tests(&mut offset_tests, buses, &cumulative_sizes, &field.offsets);
+            add_offset_tests(
+                tock_registers,
+                &mut offset_tests,
+                buses,
+                &cumulative_sizes,
+                &field.offsets,
+            );
             cumulative_sizes.clear();
             for (bus_idx, bus) in buses.iter().enumerate() {
                 let offset = &field.offsets[bus_idx];
@@ -182,14 +198,13 @@ pub fn generate(tock_registers: &Path, layout: &Layout, fields: &[Field]) -> Tok
     quote! {
         #(#docs)*
         #visibility mod #name {
-            #![allow(clippy::expl_impl_clone_on_copy)]
-            #![allow(nonstandard_style)]
-            use super::*;
+            #![allow(non_camel_case_types #env_allows)] use super::*;
             #interface_comment pub trait Interface: #tock_registers::internal::core::marker::Copy {
                 #interface_fields
             }
             pub mod lens { #len_definitions }
-            #bus_comment pub trait Bus: #tock_registers::Address #bus_bounds + sealed::Bus {
+            #bus_comment #[allow(clippy::trait_duplication_in_bounds)]
+            pub trait Bus: #tock_registers::Address #bus_bounds + sealed::Bus {
                 const SIZE: usize;
                 #bus_offset_decls
             }
@@ -205,9 +220,9 @@ pub fn generate(tock_registers: &Path, layout: &Layout, fields: &[Field]) -> Tok
                 #borrowed_bus_defs
             }
             impl<B: Bus> sealed::Bus for #tock_registers::BorrowedBus<'_, B> {}
-            #[allow(clippy::eq_op)] const _: () = { #offset_tests };
+            const _: () = { #offset_tests };
             mod sealed { pub trait Bus {} }
-            #real_comment pub struct Real<B: Bus #bus_default> {
+            #real_comment #[derive(Clone)] pub struct Real<B: Bus #bus_default> {
                 address: B,
                 _phantom: #tock_registers::internal::RealPhantom,
             }
@@ -216,9 +231,6 @@ pub fn generate(tock_registers: &Path, layout: &Layout, fields: &[Field]) -> Tok
                     Self { address, _phantom: #tock_registers::internal::RealPhantom::new() }
                 }
             }
-            impl<B: Bus> #tock_registers::internal::core::clone::Clone for Real<B> {
-                #[inline] fn clone(&self) -> Self { *self }
-            }
             impl<B: Bus> #tock_registers::internal::core::marker::Copy for Real<B> {}
             impl<B: Bus> Interface for Real<B> where #interface_bounds {
                 #interface_impl_items
@@ -226,7 +238,7 @@ pub fn generate(tock_registers: &Path, layout: &Layout, fields: &[Field]) -> Tok
             impl<B: Bus> #tock_registers::Span for Real<B> {
                 type Address = B;
                 const SIZE: usize = <B as Bus>::SIZE;
-                unsafe fn new(address: B) -> Self {
+                unsafe fn with_addr(address: B) -> Self {
                     Self { address, _phantom: #tock_registers::internal::RealPhantom::new() }
                 }
                 type Borrowed<'b> = Real<#tock_registers::BorrowedBus<'b, B>>;
@@ -263,6 +275,7 @@ pub fn field_struct_doc_comment(name: &Ident) -> TokenStream {
 /// Adds offset tests for a field with the given offsets. If the current cumulative size is unknown
 /// (because of a padding field with no specified size), this does nothing.
 fn add_offset_tests(
+    tock_registers: &Path,
     offset_tests: &mut TokenStream,
     buses: &[TypePath],
     cumulative_sizes: &[TokenStream],
@@ -272,7 +285,7 @@ fn add_offset_tests(
         let offset = &offsets[bus_idx];
         let bus = &buses[bus_idx].path.segments.last().expect("empty bus path");
         let msg = format!("offset mismatch for bus {}", bus.ident);
-        offset_tests
-            .extend(quote_spanned![offset.span()=>assert!(#offset == #cumulative_size, #msg);]);
+        offset_tests.extend(quote_spanned![offset.span()=>assert!(#offset ==
+            #tock_registers::internal::core::convert::identity(#cumulative_size), #msg);]);
     }
 }

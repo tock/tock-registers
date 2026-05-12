@@ -84,7 +84,8 @@ pub(crate) struct RealSlice<Element: Span> {
 
 impl<Element: Span> RealSlice<Element> {
     pub(crate) unsafe fn new<R: RangeBounds<usize>>(address: Element::Address, range: R) -> Option<Self> {
-        todo!()
+        // Implementation omitted. Would use address.byte_add() to compute the
+        // new address.
     }
 }
 ```

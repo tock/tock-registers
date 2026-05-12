@@ -51,16 +51,28 @@ use syn::{parse2, Ident, Path, PathArguments};
 /// # Return value
 /// If an error is encountered, Err() is returned and the contained TokenStream produces a compiler
 /// error.
-pub fn register_layouts(input: TokenStream) -> Result<TokenStream, TokenStream> {
+pub fn register_layouts(input: TokenStream, env: Env) -> Result<TokenStream, TokenStream> {
+    use Value::{Block, Single};
     let input: Input = parse2(input).map_err(|e| e.to_compile_error())?;
     let mut out = TokenStream::new();
     for layout in input.layouts {
         out.extend(match &layout.value {
-            Value::Single(register) => single::generate(&input.tock_registers, &layout, register),
-            Value::Block(fields) => block::generate(&input.tock_registers, &layout, fields),
+            Block(fields) => block::generate(env, &input.tock_registers, &layout, fields),
+            Single(register) => single::generate(env, &input.tock_registers, &layout, register),
         });
     }
     Ok(out)
+}
+
+/// register_layouts generates slightly different code (in particular, different `#![allow()]`
+/// attributes) depending on whether it is run as part of a procedural macro or run externally to
+/// rustc. This enum is used to tell register_layouts which mode to use.
+#[derive(Clone, Copy)]
+pub enum Env {
+    /// Generate code suitable to feed into a separate rustc invocation run.
+    External,
+    /// Generate code tuned for procedural macros.
+    ProcMacro,
 }
 
 /// Generates the Real struct for a register definition (one that has an operations list).
@@ -84,7 +96,7 @@ fn register_definition(
         op_macros.push(path);
     }
     quote! {
-        #docs pub struct #struct_name<B: Bus #bus_default> {
+        #docs #[derive(Clone)] pub struct #struct_name<B: Bus #bus_default> {
             address: B,
             _phantom: #tock_registers::internal::RealPhantom,
         }
@@ -93,14 +105,11 @@ fn register_definition(
                 Self { address, _phantom: #tock_registers::internal::RealPhantom::new() }
             }
         }
-        impl<B: Bus> #tock_registers::internal::core::clone::Clone for #struct_name<B> {
-            #[inline] fn clone(&self) -> Self { *self }
-        }
         impl<B: Bus> #tock_registers::internal::core::marker::Copy for #struct_name<B> {}
         impl<B: Bus> #tock_registers::Span for #struct_name<B> {
             type Address = B;
             const SIZE: usize = <B as #tock_registers::DataTypeBus<#element_type>>::PADDED_SIZE;
-            unsafe fn new(address: B) -> Self {
+            unsafe fn with_addr(address: B) -> Self {
                 Self { address, _phantom: #tock_registers::internal::RealPhantom::new()  }
             }
             type Borrowed<'b> = #struct_name<#tock_registers::BorrowedBus<'b, B>>;

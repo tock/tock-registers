@@ -6,7 +6,7 @@
 use crate::single::{
     bus_doc_comment, interface_doc_comment, real_alias_doc_comment, struct_doc_comment,
 };
-use crate::{new_doc_comment, register_layouts, test_util::assert_tokens_eq};
+use crate::{new_doc_comment, register_layouts, test_util::assert_tokens_eq, Env::ProcMacro};
 use quote::quote;
 
 /// This serves two purposes: it tests the code generation of single flat (non-nested) array
@@ -26,7 +26,6 @@ fn flat_array_definition_example() {
     let real_alias_comment = real_alias_doc_comment();
     let expected = quote! {
         pub mod foo {
-            #![allow(clippy::expl_impl_clone_on_copy)]
             use super::*;
             // For arrays, we wrap the element's operations in a RegisterArray<> trait.
             #interface_comment pub trait Interface: ::tock_registers::RegisterArray<Len,
@@ -42,7 +41,7 @@ fn flat_array_definition_example() {
             impl<B: Bus> Bus for ::tock_registers::BorrowedBus<'_, B> {}
             impl<B: Bus> sealed::Bus for ::tock_registers::BorrowedBus<'_, B> {}
             mod sealed { pub trait Bus {} }
-            #struct_comment pub struct Element<B: Bus> {
+            #struct_comment #[derive(Clone)] pub struct Element<B: Bus> {
                 address: B,
                 _phantom: ::tock_registers::internal::RealPhantom,
             }
@@ -51,14 +50,11 @@ fn flat_array_definition_example() {
                     Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
                 }
             }
-            impl<B: Bus> ::tock_registers::internal::core::clone::Clone for Element<B> {
-                #[inline] fn clone(&self) -> Self { *self }
-            }
             impl<B: Bus> ::tock_registers::internal::core::marker::Copy for Element<B> {}
             impl<B: Bus> ::tock_registers::Span for Element<B> {
                 type Address = B;
                 const SIZE: usize = <B as ::tock_registers::DataTypeBus<u8>>::PADDED_SIZE;
-                unsafe fn new(address: B) -> Self {
+                unsafe fn with_addr(address: B) -> Self {
                     Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
                 }
                 type Borrowed<'b> = Element<::tock_registers::BorrowedBus<'b, B>>;
@@ -76,7 +72,7 @@ fn flat_array_definition_example() {
                 Element<B>: ::tock_registers::Register<DataType = u8> + Read + Write {}
         }
     };
-    assert_tokens_eq(register_layouts(input).unwrap(), expected);
+    assert_tokens_eq(register_layouts(input, ProcMacro).unwrap(), expected);
 }
 
 /// This serves two purposes: it tests the code generation of single nested array register
@@ -96,7 +92,6 @@ fn nested_array_definition_example() {
     let real_alias_comment = real_alias_doc_comment();
     let expected = quote! {
         pub mod foo {
-            #![allow(clippy::expl_impl_clone_on_copy)]
             use super::*;
             // When arrays are nested, the RegisterArray traits are nested as well.
             #interface_comment pub trait Interface: ::tock_registers::RegisterArray<Len<1usize>,
@@ -117,7 +112,7 @@ fn nested_array_definition_example() {
             impl<B: Bus> Bus for ::tock_registers::BorrowedBus<'_, B> {}
             impl<B: Bus> sealed::Bus for ::tock_registers::BorrowedBus<'_, B> {}
             mod sealed { pub trait Bus {} }
-            #struct_comment pub struct Element<B: Bus> {
+            #struct_comment #[derive(Clone)] pub struct Element<B: Bus> {
                 address: B,
                 _phantom: ::tock_registers::internal::RealPhantom,
             }
@@ -126,14 +121,11 @@ fn nested_array_definition_example() {
                     Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
                 }
             }
-            impl<B: Bus> ::tock_registers::internal::core::clone::Clone for Element<B> {
-                #[inline] fn clone(&self) -> Self { *self }
-            }
             impl<B: Bus> ::tock_registers::internal::core::marker::Copy for Element<B> {}
             impl<B: Bus> ::tock_registers::Span for Element<B> {
                 type Address = B;
                 const SIZE: usize = <B as ::tock_registers::DataTypeBus<u8>>::PADDED_SIZE;
-                unsafe fn new(address: B) -> Self {
+                unsafe fn with_addr(address: B) -> Self {
                     Self { address, _phantom: ::tock_registers::internal::RealPhantom::new() }
                 }
                 type Borrowed<'b> = Element<::tock_registers::BorrowedBus<'b, B>>;
@@ -147,7 +139,7 @@ fn nested_array_definition_example() {
                 Element<B>: ::tock_registers::Register<DataType = u8> + Read + Write {}
         }
     };
-    assert_tokens_eq(register_layouts(input).unwrap(), expected);
+    assert_tokens_eq(register_layouts(input, ProcMacro).unwrap(), expected);
 }
 
 /// This serves two purposes: it tests the code generation of single flat array register
@@ -182,7 +174,7 @@ fn flat_array_reference_example() {
             impl<B: Bus> Interface for Real<B> where status::Real<B>: status::Interface {}
         }
     };
-    assert_tokens_eq(register_layouts(input).unwrap(), expected);
+    assert_tokens_eq(register_layouts(input, ProcMacro).unwrap(), expected);
 }
 
 /// This serves two purposes: it tests the code generation of single nested array register
@@ -219,5 +211,5 @@ fn nested_array_reference_example() {
             impl<B: Bus> Interface for Real<B> where status::Real<B>: status::Interface {}
         }
     };
-    assert_tokens_eq(register_layouts(input).unwrap(), expected);
+    assert_tokens_eq(register_layouts(input, ProcMacro).unwrap(), expected);
 }

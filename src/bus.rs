@@ -64,7 +64,11 @@ pub trait Span: Copy {
     /// 3. The returned register span accessor must not be used in a way that causes data races.
     ///    The exact requirements depend on the hardware, but it's usually best to access a
     ///    register span from only one thread at a time.
-    unsafe fn new(address: Self::Address) -> Self;
+    // The usual name for this constructor would be `new`. However, `const` is not supported in
+    // traits, so the `const new` function for the Real types is an inherent method. The
+    // `clippy::same_name_method` lint triggers on the redundant `new` functions, so to make this
+    // work in projects that forbid `same_name_method` we use a different name instead.
+    unsafe fn with_addr(address: Self::Address) -> Self;
 
     /// Type of this register with its bus wrapped in BorrowedBus.
     type Borrowed<'b>: Span<Address = BorrowedBus<'b, Self::Address>>;
@@ -165,8 +169,8 @@ where
     /// returned handles must be dropped before the `RegisterSender` can be sent to another thread.
     pub fn borrow(&self) -> R::Borrowed<'_> {
         let borrowed_bus = BorrowedBus::new(self.address);
-        // Safety: All of the requirements for Span::new() were met by the caller when they called
-        // `RegisterSender::new`.
-        unsafe { R::Borrowed::new(borrowed_bus) }
+        // Safety: All of the requirements for Span::with_addr() were met by the caller when they
+        // called `RegisterSender::new`.
+        unsafe { R::Borrowed::with_addr(borrowed_bus) }
     }
 }
