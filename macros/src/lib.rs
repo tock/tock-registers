@@ -3,14 +3,13 @@
 // Copyright Tock Contributors 2026.
 // Copyright Better Bytes 2026.
 
-// TODO: Investigate adding typestates into the API
-//       (https://github.com/jrvanwhy/tock-registers/pull/6).
-//       Can we use the lifetime pattern that GhostCell uses to tie state types to the particular
-//       register handle? (briefly mentioned in the presentation on 2026-04-29)
+// TODO: Is UIntLike the right trait for Value, or should we have a new type? Unclear if pointers
+//       should be UIntLike or if we should allow non-UIntLike types.
+// TODO: Can the nonstandard style lint on Bus be removed by replacing the constants with
+//       functions? Do we want that?
 // TODO: Implement UnimplementedRegister, add to operation documentation.
-// TODO: Implement a arm64_secure_vm feature (see the TODO in src/mmio.rs).
 // TODO: Implement a RegisterArray iterator.
-// TODO: Add an x86 port bus.
+// TODO: Implement a arm64_secure_vm feature (see the TODO in src/mmio.rs).
 // TODO: Improve parse error handling. There might be three classes of errors:
 //       1. Errors which immediately terminate parsing (e.g. unexpected token)
 //       2. Errors which prevent generating code, but allow parsing to continue (e.g. register
@@ -18,7 +17,6 @@
 //       3. Errors where we can still generate code (e.g. multiple #[aliased] attributes)
 // TODO: Implement macro that automatically provides the type defs for Interface trait impls.
 // TODO: Re-evaluate which `syn` features we need (is full necessary?).
-// TODO: LiteX buses
 // TODO: Update the top-level crate doc comment. It should probably match or be similar to
 //       the README.
 

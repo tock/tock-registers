@@ -12,6 +12,9 @@ tool exists for a couple reasons:
 Note that this tool is relatively simple, which has a few downsides:
 
 1. It only expands procedural macros, not tock-registers' `macro_rules!` macros.
+1. It only expands top-level macro invocations. If you define a module inside
+   the file and call the macro from within that `mod {}`, it will not expand
+   that invocation. The same applies to other blocks as well.
 1. It parses the file with `syn`, so it only recognizes syntax that `syn`
    recognizes.
 1. It does a full parse then pretty print, so formatting and non-doc comments
