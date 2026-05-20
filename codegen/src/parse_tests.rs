@@ -5,7 +5,7 @@
 
 use crate::ast::{Field, FieldDef, Input, PerBusInt, RegisterSpec};
 use quote::quote;
-use syn::{parse2, parse_quote, TypePath};
+use syn::{parse2, parse_quote, Type};
 
 // Verifies that outer and inner #[bus] and #[buses] attributes are combined correctly.
 #[test]
@@ -191,25 +191,22 @@ fn per_bus_int() {
 #[test]
 fn register_def() {
     let register: RegisterSpec = parse_quote![: <Foo as Bar>::Associated { Read, Write }];
-    let expected_type: TypePath = parse_quote![<Foo as Bar>::Associated];
+    let expected_type: Type = parse_quote![<Foo as Bar>::Associated];
     assert_eq!(register.element_type, expected_type);
     assert_eq!(register.array_sizes, []);
     let expected_operations = vec![parse_quote![Read], parse_quote![Write]];
     assert_eq!(register.operations, Some(expected_operations));
 
     let register: RegisterSpec = parse_quote![: status];
-    let expected_type: TypePath = parse_quote![status];
+    let expected_type: Type = parse_quote![status];
     assert_eq!(register.element_type, expected_type);
     assert_eq!(register.array_sizes, []);
     assert_eq!(register.operations, None);
 
-    let register: RegisterSpec = parse_quote![: [[[status; 2]; 3]; 4]];
-    let expected_type: TypePath = parse_quote![status];
+    let register: RegisterSpec = parse_quote![: [[[*mut u8; 2]; 3]; 4]];
+    let expected_type: Type = parse_quote![*mut u8];
     assert_eq!(register.element_type, expected_type);
     let expected_sizes = [parse_quote![2], parse_quote![3], parse_quote![4]];
     assert_eq!(register.array_sizes, expected_sizes);
     assert_eq!(register.operations, None);
-
-    let error = parse2::<RegisterSpec>(quote![: <Foo as Bar>::Associated]).unwrap_err();
-    assert!(error.to_string().contains("reference must be to a mod"));
 }

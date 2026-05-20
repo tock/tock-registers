@@ -5,7 +5,7 @@
 
 use crate::debug::{RegisterDebugInfo, RegisterDebugValue};
 use crate::fields::{Field, FieldValue, TryFromValue};
-use crate::{DataType, LocalRegisterCopy, Register};
+use crate::{DataType, LocalRegisterCopy, Register, UIntLike};
 use core::marker::PhantomData;
 
 /// A register that can be read, but which can induce Undefined Behavior if read at the wrong time.
@@ -22,7 +22,10 @@ pub trait UnsafeRead: Register {
     unsafe fn read(
         self,
         field: Field<<Self::DataType as DataType>::Value, <Self::DataType as DataType>::LongName>,
-    ) -> <Self::DataType as DataType>::Value {
+    ) -> <Self::DataType as DataType>::Value
+    where
+        <Self::DataType as DataType>::Value: UIntLike,
+    {
         // Safety: The caller has complied with this register's safety requirements.
         field.read(unsafe { self.get() })
     }
@@ -67,7 +70,10 @@ pub trait UnsafeRead: Register {
     unsafe fn read_as_enum<E: TryFromValue<<Self::DataType as DataType>::Value, EnumType = E>>(
         self,
         field: Field<<Self::DataType as DataType>::Value, <Self::DataType as DataType>::LongName>,
-    ) -> Option<E> {
+    ) -> Option<E>
+    where
+        <Self::DataType as DataType>::Value: UIntLike,
+    {
         // Safety: The caller has complied with this register's safety requirements.
         field.read_as_enum(unsafe { self.get() })
     }
@@ -87,7 +93,10 @@ pub trait UnsafeRead: Register {
     unsafe fn is_set(
         self,
         field: Field<<Self::DataType as DataType>::Value, <Self::DataType as DataType>::LongName>,
-    ) -> bool {
+    ) -> bool
+    where
+        <Self::DataType as DataType>::Value: UIntLike,
+    {
         // Safety: The caller has complied with this register's safety requirements.
         field.is_set(unsafe { self.get() })
     }
@@ -102,7 +111,10 @@ pub trait UnsafeRead: Register {
             <Self::DataType as DataType>::Value,
             <Self::DataType as DataType>::LongName,
         >,
-    ) -> bool {
+    ) -> bool
+    where
+        <Self::DataType as DataType>::Value: UIntLike,
+    {
         // Safety: The caller has complied with this register's safety requirements.
         field.any_matching_bits_set(unsafe { self.get() })
     }
@@ -114,7 +126,10 @@ pub trait UnsafeRead: Register {
             <Self::DataType as DataType>::Value,
             <Self::DataType as DataType>::LongName,
         >,
-    ) -> bool {
+    ) -> bool
+    where
+        <Self::DataType as DataType>::Value: UIntLike,
+    {
         // Safety: The caller has complied with this register's safety requirements.
         field.matches_all(unsafe { self.get() })
     }
@@ -128,7 +143,10 @@ pub trait UnsafeRead: Register {
             <Self::DataType as DataType>::Value,
             <Self::DataType as DataType>::LongName,
         >],
-    ) -> bool {
+    ) -> bool
+    where
+        <Self::DataType as DataType>::Value: UIntLike,
+    {
         // Safety: The caller has complied with this register's safety requirements.
         let value = unsafe { self.get() };
         fields
@@ -145,6 +163,7 @@ pub trait UnsafeRead: Register {
         <Self::DataType as DataType>::LongName,
     >
     where
+        <Self::DataType as DataType>::Value: UIntLike,
         <Self::DataType as DataType>::LongName:
             RegisterDebugInfo<<Self::DataType as DataType>::Value>,
     {

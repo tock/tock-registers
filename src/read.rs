@@ -6,8 +6,8 @@
 use crate::debug::{RegisterDebugInfo, RegisterDebugValue};
 use crate::fields::{Field, FieldValue, TryFromValue};
 #[cfg(feature = "register_types")]
-use crate::{Address, BorrowedBus, Bus, UIntLike};
-use crate::{DataType, LocalRegisterCopy, Register};
+use crate::{Address, BorrowedBus, Bus};
+use crate::{DataType, LocalRegisterCopy, Register, UIntLike};
 use core::marker::PhantomData;
 
 /// A register that can be read.
@@ -19,7 +19,10 @@ pub trait Read: Register {
     fn read(
         self,
         field: Field<<Self::DataType as DataType>::Value, <Self::DataType as DataType>::LongName>,
-    ) -> <Self::DataType as DataType>::Value {
+    ) -> <Self::DataType as DataType>::Value
+    where
+        <Self::DataType as DataType>::Value: UIntLike,
+    {
         field.read(self.get())
     }
 
@@ -63,7 +66,10 @@ pub trait Read: Register {
     fn read_as_enum<E: TryFromValue<<Self::DataType as DataType>::Value, EnumType = E>>(
         self,
         field: Field<<Self::DataType as DataType>::Value, <Self::DataType as DataType>::LongName>,
-    ) -> Option<E> {
+    ) -> Option<E>
+    where
+        <Self::DataType as DataType>::Value: UIntLike,
+    {
         field.read_as_enum(self.get())
     }
 
@@ -81,7 +87,10 @@ pub trait Read: Register {
     fn is_set(
         self,
         field: Field<<Self::DataType as DataType>::Value, <Self::DataType as DataType>::LongName>,
-    ) -> bool {
+    ) -> bool
+    where
+        <Self::DataType as DataType>::Value: UIntLike,
+    {
         field.is_set(self.get())
     }
 
@@ -95,7 +104,10 @@ pub trait Read: Register {
             <Self::DataType as DataType>::Value,
             <Self::DataType as DataType>::LongName,
         >,
-    ) -> bool {
+    ) -> bool
+    where
+        <Self::DataType as DataType>::Value: UIntLike,
+    {
         field.any_matching_bits_set(self.get())
     }
 
@@ -106,7 +118,10 @@ pub trait Read: Register {
             <Self::DataType as DataType>::Value,
             <Self::DataType as DataType>::LongName,
         >,
-    ) -> bool {
+    ) -> bool
+    where
+        <Self::DataType as DataType>::Value: UIntLike,
+    {
         field.matches_all(self.get())
     }
 
@@ -119,7 +134,10 @@ pub trait Read: Register {
             <Self::DataType as DataType>::Value,
             <Self::DataType as DataType>::LongName,
         >],
-    ) -> bool {
+    ) -> bool
+    where
+        <Self::DataType as DataType>::Value: UIntLike,
+    {
         let value = self.get();
         fields
             .iter()
@@ -135,6 +153,7 @@ pub trait Read: Register {
         <Self::DataType as DataType>::LongName,
     >
     where
+        <Self::DataType as DataType>::Value: UIntLike,
         <Self::DataType as DataType>::LongName:
             RegisterDebugInfo<<Self::DataType as DataType>::Value>,
     {
@@ -149,7 +168,7 @@ pub trait Read: Register {
 /// crates (e.g. LiteX registers) can implement this on their own buses so that Read works with
 /// them as well.
 #[cfg(feature = "register_types")]
-pub trait BusRead<T: UIntLike>: Bus<T> {
+pub trait BusRead<T>: Bus<T> {
     /// # Safety
     /// There must be a readable register of type T at `pointer`, and if the register itself has
     /// safety invariants (i.e. it is `UnsafeRead`) the caller must satisfy those. The caller is
@@ -158,7 +177,7 @@ pub trait BusRead<T: UIntLike>: Bus<T> {
 }
 
 #[cfg(feature = "register_types")]
-impl<'b, T: UIntLike, A: Address + BusRead<T>> BusRead<T> for BorrowedBus<'b, A> {
+impl<'b, T, A: Address + BusRead<T>> BusRead<T> for BorrowedBus<'b, A> {
     unsafe fn read(self) -> T {
         // Safety: We are the same Bus as A, so the caller has already satisfied all the
         // requirements of read.

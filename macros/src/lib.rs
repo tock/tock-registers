@@ -6,8 +6,6 @@
 // TODO: Figure out if we're merging this into the default branch or into a separate feature
 //       branch.
 // TODO: Figure out tock-registers version numbering (interacts with deprecation strategy).
-// TODO: Is UIntLike the right trait for Value, or should we have a new type? Unclear if pointers
-//       should be UIntLike or if we should allow non-UIntLike types.
 // TODO: Do we want to make any syntax changes? Commas vs semicolons vs no terminator.
 // TODO: Can the nonstandard style lint on Bus be removed by replacing the constants with
 //       functions? Do we want that?

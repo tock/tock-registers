@@ -22,7 +22,7 @@
 //! have a generic argument for their address type. That address type implements the `Address`
 //! trait. In addition, address types should implement [`Bus<T>`] for every type `T` that they support.
 
-use crate::{DataType, UIntLike};
+use crate::DataType;
 use core::marker::PhantomData;
 
 /// Trait for addresses that can be offset without changing their type. See the module-level docs
@@ -42,7 +42,7 @@ pub trait Address: Copy {
 /// # Safety
 /// PADDED_SIZE must be correct, as the generated code relies on PADDED_SIZE to calculate register
 /// offsets.
-pub unsafe trait Bus<T: UIntLike>: Address {
+pub unsafe trait Bus<T>: Address {
     /// The size that a value of type T takes in this bus' address space. This exists because LiteX
     /// buses have intra-register padding for some types.
     const PADDED_SIZE: usize;
@@ -120,7 +120,7 @@ impl<'b, A: Address> Address for BorrowedBus<'b, A> {
 }
 
 /// Safety: We are the same bus as A, so the padded size of each register type is the same.
-unsafe impl<'b, T: UIntLike, A: Address + Bus<T>> Bus<T> for BorrowedBus<'b, A> {
+unsafe impl<'b, T, A: Address + Bus<T>> Bus<T> for BorrowedBus<'b, A> {
     const PADDED_SIZE: usize = A::PADDED_SIZE;
 }
 

@@ -3,9 +3,9 @@
 // Copyright Tock Contributors 2022.
 // Copyright Better Bytes 2026.
 
-use crate::{fields::FieldValue, DataType, LocalRegisterCopy, Read, Register};
+use crate::{fields::FieldValue, DataType, LocalRegisterCopy, Read, Register, UIntLike};
 #[cfg(feature = "register_types")]
-use crate::{Address, BorrowedBus, Bus, UIntLike};
+use crate::{Address, BorrowedBus, Bus};
 
 /// A register that can be written.
 pub trait Write: Register {
@@ -20,7 +20,9 @@ pub trait Write: Register {
             <Self::DataType as DataType>::Value,
             <Self::DataType as DataType>::LongName,
         >,
-    ) {
+    ) where
+        <Self::DataType as DataType>::Value: UIntLike,
+    {
         self.set(field.value);
     }
 
@@ -37,7 +39,9 @@ pub trait Write: Register {
             <Self::DataType as DataType>::Value,
             <Self::DataType as DataType>::LongName,
         >,
-    ) {
+    ) where
+        <Self::DataType as DataType>::Value: UIntLike,
+    {
         self.set(field.modify(original.get()));
     }
 }
@@ -53,7 +57,9 @@ pub trait ReadWrite: Read + Write {
             <Self::DataType as DataType>::Value,
             <Self::DataType as DataType>::LongName,
         >,
-    ) {
+    ) where
+        <Self::DataType as DataType>::Value: UIntLike,
+    {
         self.set(field.modify(self.get()));
     }
 }
@@ -64,7 +70,7 @@ impl<R: Read + Write> ReadWrite for R {}
 /// crates (e.g. LiteX registers) can implement this on their own buses so that Write works with
 /// them as well.
 #[cfg(feature = "register_types")]
-pub trait BusWrite<T: UIntLike>: Bus<T> {
+pub trait BusWrite<T>: Bus<T> {
     /// # Safety
     /// There must be a writable register of type T at `pointer`, and if the register itself has
     /// safety invariants (i.e. it is `UnsafeWrite`) the caller must satisfy those. The caller is
@@ -73,7 +79,7 @@ pub trait BusWrite<T: UIntLike>: Bus<T> {
 }
 
 #[cfg(feature = "register_types")]
-impl<'b, T: UIntLike, A: Address + BusWrite<T>> BusWrite<T> for BorrowedBus<'b, A> {
+impl<'b, T, A: Address + BusWrite<T>> BusWrite<T> for BorrowedBus<'b, A> {
     unsafe fn write(self, value: T) {
         // Safety: We are the same Bus as A, so the caller has already satisfied all the
         // requirements of write.

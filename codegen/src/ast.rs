@@ -8,7 +8,7 @@
 use proc_macro2::TokenStream;
 use quote::quote;
 use std::{ops::Index, slice};
-use syn::{Attribute, Ident, LitInt, Path, TypePath, Visibility};
+use syn::{Attribute, Ident, LitInt, Path, Type, TypePath, Visibility};
 
 /// Represents the full input to the register_layouts! procedural macro. Note that
 /// `tock_registers::register_layouts!` prepends `$crate` to the input provided by the user, so
@@ -287,7 +287,7 @@ pub struct RegisterSpec {
     /// path to another register definition (for register references). If the register type
     /// specification is an array, this is the innermost type (i.e. element_type does not mention
     /// that it is an array).
-    pub element_type: TypePath,
+    pub element_type: Type,
     /// The array sizes. If this register specification is a nested array, the sizes are listed
     /// from the innermost array to the outermost. For example, `[[[u8; 2]; 3]; 4]` would have
     /// sizes list `[2, 3, 4]`.

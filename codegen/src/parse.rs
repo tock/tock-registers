@@ -11,7 +11,7 @@ use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
 use syn::token::{Brace, Bracket};
-use syn::{braced, bracketed, AttrStyle, Attribute, Error, LitInt, Meta, Result, Token, TypePath};
+use syn::{braced, bracketed, AttrStyle, Attribute, Error, LitInt, Meta, Result, Token, Type};
 
 impl Parse for Input {
     fn parse(input: ParseStream) -> Result<Input> {
@@ -241,7 +241,7 @@ impl Parse for RegisterSpec {
         input.parse::<Token![:]>()?;
         // Recursive function to parse the type specification (because syn makes it hard to consume
         // individual bracket tokens).
-        fn parse_type(input: ParseStream, array_sizes: &mut Vec<LitInt>) -> Result<TypePath> {
+        fn parse_type(input: ParseStream, array_sizes: &mut Vec<LitInt>) -> Result<Type> {
             if !input.peek(Bracket) {
                 return input.parse();
             }
@@ -259,9 +259,6 @@ impl Parse for RegisterSpec {
             braced!(ops in input);
             let ops = Punctuated::<_, Token![,]>::parse_terminated(&ops)?;
             Some(ops.into_iter().collect())
-        } else if element_type.qself.is_some() {
-            let err = Error::new_spanned(element_type, "register reference must be to a module");
-            return Err(err);
         } else {
             None
         };

@@ -3,7 +3,7 @@
 // Copyright Tock Contributors 2022.
 // Copyright Better Bytes 2026.
 
-use crate::{fields::FieldValue, DataType, LocalRegisterCopy, Register};
+use crate::{fields::FieldValue, DataType, LocalRegisterCopy, Register, UIntLike};
 
 /// A register that can be written, but which can induce Undefined Behavior if written incorrectly.
 ///
@@ -23,7 +23,9 @@ pub trait UnsafeWrite: Register {
             <Self::DataType as DataType>::Value,
             <Self::DataType as DataType>::LongName,
         >,
-    ) {
+    ) where
+        <Self::DataType as DataType>::Value: UIntLike,
+    {
         // Safety: The caller has complied with this register's safety requirements.
         unsafe { self.set(field.value) };
     }
@@ -41,7 +43,9 @@ pub trait UnsafeWrite: Register {
             <Self::DataType as DataType>::Value,
             <Self::DataType as DataType>::LongName,
         >,
-    ) {
+    ) where
+        <Self::DataType as DataType>::Value: UIntLike,
+    {
         let new = field.modify(original.get());
         // Safety: The caller has complied with this register's safety requirements.
         unsafe { self.set(new) };

@@ -115,8 +115,8 @@ from_addr_nullable![Mmio32Nullable Mmio64Nullable];
 // changing any other part of the code.
 /// Macro to implement BusRead/BusWrite for the Mmio* structs.
 macro_rules! bus_op_impls {
-    [$nonnull:ident $nullable:ident $value:ty] => {
-        impl BusRead<$value> for $nonnull {
+    [$nonnull:ident $nullable:ident [$($generics:tt)*] $value:ty] => {
+        impl<$($generics)*> BusRead<$value> for $nonnull {
             unsafe fn read(self) -> $value {
                 // BusRead::read's preconditions guarantee that a readable register with value type
                 // $value exists at address self.0, and the caller is responsible for avoiding data
@@ -124,7 +124,7 @@ macro_rules! bus_op_impls {
                 unsafe { self.0.cast().read_volatile() }
             }
         }
-        impl BusRead<$value> for $nullable {
+        impl<$($generics)*> BusRead<$value> for $nullable {
             unsafe fn read(self) -> $value {
                 // BusRead::read's preconditions guarantee that a readable register with value type
                 // $value exists at address self.0, and the caller is responsible for avoiding data
@@ -132,7 +132,7 @@ macro_rules! bus_op_impls {
                 unsafe { read_volatile(self.0.cast_const().cast()) }
             }
         }
-        impl BusWrite<$value> for $nonnull {
+        impl<$($generics)*> BusWrite<$value> for $nonnull {
             unsafe fn write(self, value: $value) {
                 // BusRead::write's preconditions guarantee that a writable register with value
                 // type $value exists at address self.0, and the caller is responsible for avoiding
@@ -141,7 +141,7 @@ macro_rules! bus_op_impls {
                 unsafe { self.0.cast().write_volatile(value) }
             }
         }
-        impl BusWrite<$value> for $nullable {
+        impl<$($generics)*> BusWrite<$value> for $nullable {
             unsafe fn write(self, value: $value) {
                 // BusRead::write's preconditions guarantee that a writable register with value
                 // type $value exists at address self.0, and the caller is responsible for avoiding
@@ -154,30 +154,34 @@ macro_rules! bus_op_impls {
 
 /// Macro to implement the Bus traits for the Mmio* structs.
 macro_rules! bus_impls {
-    [$nonnull:ident, $nullable:ident, $value:ty, $size:literal] => {
+    [$nonnull:ident, $nullable:ident, [$($generics:tt)*], $value:ty, $size:literal] => {
         /// Safety: All the bus_impls! invocations have the correct size.
-        unsafe impl Bus<$value> for $nonnull {
+        unsafe impl<$($generics)*> Bus<$value> for $nonnull {
             const PADDED_SIZE: usize = $size;
         }
         /// Safety: All the bus_impls! invocations have the correct size.
-        unsafe impl Bus<$value> for $nullable {
+        unsafe impl<$($generics)*> Bus<$value> for $nullable {
             const PADDED_SIZE: usize = $size;
         }
-        bus_op_impls![$nonnull $nullable $value];
+        bus_op_impls![$nonnull $nullable [$($generics)*] $value];
     }
 }
 
-bus_impls!(Mmio32, Mmio32Nullable, u8, 1);
-bus_impls!(Mmio32, Mmio32Nullable, u16, 2);
-bus_impls!(Mmio32, Mmio32Nullable, u32, 4);
-bus_impls!(Mmio32, Mmio32Nullable, u64, 8);
-bus_impls!(Mmio32, Mmio32Nullable, usize, 4);
-bus_impls!(Mmio64, Mmio64Nullable, u8, 1);
-bus_impls!(Mmio64, Mmio64Nullable, u16, 2);
-bus_impls!(Mmio64, Mmio64Nullable, u32, 4);
-bus_impls!(Mmio64, Mmio64Nullable, u64, 8);
-bus_impls!(Mmio64, Mmio64Nullable, u128, 16);
-bus_impls!(Mmio64, Mmio64Nullable, usize, 8);
+bus_impls!(Mmio32, Mmio32Nullable, [], u8, 1);
+bus_impls!(Mmio32, Mmio32Nullable, [], u16, 2);
+bus_impls!(Mmio32, Mmio32Nullable, [], u32, 4);
+bus_impls!(Mmio32, Mmio32Nullable, [], u64, 8);
+bus_impls!(Mmio32, Mmio32Nullable, [], usize, 4);
+bus_impls!(Mmio32, Mmio32Nullable, [T: Sized], *const T, 4);
+bus_impls!(Mmio32, Mmio32Nullable, [T: Sized], *mut T, 4);
+bus_impls!(Mmio64, Mmio64Nullable, [], u8, 1);
+bus_impls!(Mmio64, Mmio64Nullable, [], u16, 2);
+bus_impls!(Mmio64, Mmio64Nullable, [], u32, 4);
+bus_impls!(Mmio64, Mmio64Nullable, [], u64, 8);
+bus_impls!(Mmio64, Mmio64Nullable, [], u128, 16);
+bus_impls!(Mmio64, Mmio64Nullable, [], usize, 8);
+bus_impls!(Mmio64, Mmio64Nullable, [T: Sized], *const T, 8);
+bus_impls!(Mmio64, Mmio64Nullable, [T: Sized], *mut T, 8);
 
 /// An alias for [`register_layouts!`](crate::register_layouts) with `#![bus(Mmio32)]` at the top.
 /// In other words:

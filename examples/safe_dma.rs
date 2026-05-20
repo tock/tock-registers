@@ -64,16 +64,14 @@ mmio64_register_layouts! {
     /// Register for a DMA-based UART.
     uart {
         /// Pointer to the receive buffer.
-        // Note: rx_buffer and tx_buffer really should be pointers, but UIntLike is not yet
-        // implemented for pointers, so using `usize` for now.
-        0 => rx_buffer: usize { UnsafeRead, UnsafeWrite },
+        0 => rx_buffer: *mut u8 { UnsafeRead, UnsafeWrite },
         /// Length of the buffer to receive
         8 => rx_len: usize { UnsafeRead, UnsafeWrite },
         /// Set to 1 to receive, 0 to stop.
         16 => rx_enable: u8 { UnsafeRead, UnsafeWrite },
         17 => _,
         /// Pointer to the transmit buffer.
-        24 => tx_buffer: usize { UnsafeRead, UnsafeWrite },
+        24 => tx_buffer: *const u8 { UnsafeRead, UnsafeWrite },
         /// Length of the buffer to transmit
         32 => tx_len: usize { UnsafeRead, UnsafeWrite },
         /// Set to 1 to transmit, 0 to stop.
@@ -177,7 +175,7 @@ impl<R: uart::Interface, TX> UartDma<R, Idle, TX> {
         // Do the DMA fence operation here.
 
         #[rustfmt::skip]
-        unsafe { self.registers.rx_buffer().set(buffer.cast::<u8>().as_ptr() as usize) };
+        unsafe { self.registers.rx_buffer().set(buffer.cast::<u8>().as_ptr()) };
         //                      ^^^^^^^^^ Pasted from macro input.
         unsafe { self.registers.rx_len().set(buffer.len()) };
         //                      ^^^^^^ Pasted from macro input.
@@ -198,7 +196,7 @@ impl<R: uart::Interface, RX> UartDma<R, RX, Idle> {
         // Do the DMA fence operation here.
 
         #[rustfmt::skip]
-        unsafe { self.registers.tx_buffer().set(buffer.cast::<u8>().as_ptr() as usize) };
+        unsafe { self.registers.tx_buffer().set(buffer.cast::<u8>().as_ptr().cast_const()) };
         //                      ^^^^^^^^^ Pasted from macro input.
         unsafe { self.registers.tx_len().set(buffer.len()) };
         //                      ^^^^^^ Pasted from macro input.

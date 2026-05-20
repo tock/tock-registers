@@ -124,7 +124,7 @@ pub use local_register::LocalRegisterCopy;
 use core::fmt::Debug;
 use core::ops::{BitAnd, BitOr, BitOrAssign, Not, Shl, Shr};
 
-/// Trait representing the base type of registers.
+/// Trait representing the base type of registers that support bitfields.
 ///
 /// UIntLike defines basic properties of types required to read/write/modify a
 /// register through its methods and supertrait requirements.
