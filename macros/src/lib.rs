@@ -3,26 +3,26 @@
 // Copyright Tock Contributors 2026.
 // Copyright Better Bytes 2026.
 
+// TODO: Figure out if we're merging this into the default branch or into a separate feature
+//       branch.
+// TODO: Figure out tock-registers version numbering (interacts with deprecation strategy).
 // TODO: Is UIntLike the right trait for Value, or should we have a new type? Unclear if pointers
 //       should be UIntLike or if we should allow non-UIntLike types.
+// TODO: Do we want to make any syntax changes? Commas vs semicolons vs no terminator.
 // TODO: Can the nonstandard style lint on Bus be removed by replacing the constants with
 //       functions? Do we want that?
 // TODO: Implement UnimplementedRegister, add to operation documentation.
 // TODO: Implement a RegisterArray iterator.
-// TODO: Implement a arm64_secure_vm feature (see the TODO in src/mmio.rs).
 // TODO: Improve parse error handling. There might be three classes of errors:
 //       1. Errors which immediately terminate parsing (e.g. unexpected token)
 //       2. Errors which prevent generating code, but allow parsing to continue (e.g. register
 //          reference must be to a module)
 //       3. Errors where we can still generate code (e.g. multiple #[aliased] attributes)
+// TODO: Implement a arm64_secure_vm feature (see the TODO in src/mmio.rs).
 // TODO: Implement macro that automatically provides the type defs for Interface trait impls.
 // TODO: Re-evaluate which `syn` features we need (is full necessary?).
 // TODO: Update the top-level crate doc comment. It should probably match or be similar to
 //       the README.
-
-// Questions to ask the group:
-// TODO: Do we want to remove the trailing commas after declarations? Easy to do, but a bit harder
-//       to revert (have some Punctuated iterator code that I don't want to rewrite).
 
 use tock_registers_codegen::Env::ProcMacro;
 
