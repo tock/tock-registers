@@ -66,9 +66,9 @@
 pub mod fields;
 pub mod interfaces;
 pub mod internal;
-#[cfg(all(feature = "proc_macros", feature = "register_types"))]
-mod layouts;
 pub mod macros;
+#[cfg(all(feature = "proc_macros", feature = "register_types"))]
+mod map;
 
 #[cfg(feature = "register_types")]
 pub mod registers;

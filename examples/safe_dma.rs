@@ -58,9 +58,9 @@ mod safe_dma {
 
 use core::{cell::UnsafeCell, ptr::NonNull};
 use safe_dma::{Dynamic, Idle, Running};
-use tock_registers::{mmio64_register_layouts, Mmio64, UnsafeRead, UnsafeWrite};
+use tock_registers::{mmio64_register_map, Mmio64, UnsafeRead, UnsafeWrite};
 
-mmio64_register_layouts! {
+mmio64_register_map! {
     /// Register for a DMA-based UART.
     uart {
         /// Pointer to the receive buffer.

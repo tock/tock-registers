@@ -59,8 +59,8 @@ pub trait Span: Copy {
     /// # Safety
     /// 1. `address` must point to register(s) on the bus corresponding to `Self::Address`.
     /// 2. The register(s)' definition (as provided to the
-    ///    [`register_layouts`](crate::register_layouts) macro) must correctly describe the
-    ///    pointed-to register(s).
+    ///    [`register_map`](crate::register_map) macro) must correctly describe the pointed-to
+    ///    register(s).
     /// 3. The returned register span accessor must not be used in a way that causes data races.
     ///    The exact requirements depend on the hardware, but it's usually best to access a
     ///    register span from only one thread at a time.
@@ -153,8 +153,8 @@ where
     /// # Safety
     /// 1. `address` must point to register(s) on the bus corresponding to `Self::Address`.
     /// 2. The register(s)' definition (as provided to the
-    ///    [`register_layouts`](crate::register_layouts) macro) must correctly describe the
-    ///    pointed-to register(s).
+    ///    [`register_map`](crate::register_map) macro) must correctly describe the pointed-to
+    ///    register(s).
     /// 3. Nothing other than handles returned by [`borrow`](Self::borrow) (and handles derived
     ///    from them) may be used to access this register span.
     pub unsafe fn new(address: R::Address) -> Self {

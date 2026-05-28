@@ -8,7 +8,7 @@
 //! 1. Doc comments that should be copied from the input are copied correctly.
 //! 2. Generated doc comments are correct.
 
-use crate::{register_layouts, test_util::assert_tokens_eq, Env::ProcMacro};
+use crate::{register_map, test_util::assert_tokens_eq, Env::ProcMacro};
 use quote::quote;
 
 #[test]
@@ -145,7 +145,7 @@ fn doc_comments() {
                 /// 1. `address` must point to register(s) on the bus corresponding to
                 ///    `B`.
                 /// 2. The register(s)' definition (as provided to the
-                ///    `tock_registers::register_layouts!` macro) must correctly
+                ///    `tock_registers::register_map!` macro) must correctly
                 ///    describe the pointed-to register(s).
                 /// 3. The returned register accessor must not be used in a way that
                 ///    causes data races. The exact requirements depend on the hardware,
@@ -216,7 +216,7 @@ fn doc_comments() {
                 /// 1. `address` must point to register(s) on the bus corresponding to
                 ///    `B`.
                 /// 2. The register(s)' definition (as provided to the
-                ///    `tock_registers::register_layouts!` macro) must correctly
+                ///    `tock_registers::register_map!` macro) must correctly
                 ///    describe the pointed-to register(s).
                 /// 3. The returned register accessor must not be used in a way that
                 ///    causes data races. The exact requirements depend on the hardware,
@@ -253,7 +253,7 @@ fn doc_comments() {
                 /// 1. `address` must point to register(s) on the bus corresponding to
                 ///    `B`.
                 /// 2. The register(s)' definition (as provided to the
-                ///    `tock_registers::register_layouts!` macro) must correctly
+                ///    `tock_registers::register_map!` macro) must correctly
                 ///    describe the pointed-to register(s).
                 /// 3. The returned register accessor must not be used in a way that
                 ///    causes data races. The exact requirements depend on the hardware,
@@ -280,5 +280,5 @@ fn doc_comments() {
             Write!(real_impl, real_array_definition, u8,,);
         }
     };
-    assert_tokens_eq(register_layouts(input, ProcMacro).unwrap(), expected);
+    assert_tokens_eq(register_map(input, ProcMacro).unwrap(), expected);
 }

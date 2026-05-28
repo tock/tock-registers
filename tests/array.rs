@@ -7,12 +7,12 @@
 
 use core::cell::Cell;
 use tock_registers::{
-    mmio32_register_layouts, FakeRegister, FakeRegisterArray, LocalRegisterCopy, NoAccess, Read,
+    mmio32_register_map, FakeRegister, FakeRegisterArray, LocalRegisterCopy, NoAccess, Read,
     RegisterArray, Safe, Write,
 };
 use {array_demo::Interface as _, variable_increment::Interface as _};
 
-mmio32_register_layouts! {
+mmio32_register_map! {
     variable_increment {
         /// The amount to increment the shared counter by when `counter` is read.
         0 => increment: u8 { Read, Write },

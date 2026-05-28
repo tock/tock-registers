@@ -6,7 +6,7 @@
 use crate::single::{
     bus_doc_comment, interface_doc_comment, real_alias_doc_comment, struct_doc_comment,
 };
-use crate::{new_doc_comment, register_layouts, test_util::assert_tokens_eq, Env::External};
+use crate::{new_doc_comment, register_map, test_util::assert_tokens_eq, Env::External};
 use quote::quote;
 
 /// This serves two purposes: it tests the code generation of single scalar register definitions,
@@ -78,7 +78,7 @@ fn scalar_definition_example() {
                 + Read + Write {}
         }
     };
-    assert_tokens_eq(register_layouts(input, External).unwrap(), expected);
+    assert_tokens_eq(register_map(input, External).unwrap(), expected);
 }
 
 /// This serves two purposes: it tests the code generation of single scalar register references,
@@ -112,7 +112,7 @@ fn scalar_reference_example() {
                 Self: status::Interface {}
         }
     };
-    assert_tokens_eq(register_layouts(input, External).unwrap(), expected);
+    assert_tokens_eq(register_map(input, External).unwrap(), expected);
 }
 
 /// Verifies that generic arguments on operations are correctly copied to the output (they need to
@@ -167,5 +167,5 @@ fn generic_operation() {
                 Self: ::tock_registers::Register<DataType = u8> + Dance<Waltz> {}
         }
     };
-    assert_tokens_eq(register_layouts(input, External).unwrap(), expected);
+    assert_tokens_eq(register_map(input, External).unwrap(), expected);
 }

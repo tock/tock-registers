@@ -3,16 +3,16 @@
 // Copyright Tock Contributors 2026.
 // Copyright Better Bytes 2026.
 
-//! Demonstrates register_layouts!'s support for generic buses and operations (and doubles as a
-//! test that register_layouts!'s generated code compiles in those cases).
+//! Demonstrates register_map!'s support for generic buses and operations (and doubles as a test
+//! that register_map!'s generated code compiles in those cases).
 
 use std::fmt::Debug;
 use std::ptr::{read_volatile, NonNull};
-use tock_registers::{register_layouts, Address, Bus, BusRead, Read, RegisterArray, Span};
+use tock_registers::{register_map, Address, Bus, BusRead, Read, RegisterArray, Span};
 
 // -----------------------------------------------------------------------------
-// Partial implementation of LiteX buses, to test register_layouts!'s support
-// for generic buses.
+// Partial implementation of LiteX buses, to test register_map!'s support for
+// generic buses.
 // -----------------------------------------------------------------------------
 
 #[derive(Clone, Copy)]
@@ -98,20 +98,19 @@ pub struct Basket;
 #[derive(Debug)]
 pub struct Disco;
 
-register_layouts! {
-    #![buses(LiteX<8, 32>, LiteX<32, 32>)]
-
-    a: u8 { Read, Dance<Tango>, Dance<Waltz> },
-    b: [u8; 2] { Read, Ball<Use = Basket> },
-    c: a,
-    d: [b; 2],
+register_map![#[buses(LiteX<8, 32>, LiteX<32, 32>)] a: u8 { Read, Dance<Tango>, Dance<Waltz> }];
+register_map![#[buses(LiteX<8, 32>, LiteX<32, 32>)] b: [u8; 2] { Read, Ball<Use = Basket> }];
+register_map![#[buses(LiteX<8, 32>, LiteX<32, 32>)] c: a];
+register_map![#[buses(LiteX<8, 32>, LiteX<32, 32>)] d: [b; 2]];
+register_map! {
+    #[buses(LiteX<8, 32>, LiteX<32, 32>)]
     e {
         0 => f: u8 { Read, Dance<Tango> },
         [4, 4] => g: [u8; 2] { Read, Ball<Use = Disco> },
         12 => h: c,
         16 => _: 8,
         24 => i: [b; 2],
-    },
+    }
 }
 
 fn main() {

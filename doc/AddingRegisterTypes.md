@@ -33,7 +33,7 @@ You should then implement the following traits:
 
 Note that `Bus::PADDED_SIZE` should be the size of the value type `T` on the
 *target* system, not on the system that we are currently compiling for. That is
-so that offset tests pass when a `register_layouts!` invocation using the bus is
+so that offset tests pass when a `register_map!` invocation using the bus is
 compiled for a host system (such as for unit tests). `Mmio32` is a good example
 here: `Bus<usize>::PADDED_SIZE` is a constant 4, even when you compile for a
 64-bit host system.
@@ -49,7 +49,7 @@ modules.
 An operation requires three elements:
 
 1. The operation trait itself. This is the trait that the user specifies when
-   they invoke `register_layouts!`, and which they use when they are interacting
+   they invoke `register_map!`, and which they use when they are interacting
    with the generated registers.
 1. The operation macro. This must have the same name and path as the operation
    trait (in practice, this means the operation trait must be exported in the
@@ -79,7 +79,7 @@ macro_rules! MyOperation {
     //   generics: Generic arguments attached to the operation trait. This is
     //             left blank if the trait does not have generics (resulting in
     //             two consecutive commas in the input).
-    //   rest:     A catch-all so that register_layouts! can pass additional
+    //   rest:     A catch-all so that register_map! can pass additional
     //             arguments in the future without breaking every existing
     //             operation macro.
     (real_impl, $name:ident, $datatype:ty, $(<$generic:path>)?, $($rest:tt)*) => {
@@ -90,11 +90,10 @@ macro_rules! MyOperation {
             // the register's address.
         }
     };
-    // Catch-all case that emits nothing if register_layouts! invokes it with an
+    // Catch-all case that emits nothing if register_map! invokes it with an
     // unknown first argument. This is so that we can add new functionality into
     // the operations macros without breaking backwards compatibility (though
-    // register_layouts! would need to be compatible with this do-nothing
-    // block).
+    // register_map! would need to be compatible with this do-nothing block).
     ($($unknown:tt)*) => {};
 }
 ```
@@ -112,8 +111,8 @@ Once you have implemented a Bus, you can use it as follows:
 ```rust
 use my_bus_crate::{MyBus, MyOperation};
 
-tock_registers::register_layouts! {
-    #![buses(MyBus)]
+tock_registers::register_map! {
+    #[bus(MyBus)]
     foo {
         0 => control: u8 { MyOperation },
     }

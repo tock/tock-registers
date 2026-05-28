@@ -6,10 +6,10 @@
 #![no_std]
 
 use core::{cell::UnsafeCell, ptr::NonNull};
-use tock_registers::{register_layouts, Mmio32, Mmio64, Read, RegisterArray, Write};
+use tock_registers::{register_map, Mmio32, Mmio64, Read, RegisterArray, Write};
 use {inner_block::Interface as _, outer_block::Interface as _};
 
-register_layouts! {
+register_map! {
     #![buses(Mmio32, Mmio64)]
     // External registers to reference.
     a: u8 { Read, Write },

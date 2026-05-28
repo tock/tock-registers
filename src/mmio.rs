@@ -183,18 +183,18 @@ bus_impls!(Mmio64, Mmio64Nullable, [], usize, 8);
 bus_impls!(Mmio64, Mmio64Nullable, [T: Sized], *const T, 8);
 bus_impls!(Mmio64, Mmio64Nullable, [T: Sized], *mut T, 8);
 
-/// An alias for [`register_layouts!`](crate::register_layouts) with `#![bus(Mmio32)]` at the top.
+/// An alias for [`register_map!`](crate::register_map) with `#![bus(Mmio32)]` at the top.
 /// In other words:
 /// ```
-/// use tock_registers::{mmio32_register_layouts, Mmio32};
-/// mmio32_register_layouts! {
+/// use tock_registers::{mmio32_register_map, Mmio32};
+/// mmio32_register_map! {
 ///     // Register definitions here
 /// }
 /// ```
 /// is equivalent to:
 /// ```
-/// use tock_registers::{register_layouts, Mmio32};
-/// register_layouts! {
+/// use tock_registers::{register_map, Mmio32};
+/// register_map! {
 ///     #![bus(Mmio32)]
 ///     // Register definitions here
 /// }
@@ -203,24 +203,24 @@ bus_impls!(Mmio64, Mmio64Nullable, [T: Sized], *mut T, 8);
 // this definition!
 #[cfg(feature = "proc_macros")]
 #[macro_export]
-macro_rules! mmio32_register_layouts {
+macro_rules! mmio32_register_map {
     {$($arguments:tt)*} => {
-        $crate::internal::register_layouts!($crate #![bus($crate::Mmio32)] $($arguments)*);
+        $crate::internal::register_map!($crate #![bus($crate::Mmio32)] $($arguments)*);
     }
 }
 
-/// An alias for [`register_layouts!`](crate::register_layouts) with `#![bus(Mmio64)]` at the top.
+/// An alias for [`register_map!`](crate::register_map) with `#![bus(Mmio64)]` at the top.
 /// In other words:
 /// ```
-/// use tock_registers::{mmio64_register_layouts, Mmio64};
-/// mmio64_register_layouts! {
+/// use tock_registers::{mmio64_register_map, Mmio64};
+/// mmio64_register_map! {
 ///     // Register definitions here
 /// }
 /// ```
 /// is equivalent to:
 /// ```
-/// use tock_registers::{register_layouts, Mmio64};
-/// register_layouts! {
+/// use tock_registers::{register_map, Mmio64};
+/// register_map! {
 ///     #![bus(Mmio64)]
 ///     // Register definitions here
 /// }
@@ -229,8 +229,8 @@ macro_rules! mmio32_register_layouts {
 // this definition!
 #[cfg(feature = "proc_macros")]
 #[macro_export]
-macro_rules! mmio64_register_layouts {
+macro_rules! mmio64_register_map {
     {$($arguments:tt)*} => {
-        $crate::internal::register_layouts!($crate #![bus($crate::Mmio64)] $($arguments)*);
+        $crate::internal::register_map!($crate #![bus($crate::Mmio64)] $($arguments)*);
     }
 }

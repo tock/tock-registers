@@ -6,7 +6,7 @@
 use crate::block::{
     bus_doc_comment, field_struct_doc_comment, interface_doc_comment, real_doc_comment,
 };
-use crate::{new_doc_comment, register_layouts, test_util::assert_tokens_eq, Env::ProcMacro};
+use crate::{new_doc_comment, register_map, test_util::assert_tokens_eq, Env::ProcMacro};
 use quote::quote;
 use syn::parse_quote;
 
@@ -291,5 +291,5 @@ fn offsets() {
             Read!(real_impl, real_padded_pos, u8,,);
         }
     };
-    assert_tokens_eq(register_layouts(input, ProcMacro).unwrap(), expected);
+    assert_tokens_eq(register_map(input, ProcMacro).unwrap(), expected);
 }

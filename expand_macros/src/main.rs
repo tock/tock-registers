@@ -10,7 +10,7 @@ use quote::{quote, ToTokens};
 use std::{fs::read_to_string, process::exit};
 use syn::parse::{ParseStream, Parser};
 use syn::{parse_file, Attribute, File, Item, Item::Macro, Result};
-use tock_registers_codegen::{register_layouts, Env::External};
+use tock_registers_codegen::{register_map, Env::External};
 
 fn main() {
     let cli = Command::new(env!("CARGO_PKG_NAME"))
@@ -52,15 +52,15 @@ fn main() {
 
         // Check which macro this is, and if it is recognized call that macro's implementation.
         let tokens = &mac.mac.tokens;
-        let result = if name.ident == "register_layouts" {
-            register_layouts(quote![::tock_registers #tokens], External)
-        } else if name.ident == "mmio32_register_layouts" {
-            register_layouts(
+        let result = if name.ident == "register_map" {
+            register_map(quote![::tock_registers #tokens], External)
+        } else if name.ident == "mmio32_register_map" {
+            register_map(
                 quote![::tock_registers #![bus(::tock_registers::Mmio32)] #tokens],
                 External,
             )
-        } else if name.ident == "mmio64_register_layouts" {
-            register_layouts(
+        } else if name.ident == "mmio64_register_map" {
+            register_map(
                 quote![::tock_registers #![bus(::tock_registers::Mmio64)] #tokens],
                 External,
             )

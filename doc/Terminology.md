@@ -23,7 +23,7 @@ register blocks.
 
 ## Layout and field types
 
-A **Layout** is a top-level definition in a `tock_registers::register_layouts!`
+A **Layout** is a top-level definition in a `tock_registers::register_map!`
 invocation. Each layout is further categorized as a:
 
 - **single register:** A layout with a single element type. Defined using
@@ -34,7 +34,7 @@ invocation. Each layout is further categorized as a:
 Examples:
 
 ```rust
-mmio32_register_layouts! {
+mmio32_register_map! {
     // A single register layout
     a: u8 { Read },
 
@@ -45,8 +45,8 @@ mmio32_register_layouts! {
     },
 
     // This is also a single register layout, even though it contains a register
-    // block. This is because register_layouts! is not aware that the element
-    // type is a register block, it merely sees that it uses the single register
+    // block. This is because register_map! is not aware that the element type
+    // is a register block, it merely sees that it uses the single register
     // syntax.
     d: b,
 }
@@ -55,7 +55,7 @@ mmio32_register_layouts! {
 Each field in a register block can be either a register or padding:
 
 ```rust
-mmio32_register_layouts! {
+mmio32_register_map! {
     uart {
         0 => status: u8 { Read },       // `status` is a field.
         1 => _,                         // padding is a field.
@@ -73,7 +73,7 @@ A single register is categorized as a:
 Examples:
 
 ```rust
-mmio32_register_layouts! {
+mmio32_register_map! {
     a: u8 { Read },  // definition
     b: a,            // reference (refers to `a`)
     c {
@@ -87,7 +87,7 @@ A single register is categorized as a *scalar* register or an *array* register
 based on whether its type specification contains an array:
 
 ```rust
-mmio32_register_layouts! {
+mmio32_register_map! {
     a: u8 { Read },                // A scalar register
     b: [u8; 2] { Read },           // An array register
     c {
@@ -112,7 +112,7 @@ mmio32_register_layouts! {
 To sum it all up:
 
 ```rust
-mmio32_register_layouts! {
+mmio32_register_map! {
     a: u8 { Read },       // A single scalar register definition layout
     b: a,                 // A single scalar register reference layout
     c: [u8; 2] { Read },  // A single array register definition layout

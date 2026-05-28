@@ -205,7 +205,7 @@ macro_rules! Read {
             }
         }
     };
-    // Catch-all case that emits nothing if register_layouts! invokes it with an unknown first
+    // Catch-all case that emits nothing if register_map! invokes it with an unknown first
     // argument. This is so that we can add new functionality into the operations macros without
     // breaking backwards compatibility (though registers! would need to be compatible with this
     // do-nothing block).

@@ -11,7 +11,7 @@
 // which builds the expanded code without the proc_macros feature.
 use tock_registers::{Read, UnsafeRead, UnsafeWrite, Write};
 
-tock_registers::mmio32_register_layouts! {
+tock_registers::mmio32_register_map! {
     // External registers to reference.
     a: u8 { Read, Write },
     b: u8 { UnsafeRead, Write },

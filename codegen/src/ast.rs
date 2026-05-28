@@ -3,22 +3,22 @@
 // Copyright Tock Contributors 2026.
 // Copyright Better Bytes 2026.
 
-//! The Abstract Syntax Tree for a register_layouts! invocation.
+//! The Abstract Syntax Tree for a register_map! invocation.
 
 use proc_macro2::TokenStream;
 use quote::quote;
 use std::{ops::Index, slice};
 use syn::{Attribute, Ident, LitInt, Path, Type, TypePath, Visibility};
 
-/// Represents the full input to the register_layouts! procedural macro. Note that
-/// `tock_registers::register_layouts!` prepends `$crate` to the input provided by the user, so
-/// that the generated code can refer to tock_registers even if the user has renamed the crate.
-/// Therefore, after `tock_registers::register_layouts!` is expanded, the full input looks like:
+/// Represents the full input to the register_map! procedural macro. Note that
+/// `tock_registers::register_map!` prepends `$crate` to the input provided by the user, so that
+/// the generated code can refer to tock_registers even if the user has renamed the crate.
+/// Therefore, after `tock_registers::register_map!` is expanded, the full input looks like:
 ///
 /// ```
 /// # use tock_registers::{Mmio32, Read, Write};
 /// # fn main() {}
-/// tock_registers::internal::register_layouts! {
+/// tock_registers::internal::register_map! {
 ///     ::tock_registers             // The prepended $crate
 ///     //! Global doc comment       // This doc comment should attach to everything in the macro.
 ///     #![buses(Mmio32)]            // Global buses attribute
@@ -37,7 +37,7 @@ use syn::{Attribute, Ident, LitInt, Path, Type, TypePath, Visibility};
 /// ```
 #[cfg_attr(test, derive(Debug))]
 pub struct Input {
-    /// The $crate passed in by the register_layouts! macro_rules macro (used to refer to the
+    /// The $crate passed in by the register_map! macro_rules macro (used to refer to the
     /// tock_registers crate).
     pub tock_registers: Path,
     pub layouts: Vec<Layout>,
@@ -48,7 +48,7 @@ pub struct Input {
 /// ```
 /// # use tock_registers::{Read, Write};
 /// # fn main() {}
-/// tock_registers::mmio32_register_layouts! {
+/// tock_registers::mmio32_register_map! {
 ///     // `a` is a Layout
 ///     a: u8 { Read, Write },
 ///
@@ -119,7 +119,7 @@ impl BusAttr {
 /// ```
 /// # use tock_registers::{Read, Write};
 /// # fn main() {}
-/// tock_registers::mmio32_register_layouts! {
+/// tock_registers::mmio32_register_map! {
 ///     aa: u8 { Read, Write },
 ///     //^^^^^^^^^^^^^^^^^^^^ Value::Single
 ///
@@ -148,7 +148,7 @@ pub enum Value {
 /// ```
 /// # use tock_registers::{Read, Write};
 /// # fn main() {}
-/// tock_registers::mmio32_register_layouts! {
+/// tock_registers::mmio32_register_map! {
 ///     a: u8 { Read, Write },
 ///
 ///     pub foo {
@@ -181,7 +181,7 @@ pub struct Field {
 /// ```
 /// # use tock_registers::Read;
 /// # fn main() {}
-/// tock_registers::mmio32_register_layouts! {
+/// tock_registers::mmio32_register_map! {
 ///     status: u8 { Read },
 ///
 ///     foo {
@@ -218,7 +218,7 @@ pub enum FieldDef {
 /// ```
 /// # use tock_registers::{Mmio32, Mmio64, Read, Write};
 /// # fn main() {}
-/// tock_registers::register_layouts! {
+/// tock_registers::register_map! {
 ///     #[buses(Mmio32, Mmio64)]
 ///     foo {
 ///         0 => c: u8 { Read },
@@ -265,7 +265,7 @@ impl Index<usize> for PerBusInt {
 /// ```
 /// # use tock_registers::{Read, Write};
 /// # fn main() {}
-/// tock_registers::mmio32_register_layouts! {
+/// tock_registers::mmio32_register_map! {
 ///     pub pin: u8 { Read, Write },
 ///     //     ^^^^^^^^^^^^^^^^^^^^ Top-level RegisterSpec defining a new register
 ///     pub pin_pair: [pin; 2],

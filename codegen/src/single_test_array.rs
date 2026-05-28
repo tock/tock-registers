@@ -6,7 +6,7 @@
 use crate::single::{
     bus_doc_comment, interface_doc_comment, real_alias_doc_comment, struct_doc_comment,
 };
-use crate::{new_doc_comment, register_layouts, test_util::assert_tokens_eq, Env::ProcMacro};
+use crate::{new_doc_comment, register_map, test_util::assert_tokens_eq, Env::ProcMacro};
 use quote::quote;
 
 /// This serves two purposes: it tests the code generation of single flat (non-nested) array
@@ -72,7 +72,7 @@ fn flat_array_definition_example() {
                 Element<B>: ::tock_registers::Register<DataType = u8> + Read + Write {}
         }
     };
-    assert_tokens_eq(register_layouts(input, ProcMacro).unwrap(), expected);
+    assert_tokens_eq(register_map(input, ProcMacro).unwrap(), expected);
 }
 
 /// This serves two purposes: it tests the code generation of single nested array register
@@ -139,7 +139,7 @@ fn nested_array_definition_example() {
                 Element<B>: ::tock_registers::Register<DataType = u8> + Read + Write {}
         }
     };
-    assert_tokens_eq(register_layouts(input, ProcMacro).unwrap(), expected);
+    assert_tokens_eq(register_map(input, ProcMacro).unwrap(), expected);
 }
 
 /// This serves two purposes: it tests the code generation of single flat array register
@@ -174,7 +174,7 @@ fn flat_array_reference_example() {
             impl<B: Bus> Interface for Real<B> where status::Real<B>: status::Interface {}
         }
     };
-    assert_tokens_eq(register_layouts(input, ProcMacro).unwrap(), expected);
+    assert_tokens_eq(register_map(input, ProcMacro).unwrap(), expected);
 }
 
 /// This serves two purposes: it tests the code generation of single nested array register
@@ -211,5 +211,5 @@ fn nested_array_reference_example() {
             impl<B: Bus> Interface for Real<B> where status::Real<B>: status::Interface {}
         }
     };
-    assert_tokens_eq(register_layouts(input, ProcMacro).unwrap(), expected);
+    assert_tokens_eq(register_map(input, ProcMacro).unwrap(), expected);
 }

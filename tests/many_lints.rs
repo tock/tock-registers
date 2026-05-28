@@ -3,7 +3,7 @@
 // Copyright Tock Contributors 2026.
 // Copyright Better Bytes 2026.
 
-//! Tests `register_layouts!` with many lints enabled to ensure the generated code does not
+//! Tests `register_map!` with many lints enabled to ensure the generated code does not
 //! unnecessarily trigger warnings or errors in user code compiled with strict lints.
 
 #![no_std]
@@ -99,9 +99,9 @@
 #![forbid(non_upper_case_globals)]
 #![forbid(unused)]
 
-use tock_registers::{register_layouts, Mmio32, Mmio64, Read, UnsafeRead, UnsafeWrite, Write};
+use tock_registers::{register_map, Mmio32, Mmio64, Read, UnsafeRead, UnsafeWrite, Write};
 
-register_layouts! {
+register_map! {
     #![buses(Mmio32, Mmio64)]
     aa: u8 { Read, Write },
     bb: u8 { UnsafeRead, Write },

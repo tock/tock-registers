@@ -13,17 +13,17 @@ README](https://github.com/tock/tock-registers/tree/v0.10.1) instead.
 Note: tock-registers has several pieces of functionality that are not described
 in this document, including support for [non-MMIO
 registers](doc/AddingRegisterTypes.md). See the Rustdoc for
-[`register_layouts!`](src/layouts.rs) for complete documentation.
+[`register_map!`](src/map.rs) for complete documentation.
 
 A register block is defined using the
-`mmio32_register_layouts!`/`mmio64_register_layouts!` macros:
+`mmio32_register_map!`/`mmio64_register_map!` macros:
 
 ```rust
-use tock_registers::{mmio32_register_layouts, Mmio32, Read, Write};
+use tock_registers::{mmio32_register_map, Mmio32, Read, Write};
 
 // Specifies that these registers are memory-mapped IO registers with 32-bit
 // addresses.
-mmio32_register_layouts! {
+mmio32_register_map! {
     /// Documentation for `peripheral`.
     peripheral {
         // Control register: read-write. `Control` is defined using the
@@ -98,9 +98,9 @@ in the macro invocation. In other words, you can make the module public using
 the `pub` keyword just before the module name:
 
 ```rust
-use tock_registers::{mmio32_register_layouts, Read};
+use tock_registers::{mmio32_register_map, Read};
 
-mmio32_register_layouts! {
+mmio32_register_map! {
     pub peripheral {
         0 => status: u8 { Read },
     }
@@ -470,7 +470,7 @@ description of the naming convention for each:
 ```rust
 use tock_registers::registers::ReadWrite;
 
-mmio32_register_layouts! {
+mmio32_register_map! {
     registers {
         // The register name in the struct should be a lowercase version of the
         // register abbreviation, as written in the datasheet:

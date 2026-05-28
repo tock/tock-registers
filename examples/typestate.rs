@@ -4,7 +4,7 @@
 // Copyright Better Bytes 2026.
 
 //! Demonstrates how a typestate interface similar to abacus-registers could be integrated with
-//! register_layouts!.
+//! register_map!.
 
 // -------------------------------------------------------------------------------------------------
 // typestate crate
@@ -46,10 +46,10 @@ mod typestate {
 // -------------------------------------------------------------------------------------------------
 
 use core::{cell::UnsafeCell, ptr::NonNull};
-use tock_registers::{mmio64_register_layouts, Mmio64};
+use tock_registers::{mmio64_register_map, Mmio64};
 use typestate::TypestateWrite;
 
-mmio64_register_layouts! {
+mmio64_register_map! {
     temperature {
         // Declare that task_start and task_stop may only be written by the typestate module.
         0 => task_start: u32 { TypestateWrite<Token = wrapper::Token> },

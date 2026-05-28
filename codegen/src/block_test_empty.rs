@@ -4,7 +4,7 @@
 // Copyright Better Bytes 2026.
 
 use crate::block::{bus_doc_comment, interface_doc_comment, real_doc_comment};
-use crate::{new_doc_comment, register_layouts, test_util::assert_tokens_eq, Env::External};
+use crate::{new_doc_comment, register_map, test_util::assert_tokens_eq, Env::External};
 use quote::quote;
 
 // This also doubles as the test for Env::External code generation.
@@ -58,5 +58,5 @@ fn empty() {
             }
         }
     };
-    assert_tokens_eq(register_layouts(input, External).unwrap(), expected);
+    assert_tokens_eq(register_map(input, External).unwrap(), expected);
 }
