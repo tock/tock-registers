@@ -31,12 +31,12 @@ use crate::{RegisterLongName, UIntLike};
 /// [`Writeable`](crate::interfaces::Writeable) and
 /// [`ReadWriteable`](crate::interfaces::ReadWriteable).
 #[derive(Copy, Clone)]
-pub struct LocalRegisterCopy<T: UIntLike, R: RegisterLongName = ()> {
+pub struct LocalRegisterCopy<T: Copy, R: RegisterLongName = ()> {
     value: T,
     associated_register: PhantomData<R>,
 }
 
-impl<T: UIntLike, R: RegisterLongName> LocalRegisterCopy<T, R> {
+impl<T: Copy, R: RegisterLongName> LocalRegisterCopy<T, R> {
     pub const fn new(value: T) -> Self {
         LocalRegisterCopy {
             value,
@@ -55,7 +55,9 @@ impl<T: UIntLike, R: RegisterLongName> LocalRegisterCopy<T, R> {
     pub fn set(&mut self, value: T) {
         self.value = value;
     }
+}
 
+impl<T: UIntLike, R: RegisterLongName> LocalRegisterCopy<T, R> {
     /// Read the value of the given field
     #[inline]
     pub fn read(&self, field: Field<T, R>) -> T {
@@ -130,7 +132,7 @@ impl<T: UIntLike, R: RegisterLongName> LocalRegisterCopy<T, R> {
     }
 }
 
-impl<T: UIntLike + fmt::Debug, R: RegisterLongName> fmt::Debug for LocalRegisterCopy<T, R> {
+impl<T: Copy + fmt::Debug, R: RegisterLongName> fmt::Debug for LocalRegisterCopy<T, R> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{:?}", self.value)
     }
