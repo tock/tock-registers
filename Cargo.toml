@@ -22,6 +22,11 @@ proc-macro2 = { default-features = false, version = "1.0.106" }
 quote = { default-features = false, version = "1.0.45" }
 tock-registers-codegen = { path = "codegen", version = "=0.10.1" }
 
+[workspace.dependencies.syn]
+default-features = false
+features = ["clone-impls", "derive", "parsing", "printing"]
+version = "2.0.117"
+
 [package]
 name = "tock-registers"
 version.workspace = true

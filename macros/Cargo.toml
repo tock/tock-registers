@@ -17,11 +17,10 @@ repository.workspace = true
 [lib]
 proc-macro = true
 
-[dependencies]
-proc-macro2.workspace = true
 # Note: This crate purposely does not depend on `syn`. If too many crates in
 # this workspace depend on `syn`, then it becomes difficult to determine which
 # `syn` features should be enabled for each crate. This is especially true for
 # tock-registers-codegen, as its tests depend indirectly on this crate, and
 # codegen's tests have their own `syn` feature requirements.
-tock-registers-codegen.workspace = true
+[dependencies]
+tock-registers-codegen = { features = ["proc-macro"], workspace = true }

@@ -3,12 +3,10 @@
 // Copyright Tock Contributors 2026.
 // Copyright Better Bytes 2026.
 
-// TODO: Figure out if we're merging this into the default branch or into a separate feature
-//       branch.
-// TODO: Determine how to split this into PRs.
 // TODO: Figure out tock-registers version numbering (interacts with deprecation strategy). Label
 //       register_structs! as deprecated in the appropriate manner.
-// TODO: Re-evaluate which `syn` features we need (is full necessary?).
+// TODO: Switch FakeRegister back to non-LocalRegisterCopy internally. Can point out that we're
+//       converting to and from LocalRegisterCopy in some of Read's inherent methods.
 // TODO: Update the top-level crate doc comment. It should probably match or be similar to
 //       the README.
 // TODO: Implement a arm64_secure_vm feature (see the TODO in src/mmio.rs).

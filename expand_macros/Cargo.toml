@@ -19,5 +19,5 @@ clap = { default-features = false, features = ["std"], version = "3.2.23" }
 prettyplease = { features = ["verbatim"], version = "0.2.37" }
 proc-macro2.workspace = true
 quote.workspace = true
-syn = { default-features = false, features = ["parsing"], version = "2.0.117" }
+syn.workspace = true
 tock-registers-codegen.workspace = true

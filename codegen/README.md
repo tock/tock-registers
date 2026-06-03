@@ -10,5 +10,5 @@ expansion tool](../expand_macros) uses this crate to implement the code
 expansion.
 
 Note that the generated code is not stable; the version of the
-`tock-registers-codegen` crate must be the exact same as the version of the
-`tock-registers` crate.
+`tock-registers-codegen` crate must exactly match the version of the
+`tock-registers` crate that the generated code is compiled against.

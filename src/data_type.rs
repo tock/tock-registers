@@ -5,13 +5,13 @@
 
 use crate::{RegisterLongName, UIntLike};
 
-/// Type implemented by all registers.
+/// Trait implemented by accessors for individual registers.
 pub trait Register: Copy {
-    /// The data type used for this register in the type specification.
+    /// This register's data type, as specified in [`register_map!`](crate::register_map)'s input.
     type DataType: DataType;
 }
 
-/// Trait used to retrieve information about a register from the type given in its specification.
+/// Conveys information about a register's data type.
 pub trait DataType {
     /// The register's value type. This is the type passed over the bus when accessing the
     /// register. This will typically be UIntLike, but can sometimes be other types such as raw

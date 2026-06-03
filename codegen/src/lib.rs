@@ -64,9 +64,9 @@ pub fn register_map(input: TokenStream, env: Env) -> Result<TokenStream, TokenSt
     Ok(out)
 }
 
-/// register_map generates slightly different code (in particular, different `#![allow()]`
-/// attributes) depending on whether it is run as part of a procedural macro or run externally to
-/// rustc. This enum is used to tell register_map which mode to use.
+/// register_map generates slightly different code (different `#![allow()]` attributes) depending
+/// on whether it is run as part of a procedural macro or run externally to rustc. This enum is
+/// used to tell register_map which mode to use.
 #[derive(Clone, Copy)]
 pub enum Env {
     /// Generate code suitable to feed into a separate rustc invocation run.
