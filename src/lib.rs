@@ -63,18 +63,6 @@
 #![cfg_attr(not(feature = "register_types"), forbid(unsafe_code))]
 #![forbid(unsafe_op_in_unsafe_fn)]
 
-pub mod fields;
-pub mod interfaces;
-pub mod internal;
-pub mod macros;
-#[cfg(all(feature = "proc_macros", feature = "register_types"))]
-mod map;
-
-#[cfg(feature = "register_types")]
-pub mod registers;
-
-pub mod debug;
-
 #[cfg(feature = "register_types")]
 pub mod array;
 #[cfg(feature = "register_types")]
@@ -88,10 +76,24 @@ pub use bus::{Address, BorrowedBus, Bus, DataTypeBus, RegisterSender, Span};
 mod data_type;
 pub use data_type::{DataType, Register};
 
+pub mod debug;
+
 mod fake_register;
 #[cfg(feature = "register_types")]
 pub use fake_register::FakeRegisterArray;
 pub use fake_register::{FakeRegister, NoAccess, Safe, Unsafe};
+
+pub mod fields;
+pub mod interfaces;
+pub mod internal;
+
+mod local_register;
+pub use local_register::LocalRegisterCopy;
+
+pub mod macros;
+
+#[cfg(all(feature = "proc_macros", feature = "register_types"))]
+mod map;
 
 #[cfg(feature = "register_types")]
 mod mmio;
@@ -102,6 +104,9 @@ mod read;
 #[cfg(feature = "register_types")]
 pub use read::BusRead;
 pub use read::Read;
+
+#[cfg(feature = "register_types")]
+pub mod registers;
 
 #[cfg(feature = "register_types")]
 mod unsafe_read;
@@ -117,9 +122,6 @@ mod write;
 #[cfg(feature = "register_types")]
 pub use write::BusWrite;
 pub use write::{ReadWrite, Write};
-
-mod local_register;
-pub use local_register::LocalRegisterCopy;
 
 use core::fmt::Debug;
 use core::ops::{BitAnd, BitOr, BitOrAssign, Not, Shl, Shr};

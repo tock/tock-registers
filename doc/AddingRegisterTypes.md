@@ -43,8 +43,8 @@ here: `Bus<usize>::PADDED_SIZE` is a constant 4, even when you compile for a
 The `Read` and `Write` operations are not enough for every use case. When you
 need another operation, you can add that operation to your bus.
 
-When implementing a new operation, you can refer to the `read` and/or `write`
-modules.
+When implementing a new operation, you can use the `Read` and/or `Write`
+operations as examples (they are defined in the `read` and `write` modules).
 
 An operation requires three elements:
 
@@ -54,9 +54,9 @@ An operation requires three elements:
 1. The operation macro. This must have the same name and path as the operation
    trait (in practice, this means the operation trait must be exported in the
    crate root).
-1. The bus-operation trait (generally named `Bus*` where `*` is the name of the
-   operation). This trait is implemented on your bus, and is used by the macro
-   to implement the operation trait.
+1. The bus-operation trait (generally named `BusABC` where `ABC` is the name of
+   the operation). This trait is implemented on your bus, and is used by the
+   macro to implement the operation trait.
 
 The operation trait should be a subtrait of `Register`, and it should use
 `<Self::DataType as DataType>::Value` as the value type for operations, and
@@ -83,7 +83,7 @@ macro_rules! MyOperation {
     //             arguments in the future without breaking every existing
     //             operation macro.
     (real_impl, $name:ident, $datatype:ty, $(<$generic:path>)?, $($rest:tt)*) => {
-        impl<B: Bus + /* Your Bus* trait */> $crate::MyOperation
+        impl<B: Bus + /* Your BusABC trait */> $crate::MyOperation
             for $name<B>
         {
             // Your trait implementation goes here. Use self.address to retrieve
@@ -98,7 +98,7 @@ macro_rules! MyOperation {
 }
 ```
 
-Your `Bus*` trait should be implemented on your bus type. You may need that
+Your `BusABC` trait should be implemented on your bus type. You may need that
 trait to be generic (as `BusRead` and `BusWrite` are) so that you can provide
 separate implementations for each type that your bus supports. If your bus can
 be sent between threads, then it should also be implemented for

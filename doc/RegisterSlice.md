@@ -141,5 +141,5 @@ impl<Element: Span, L: Len> RegisterArray<L> for RealRegisterArray<Element, L> {
 
 ## Interaction with array iterators
 
-Assuming we implement array iterators first, we might consider using a single
-iterator type for RegisterArray and RegisterSlice. Maybe.
+We might consider using a single iterator type for RegisterArray and
+RegisterSlice. Maybe.

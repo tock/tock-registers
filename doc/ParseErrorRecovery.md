@@ -14,9 +14,10 @@ parsing and returns that error. This has a couple drawbacks:
    type checking failing throughout the file.
 
 I (jrvanwhy) started reworking the parsing logic to allow for recovery from some
-errors, but ultimately shelved it because it was too much work. I think this is
-a desirable change that we want eventually, so I'm recording some of the
-structure in this document so we don't have to repeat work.
+errors, but ultimately shelved it because I didn't have the time to finish it at
+the moment. I think this is a desirable change that we want eventually, so I'm
+recording some of the structure in this document so we don't have to repeat
+work.
 
 ## Design
 
@@ -79,14 +80,14 @@ impl Parse for Outcome<Layout> {
 // etc
 ```
 
-Each `Parse::parse` implementation would construct a new `Outcome` using
-`Outcome::new`, and on success would call `Outcome::success` to produce the
-`syn::Result<Outcome<T>>` return value.
+Each `Parse::parse` implementation would start by constructing a new `Outcome`
+using `Outcome::new` and would finish by calling `Outcome::success` to produce
+the `syn::Result<Outcome<T>>` return value.
 
 ## Combination functions
 
 This is the part that took too much time to design. `Outcome<()>` needs more
-methods than shown above, which combine error signals from other operations into
+methods than shown above, to combine error signals from other operations into
 the overall `Outcome`. For example, it might have:
 
 ```rust
