@@ -6,4 +6,6 @@
 /CHANGELOG.md
 /LICENSE-APACHE
 /LICENSE-MIT
-/README.md
+
+# Files that do not support comments.
+*.md
