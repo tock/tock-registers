@@ -5,7 +5,7 @@
 
 #[cfg(feature = "register_types")]
 use crate::{array::Len, RegisterArray, UnsafeRead, UnsafeWrite};
-use crate::{DataType, LocalRegisterCopy, Read, Register, Write};
+use crate::{DataType, Read, Register, Write};
 #[cfg(feature = "register_types")]
 use core::marker::PhantomData;
 
@@ -13,7 +13,7 @@ use core::marker::PhantomData;
 ///
 /// ```
 /// # use std::cell::Cell;
-/// # use tock_registers::{FakeRegister, LocalRegisterCopy, NoAccess, Read, Safe};
+/// # use tock_registers::{FakeRegister, NoAccess, Read, Safe};
 /// tock_registers::mmio32_register_map! {
 ///     /// A random number generator, which simply returns a random byte on each read.
 ///     rng {
@@ -31,7 +31,7 @@ use core::marker::PhantomData;
 ///         FakeRegister::new(self).on_read(|this| {
 ///             let next = this.0.get().wrapping_add(1);
 ///             this.0.set(next);
-///             LocalRegisterCopy::new(next)
+///             next
 ///         })
 ///     }
 /// }
@@ -56,7 +56,7 @@ pub struct FakeRegister<Data: Copy, DT: DataType, R: Access, W: Access> {
 
 impl<Data: Copy, DT: DataType> FakeRegister<Data, DT, NoAccess, NoAccess> {
     /// Constructs a new FakeRegister. `data` will be provided to any read and/or write functions
-    /// that are provided to this FakeRegister.
+    /// that are attached to this FakeRegister.
     ///
     /// A typical use for `data` is to pass a reference to the simulated hardware's state. If you
     /// don't need to pass any data to your read/write functions, you can set `data` to `()`.
@@ -71,10 +71,7 @@ impl<Data: Copy, DT: DataType> FakeRegister<Data, DT, NoAccess, NoAccess> {
 
 impl<Data: Copy, DT: DataType, R: Access, W: Access> FakeRegister<Data, DT, R, W> {
     /// Returns a new FakeRegister that implements [`trait@Read`] by invoking `fcn`.
-    pub const fn on_read(
-        self,
-        fcn: fn(Data) -> LocalRegisterCopy<DT::Value, DT::LongName>,
-    ) -> FakeRegister<Data, DT, Safe, W> {
+    pub const fn on_read(self, fcn: fn(Data) -> DT::Value) -> FakeRegister<Data, DT, Safe, W> {
         FakeRegister {
             data: self.data,
             read: fcn,
@@ -83,10 +80,7 @@ impl<Data: Copy, DT: DataType, R: Access, W: Access> FakeRegister<Data, DT, R, W
     }
 
     /// Returns a new FakeRegister that implements [`trait@Write`] by invoking `fcn`.
-    pub const fn on_write(
-        self,
-        fcn: fn(Data, LocalRegisterCopy<DT::Value, DT::LongName>),
-    ) -> FakeRegister<Data, DT, R, Safe> {
+    pub const fn on_write(self, fcn: fn(Data, DT::Value)) -> FakeRegister<Data, DT, R, Safe> {
         FakeRegister {
             data: self.data,
             read: self.read,
@@ -97,7 +91,7 @@ impl<Data: Copy, DT: DataType, R: Access, W: Access> FakeRegister<Data, DT, R, W
     /// Returns a new FakeRegister that implements `trait@UnsafeRead` by invoking `fcn`.
     pub const fn on_unsafe_read(
         self,
-        fcn: unsafe fn(Data) -> LocalRegisterCopy<DT::Value, DT::LongName>,
+        fcn: unsafe fn(Data) -> DT::Value,
     ) -> FakeRegister<Data, DT, Unsafe, W> {
         FakeRegister {
             data: self.data,
@@ -109,7 +103,7 @@ impl<Data: Copy, DT: DataType, R: Access, W: Access> FakeRegister<Data, DT, R, W
     /// Returns a new FakeRegister that implements `trait@UnsafeWrite` by invoking `fcn`.
     pub const fn on_unsafe_write(
         self,
-        fcn: unsafe fn(Data, LocalRegisterCopy<DT::Value, DT::LongName>),
+        fcn: unsafe fn(Data, DT::Value),
     ) -> FakeRegister<Data, DT, R, Unsafe> {
         FakeRegister {
             data: self.data,
@@ -140,7 +134,7 @@ impl<Data: Copy, DT: DataType, R: Access, W: Access> Register for FakeRegister<D
 
 impl<Data: Copy, DT: DataType, W: Access> Read for FakeRegister<Data, DT, Safe, W> {
     fn get(self) -> DT::Value {
-        (self.read)(self.data).get()
+        (self.read)(self.data)
     }
 }
 
@@ -150,14 +144,13 @@ impl<Data: Copy, DT: DataType, W: Access> UnsafeRead for FakeRegister<Data, DT, 
         // Safety: There may or not actually be any safety requirements because this is a fake
         // rather than the real hardware, but either way the caller has complied with the
         // register's safety requirements.
-        unsafe { (self.read)(self.data) }.get()
+        unsafe { (self.read)(self.data) }
     }
 }
 
 #[cfg(feature = "register_types")]
 impl<Data: Copy, DT: DataType, R: Access> UnsafeWrite for FakeRegister<Data, DT, R, Unsafe> {
     unsafe fn set(self, value: DT::Value) {
-        let value = LocalRegisterCopy::new(value);
         // Safety: There may or not actually be any safety requirements because this is a fake
         // rather than the real hardware, but either way the caller has complied with the
         // register's safety requirements.
@@ -167,7 +160,7 @@ impl<Data: Copy, DT: DataType, R: Access> UnsafeWrite for FakeRegister<Data, DT,
 
 impl<Data: Copy, DT: DataType, R: Access> Write for FakeRegister<Data, DT, R, Safe> {
     fn set(self, value: DT::Value) {
-        (self.write)(self.data, LocalRegisterCopy::new(value))
+        (self.write)(self.data, value)
     }
 }
 
@@ -192,18 +185,16 @@ impl Access for NoAccess {
 /// operation.
 pub enum Safe {}
 impl Access for Safe {
-    type ReadFn<Data: Copy, DT: DataType> = fn(Data) -> LocalRegisterCopy<DT::Value, DT::LongName>;
-    type WriteFn<Data: Copy, DT: DataType> = fn(Data, LocalRegisterCopy<DT::Value, DT::LongName>);
+    type ReadFn<Data: Copy, DT: DataType> = fn(Data) -> DT::Value;
+    type WriteFn<Data: Copy, DT: DataType> = fn(Data, DT::Value);
 }
 
 /// Indicates that this FakeRegister does implements the corresponding unsafe read or write
 /// operation.
 pub enum Unsafe {}
 impl Access for Unsafe {
-    type ReadFn<Data: Copy, DT: DataType> =
-        unsafe fn(Data) -> LocalRegisterCopy<DT::Value, DT::LongName>;
-    type WriteFn<Data: Copy, DT: DataType> =
-        unsafe fn(Data, LocalRegisterCopy<DT::Value, DT::LongName>);
+    type ReadFn<Data: Copy, DT: DataType> = unsafe fn(Data) -> DT::Value;
+    type WriteFn<Data: Copy, DT: DataType> = unsafe fn(Data, DT::Value);
 }
 
 mod sealed {
@@ -234,8 +225,8 @@ impl sealed::Access for Unsafe {}
 ///     fn scratch(self) -> Self::scratch {
 ///         FakeRegisterArray::new(self, |s, i| Some(
 ///             FakeRegister::new(s.0.get(i)?)
-///                 .on_read(|c| LocalRegisterCopy::new(c.get()))
-///                 .on_write(|c, v| c.set(v.get()))
+///                 .on_read(|c| c.get())
+///                 .on_write(|c, v| c.set(v))
 ///         ))
 ///     }
 /// }

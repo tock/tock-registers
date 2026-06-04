@@ -3,7 +3,11 @@
 # Copyright Tock Contributors 2022.
 
 [workspace]
-members = ["expand_macros", "multi_crate_test/child", "multi_crate_test/parent"]
+members = [
+    "expand_macros",
+    "multi_crate_test/child",
+    "multi_crate_test/parent",
+]
 
 [workspace.package]
 version = "0.10.1"

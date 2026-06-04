@@ -7,8 +7,8 @@
 
 use core::cell::Cell;
 use tock_registers::{
-    mmio32_register_map, FakeRegister, FakeRegisterArray, LocalRegisterCopy, NoAccess, Read,
-    RegisterArray, Safe, Write,
+    mmio32_register_map, FakeRegister, FakeRegisterArray, NoAccess, Read, RegisterArray, Safe,
+    Write,
 };
 use {array_demo::Interface as _, variable_increment::Interface as _};
 
@@ -60,7 +60,7 @@ impl<'f> array_demo::Interface for &'f Fake {
                 FakeRegister::new((s, index as u8 + 1)).on_read(|(s, increment)| {
                     let out = s.single_counter.get();
                     s.single_counter.set(out.wrapping_add(increment));
-                    LocalRegisterCopy::new(out)
+                    out
                 }),
             )
         })
@@ -89,8 +89,8 @@ impl<'f> variable_increment::Interface for FakeIncrement<'f> {
     type increment = FakeRegister<&'f Cell<u8>, u8, Safe, Safe>;
     fn increment(self) -> Self::increment {
         FakeRegister::new(self.increment)
-            .on_read(|i| LocalRegisterCopy::new(i.get()))
-            .on_write(|i, v| i.set(v.get()))
+            .on_read(|i| i.get())
+            .on_write(|i, v| i.set(v))
     }
 
     type counter = FakeRegister<Self, u8, Safe, NoAccess>;
@@ -98,7 +98,7 @@ impl<'f> variable_increment::Interface for FakeIncrement<'f> {
         FakeRegister::new(self).on_read(|s| {
             let out = s.counter.get();
             s.counter.set(out.wrapping_add(s.increment.get()));
-            LocalRegisterCopy::new(out)
+            out
         })
     }
 }
