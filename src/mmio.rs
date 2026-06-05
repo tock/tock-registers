@@ -108,14 +108,17 @@ macro_rules! from_addr_nullable {
 
 from_addr_nullable![Mmio32Nullable Mmio64Nullable];
 
-// TODO: Implement a arm64_secure_vm feature that uses confidential-vm-safe instructions:
-// https://github.com/google/safe-mmio/blob/main/src/aarch64_mmio.rs
-// https://github.com/rust-lang/rust/issues/131894
-// The code is structured so we should be able to swap out the definition of bus_op_impls! without
-// changing any other part of the code.
-/// Macro to implement BusRead/BusWrite for the Mmio* structs.
-macro_rules! bus_op_impls {
-    [$nonnull:ident $nullable:ident [$($generics:tt)*] $value:ty] => {
+/// Macro to implement the Bus traits for the Mmio* structs.
+macro_rules! bus_impls {
+    [$nonnull:ident, $nullable:ident, [$($generics:tt)*], $value:ty, $size:literal] => {
+        /// Safety: All the bus_impls! invocations have the correct size.
+        unsafe impl<$($generics)*> Bus<$value> for $nonnull {
+            const PADDED_SIZE: usize = $size;
+        }
+        /// Safety: All the bus_impls! invocations have the correct size.
+        unsafe impl<$($generics)*> Bus<$value> for $nullable {
+            const PADDED_SIZE: usize = $size;
+        }
         impl<$($generics)*> BusRead<$value> for $nonnull {
             unsafe fn read(self) -> $value {
                 // BusRead::read's preconditions guarantee that a readable register with value type
@@ -149,21 +152,6 @@ macro_rules! bus_op_impls {
                 unsafe { write_volatile(self.0.cast(), value) }
             }
         }
-    }
-}
-
-/// Macro to implement the Bus traits for the Mmio* structs.
-macro_rules! bus_impls {
-    [$nonnull:ident, $nullable:ident, [$($generics:tt)*], $value:ty, $size:literal] => {
-        /// Safety: All the bus_impls! invocations have the correct size.
-        unsafe impl<$($generics)*> Bus<$value> for $nonnull {
-            const PADDED_SIZE: usize = $size;
-        }
-        /// Safety: All the bus_impls! invocations have the correct size.
-        unsafe impl<$($generics)*> Bus<$value> for $nullable {
-            const PADDED_SIZE: usize = $size;
-        }
-        bus_op_impls![$nonnull $nullable [$($generics)*] $value];
     }
 }
 

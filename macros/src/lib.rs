@@ -7,7 +7,6 @@
 //       register_structs! as deprecated in the appropriate manner.
 // TODO: Update the top-level crate doc comment. It should probably match or be similar to
 //       the README.
-// TODO: Implement a arm64_secure_vm feature (see the TODO in src/mmio.rs).
 // TODO: Implement a RegisterArray iterator.
 // TODO: Implement UnimplementedRegister, add to operation documentation.
 // TODO: Implement macro that automatically provides the type defs for Interface trait impls.
