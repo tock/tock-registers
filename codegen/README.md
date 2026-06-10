@@ -12,3 +12,18 @@ expansion.
 Note that the generated code is not stable; the version of the
 `tock-registers-codegen` crate must exactly match the version of the
 `tock-registers` crate that the generated code is compiled against.
+
+## Dependency tree
+
+```
+$ cargo tree -e no-dev
+tock-registers-codegen v0.10.1 (/home/ryan/tock/registers/codegen)
+├── proc-macro2 v1.0.106
+│   └── unicode-ident v1.0.24
+├── quote v1.0.45
+│   └── proc-macro2 v1.0.106 (*)
+└── syn v2.0.117
+    ├── proc-macro2 v1.0.106 (*)
+    ├── quote v1.0.45 (*)
+    └── unicode-ident v1.0.24
+```
