@@ -1,0 +1,32 @@
+# Licensed under the Apache License, Version 2.0 or the MIT License.
+# SPDX-License-Identifier: Apache-2.0 OR MIT
+# Copyright Tock Contributors 2026.
+# Copyright Better Bytes 2026.
+
+[package]
+name = "tock-registers-codegen"
+version.workspace = true
+authors.workspace = true
+description = "Code generation library for tock-registers"
+edition.workspace = true
+homepage.workspace = true
+license.workspace = true
+readme.workspace = true
+repository.workspace = true
+
+[dependencies]
+proc-macro2.workspace = true
+quote.workspace = true
+syn.workspace = true
+
+[dev-dependencies]
+pretty_assertions = "1.4.1"
+prettyplease = "0.2.37"
+tock-registers = { path = ".." }
+
+[dev-dependencies.syn]
+features = ["extra-traits"]
+workspace = true
+
+[features]
+proc-macro = ["proc-macro2/proc-macro"]
