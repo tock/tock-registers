@@ -61,23 +61,27 @@
 // If we don't build any actual register types, we don't need unsafe code in
 // this crate
 #![cfg_attr(not(feature = "register_types"), forbid(unsafe_code))]
+#![forbid(unsafe_op_in_unsafe_fn)]
 
+mod data_type;
+pub use data_type::{DataType, Register};
+
+pub mod debug;
 pub mod fields;
 pub mod interfaces;
+
+mod local_register;
+pub use local_register::LocalRegisterCopy;
+
 pub mod macros;
 
 #[cfg(feature = "register_types")]
 pub mod registers;
 
-pub mod debug;
-
-mod local_register;
-pub use local_register::LocalRegisterCopy;
-
 use core::fmt::Debug;
 use core::ops::{BitAnd, BitOr, BitOrAssign, Not, Shl, Shr};
 
-/// Trait representing the base type of registers.
+/// Trait representing the base type of registers that support bitfields.
 ///
 /// UIntLike defines basic properties of types required to read/write/modify a
 /// register through its methods and supertrait requirements.
