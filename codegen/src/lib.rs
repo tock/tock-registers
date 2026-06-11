@@ -11,6 +11,9 @@
 //    `block_test_all_fields`. Nonobvious parts of the generated code are documented in those test
 //    cases.
 
+#[cfg(all(test, not(miri)))]
+mod test_util;
+
 use proc_macro2::TokenStream;
 use quote::quote;
 
