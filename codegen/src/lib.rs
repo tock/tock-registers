@@ -11,8 +11,13 @@
 //    `block_test_all_fields`. Nonobvious parts of the generated code are documented in those test
 //    cases.
 
+mod ast;
+
+use ast::RegisterSpec;
 use proc_macro2::TokenStream;
 use quote::quote;
+use std::mem::replace;
+use syn::{Ident, Path, PathArguments};
 
 /// Returns the generated code for a `tock_registers_macro::register_map!` invocation.
 ///
@@ -41,8 +46,55 @@ pub enum Env {
     ProcMacro,
 }
 
+/// Generates the Real struct for a register definition (one that has an operations list).
+/// `struct_name` is the name of the struct to generate, which does not need to match the name of
+/// the register.
+#[allow(unused)] // TODO: Remove when code generation is implemented.
+fn register_definition(
+    tock_registers: &Path,
+    docs: TokenStream,
+    bus_default: &TokenStream,
+    struct_name: &Ident,
+    register: &RegisterSpec,
+    operations: &[Path],
+) -> TokenStream {
+    let new_comment = new_doc_comment();
+    let element_type = &register.element_type;
+    let mut op_macros = Vec::with_capacity(operations.len());
+    let mut op_generics = Vec::with_capacity(operations.len());
+    for mut path in operations.iter().cloned() {
+        let last = path.segments.last_mut().expect("empty operation path");
+        op_generics.push(replace(&mut last.arguments, PathArguments::None));
+        op_macros.push(path);
+    }
+    quote! {
+        #docs #[derive(Clone)] pub struct #struct_name<B: Bus #bus_default> {
+            address: B,
+            _phantom: #tock_registers::internal::RealPhantom,
+        }
+        impl<B: Bus> #struct_name<B> {
+            #new_comment pub const unsafe fn new(address: B) -> Self {
+                Self { address, _phantom: #tock_registers::internal::RealPhantom::new() }
+            }
+        }
+        impl<B: Bus> #tock_registers::internal::core::marker::Copy for #struct_name<B> {}
+        // Safety: DataTypeBus' safety invariant requires PADDED_SIZE to be correct.
+        unsafe impl<B: Bus> #tock_registers::Span for #struct_name<B> {
+            type Address = B;
+            const SIZE: usize = <B as #tock_registers::DataTypeBus<#element_type>>::PADDED_SIZE;
+            unsafe fn with_addr(address: B) -> Self {
+                Self { address, _phantom: #tock_registers::internal::RealPhantom::new()  }
+            }
+            type Borrowed<'b> = #struct_name<#tock_registers::BorrowedBus<'b, B>>;
+        }
+        impl<B: Bus> #tock_registers::Register for #struct_name<B> {
+            type DataType = #element_type;
+        }
+        #(#op_macros!(real_impl, #struct_name, #element_type, #op_generics,);)*
+    }
+}
+
 /// Returns the block comment for the `new` function for a register or register block.
-#[allow(unused)] // TODO: Remove once register_definition has been added (as part of the AST PR)
 fn new_doc_comment() -> TokenStream {
     quote! {
         /// Constructs an accessor for this register or register block.
