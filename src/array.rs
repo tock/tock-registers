@@ -107,8 +107,7 @@ impl<Element: Span, L: Len> RealRegisterArray<Element, L> {
     /// Constructs an accessor for the register array at the given address.
     /// # Safety
     /// 1. `address` must point to a register array on the bus corresponding to `Self::Address`.
-    /// 2. The register array's definition (as provided to the
-    ///    [`register_map`](crate::register_map) macro) must correctly describe the pointed-to
+    /// 2. The element type `Element` and the length `L` must correctly describe the pointed-to
     ///    register array.
     /// 3. The returned register array accessor must not be used in a way that causes data races.
     ///    The exact requirements depend on the hardware, but it's usually best to access registers
@@ -121,7 +120,10 @@ impl<Element: Span, L: Len> RealRegisterArray<Element, L> {
     }
 }
 
-impl<Element: Span, L: Len> Span for RealRegisterArray<Element, L> {
+// Safety: Element::SIZE must be correct (Span's safety requirement), and there must be an array of
+// L `Element`s at `address` (RealRegisterArray's safety invariant). Therefore SIZE's calculation
+// is correct.
+unsafe impl<Element: Span, L: Len> Span for RealRegisterArray<Element, L> {
     type Address = Element::Address;
     const SIZE: usize = Element::SIZE * L::LEN;
 

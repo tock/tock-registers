@@ -106,7 +106,8 @@ fn register_definition(
             }
         }
         impl<B: Bus> #tock_registers::internal::core::marker::Copy for #struct_name<B> {}
-        impl<B: Bus> #tock_registers::Span for #struct_name<B> {
+        // Safety: DataTypeBus' safety invariant requires PADDED_SIZE to be correct.
+        unsafe impl<B: Bus> #tock_registers::Span for #struct_name<B> {
             type Address = B;
             const SIZE: usize = <B as #tock_registers::DataTypeBus<#element_type>>::PADDED_SIZE;
             unsafe fn with_addr(address: B) -> Self {

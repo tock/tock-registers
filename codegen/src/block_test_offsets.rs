@@ -171,7 +171,7 @@ fn offsets() {
                     }
                 }
             }
-            impl<B: Bus> ::tock_registers::Span for Real<B> {
+            unsafe impl<B: Bus> ::tock_registers::Span for Real<B> {
                 type Address = B;
                 const SIZE: usize = <B as Bus>::SIZE;
                 unsafe fn with_addr(address: B) -> Self {
@@ -189,7 +189,7 @@ fn offsets() {
                 }
             }
             impl<B: Bus> ::tock_registers::internal::core::marker::Copy for real_variable_size<B> {}
-            impl<B: Bus> ::tock_registers::Span for real_variable_size<B> {
+            unsafe impl<B: Bus> ::tock_registers::Span for real_variable_size<B> {
                 type Address = B;
                 const SIZE: usize = <B as ::tock_registers::DataTypeBus<usize>>::PADDED_SIZE;
                 unsafe fn with_addr(address: B) -> Self {
@@ -211,7 +211,7 @@ fn offsets() {
                 }
             }
             impl<B: Bus> ::tock_registers::internal::core::marker::Copy for real_size_variable_pos<B> {}
-            impl<B: Bus> ::tock_registers::Span for real_size_variable_pos<B> {
+            unsafe impl<B: Bus> ::tock_registers::Span for real_size_variable_pos<B> {
                 type Address = B;
                 const SIZE: usize = <B as ::tock_registers::DataTypeBus<u32>>::PADDED_SIZE;
                 unsafe fn with_addr(address: B) -> Self {
@@ -233,7 +233,7 @@ fn offsets() {
                 }
             }
             impl<B: Bus> ::tock_registers::internal::core::marker::Copy for real_aliased<B> {}
-            impl<B: Bus> ::tock_registers::Span for real_aliased<B> {
+            unsafe impl<B: Bus> ::tock_registers::Span for real_aliased<B> {
                 type Address = B;
                 const SIZE: usize = <B as ::tock_registers::DataTypeBus<u16>>::PADDED_SIZE;
                 unsafe fn with_addr(address: B) -> Self {
@@ -254,7 +254,7 @@ fn offsets() {
             }
             impl<B: Bus> ::tock_registers::internal::core::marker::Copy
             for real_fixed_pos<B> {}
-            impl<B: Bus> ::tock_registers::Span for real_fixed_pos<B> {
+            unsafe impl<B: Bus> ::tock_registers::Span for real_fixed_pos<B> {
                 type Address = B;
                 const SIZE: usize = <B as ::tock_registers::DataTypeBus<u32>>::PADDED_SIZE;
                 unsafe fn with_addr(address: B) -> Self {
@@ -277,7 +277,7 @@ fn offsets() {
             }
             impl<B: Bus> ::tock_registers::internal::core::marker::Copy
             for real_padded_pos<B> {}
-            impl<B: Bus> ::tock_registers::Span for real_padded_pos<B> {
+            unsafe impl<B: Bus> ::tock_registers::Span for real_padded_pos<B> {
                 type Address = B;
                 const SIZE: usize = <B as ::tock_registers::DataTypeBus<u8>>::PADDED_SIZE;
                 unsafe fn with_addr(address: B) -> Self {

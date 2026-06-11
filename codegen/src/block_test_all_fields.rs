@@ -217,7 +217,7 @@ fn all_field_types_example() {
                     }
                 }
             }
-            impl<B: Bus> ::tock_registers::Span for Real<B> {
+            unsafe impl<B: Bus> ::tock_registers::Span for Real<B> {
                 type Address = B;
                 const SIZE: usize = <B as Bus>::SIZE;
                 unsafe fn with_addr(address: B) -> Self {
@@ -236,7 +236,7 @@ fn all_field_types_example() {
             }
             impl<B: Bus> ::tock_registers::internal::core::marker::Copy
             for real_scalar_definition<B> {}
-            impl<B: Bus> ::tock_registers::Span for real_scalar_definition<B> {
+            unsafe impl<B: Bus> ::tock_registers::Span for real_scalar_definition<B> {
                 type Address = B;
                 const SIZE: usize = <B as ::tock_registers::DataTypeBus<u8>>::PADDED_SIZE;
                 unsafe fn with_addr(address: B) -> Self {
@@ -262,7 +262,7 @@ fn all_field_types_example() {
             }
             impl<B: Bus> ::tock_registers::internal::core::marker::Copy
             for real_array_definition<B> {}
-            impl<B: Bus> ::tock_registers::Span for real_array_definition<B> {
+            unsafe impl<B: Bus> ::tock_registers::Span for real_array_definition<B> {
                 type Address = B;
                 const SIZE: usize = <B as ::tock_registers::DataTypeBus<u8>>::PADDED_SIZE;
                 unsafe fn with_addr(address: B) -> Self {
@@ -287,7 +287,7 @@ fn all_field_types_example() {
             }
             impl<B: Bus> ::tock_registers::internal::core::marker::Copy
             for real_flat_array_definition<B> {}
-            impl<B: Bus> ::tock_registers::Span for real_flat_array_definition<B> {
+            unsafe impl<B: Bus> ::tock_registers::Span for real_flat_array_definition<B> {
                 type Address = B;
                 const SIZE: usize = <B as ::tock_registers::DataTypeBus<u8>>::PADDED_SIZE;
                 unsafe fn with_addr(address: B) -> Self {

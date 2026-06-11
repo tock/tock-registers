@@ -235,7 +235,9 @@ pub fn generate(env: Env, tock_registers: &Path, layout: &Layout, fields: &[Fiel
             impl<B: Bus> Interface for Real<B> where #interface_bounds {
                 #interface_impl_items
             }
-            impl<B: Bus> #tock_registers::Span for Real<B> {
+            // Safety: Our size calculation for Bus::SIZE is correct. Bus is sealed, so there can
+            // be no other implementations of Bus.
+            unsafe impl<B: Bus> #tock_registers::Span for Real<B> {
                 type Address = B;
                 const SIZE: usize = <B as Bus>::SIZE;
                 unsafe fn with_addr(address: B) -> Self {

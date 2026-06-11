@@ -51,7 +51,7 @@ fn flat_array_definition_example() {
                 }
             }
             impl<B: Bus> ::tock_registers::internal::core::marker::Copy for Element<B> {}
-            impl<B: Bus> ::tock_registers::Span for Element<B> {
+            unsafe impl<B: Bus> ::tock_registers::Span for Element<B> {
                 type Address = B;
                 const SIZE: usize = <B as ::tock_registers::DataTypeBus<u8>>::PADDED_SIZE;
                 unsafe fn with_addr(address: B) -> Self {
@@ -122,7 +122,7 @@ fn nested_array_definition_example() {
                 }
             }
             impl<B: Bus> ::tock_registers::internal::core::marker::Copy for Element<B> {}
-            impl<B: Bus> ::tock_registers::Span for Element<B> {
+            unsafe impl<B: Bus> ::tock_registers::Span for Element<B> {
                 type Address = B;
                 const SIZE: usize = <B as ::tock_registers::DataTypeBus<u8>>::PADDED_SIZE;
                 unsafe fn with_addr(address: B) -> Self {

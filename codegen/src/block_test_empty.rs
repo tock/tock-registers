@@ -48,7 +48,7 @@ fn empty() {
             }
             impl<B: Bus> ::tock_registers::internal::core::marker::Copy for Real<B> {}
             impl<B: Bus> Interface for Real<B> where {}
-            impl<B: Bus> ::tock_registers::Span for Real<B> {
+            unsafe impl<B: Bus> ::tock_registers::Span for Real<B> {
                 type Address = B;
                 const SIZE: usize = <B as Bus>::SIZE;
                 unsafe fn with_addr(address: B) -> Self {

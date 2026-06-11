@@ -7,11 +7,9 @@
 
 #![no_std]
 
-// Note that we don't use-import the macro because this file is also used for expand_macros_test,
-// which builds the expanded code without the proc_macros feature.
-use tock_registers::{Read, UnsafeRead, UnsafeWrite, Write};
+use tock_registers::{mmio32_register_map, Read, UnsafeRead, UnsafeWrite, Write};
 
-tock_registers::mmio32_register_map! {
+mmio32_register_map! {
     // External registers to reference.
     a: u8 { Read, Write },
     b: u8 { UnsafeRead, Write },

@@ -56,7 +56,7 @@ fn scalar_definition_example() {
             // than necessary (it has unnecessary trait bounds). Instead, this macro emits the Copy
             // impl directly.
             impl<B: Bus> ::tock_registers::internal::core::marker::Copy for Real<B> {}
-            impl<B: Bus> ::tock_registers::Span for Real<B> {
+            unsafe impl<B: Bus> ::tock_registers::Span for Real<B> {
                 type Address = B;
                 const SIZE: usize = <B as ::tock_registers::DataTypeBus<u8>>::PADDED_SIZE;
                 unsafe fn with_addr(address: B) -> Self {
@@ -151,7 +151,7 @@ fn generic_operation() {
                 }
             }
             impl<B: Bus> ::tock_registers::internal::core::marker::Copy for Real<B> {}
-            impl<B: Bus> ::tock_registers::Span for Real<B> {
+            unsafe impl<B: Bus> ::tock_registers::Span for Real<B> {
                 type Address = B;
                 const SIZE: usize = <B as ::tock_registers::DataTypeBus<u8>>::PADDED_SIZE;
                 unsafe fn with_addr(address: B) -> Self {

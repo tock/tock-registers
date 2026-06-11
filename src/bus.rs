@@ -20,7 +20,8 @@
 //!
 //! Therefore, all real register types ("real" here means it's not a fake/mock/stub for testing)
 //! have a generic argument for their address type. That address type implements the `Address`
-//! trait. In addition, address types should implement [`Bus<T>`] for every type `T` that they support.
+//! trait. In addition, address types should implement [`Bus<T>`] for every value type `T` that
+//! they support.
 
 use crate::DataType;
 use core::marker::PhantomData;
@@ -50,7 +51,10 @@ pub unsafe trait Bus<T>: Address {
 
 /// An accessor for a span of registers. Every Real type implements this. This trait is used to
 /// construct the register accessors, including fields of register blocks and elements of arrays.
-pub trait Span: Copy {
+///
+/// # Safety
+/// SIZE must be correct, as it is used to calculate register offsets.
+pub unsafe trait Span: Copy {
     type Address: Address;
     /// Size this register span occupies in the address space. Depends on the address type.
     const SIZE: usize;
@@ -76,11 +80,17 @@ pub trait Span: Copy {
 
 /// An alias for `Bus<D::Value>`. Used so you don't have to write
 /// `BusValue<<T as DataType>::Value>` (this simplifies the generated code quite a bit).
-pub trait DataTypeBus<D: DataType>: Bus<D::Value> {
-    /// Alias for Bus::PADDED_SIZE;
+///
+/// # Safety
+/// PADDED_SIZE must be correct, as the generated code relies on PADDED_SIZE to calculate register
+/// offsets.
+pub unsafe trait DataTypeBus<D: DataType>: Bus<D::Value> {
+    /// Alias for Bus::PADDED_SIZE.
+    // Safety: Bus' safety condition is that Bus::PADDED_SIZE is correct.
     const PADDED_SIZE: usize = <Self as Bus<D::Value>>::PADDED_SIZE;
 }
-impl<D: DataType, T: Bus<D::Value>> DataTypeBus<D> for T {}
+// Safety: The provided value for PADDED_SIZE is correct.
+unsafe impl<D: DataType, T: Bus<D::Value>> DataTypeBus<D> for T {}
 
 /// A Bus that has a lifetime attached with it. Returned by [`RegisterSender::borrow`].
 #[derive(Clone, Copy)]
