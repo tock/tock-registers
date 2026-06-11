@@ -1,0 +1,26 @@
+# Licensed under the Apache License, Version 2.0 or the MIT License.
+# SPDX-License-Identifier: Apache-2.0 OR MIT
+# Copyright Tock Contributors 2026.
+# Copyright Better Bytes 2026.
+
+[package]
+name = "tock-registers-macros"
+version.workspace = true
+authors.workspace = true
+description = "Proc macros for tock-registers"
+edition.workspace = true
+homepage.workspace = true
+license.workspace = true
+readme.workspace = true
+repository.workspace = true
+
+[lib]
+proc-macro = true
+
+# Note: This crate purposely does not depend on `syn`. If too many crates in
+# this workspace depend on `syn`, then it becomes difficult to determine which
+# `syn` features should be enabled for each crate. This is especially true for
+# tock-registers-codegen, as its tests depend indirectly on this crate, and
+# codegen's tests have their own `syn` feature requirements.
+[dependencies]
+tock-registers-codegen = { features = ["proc-macro"], workspace = true }

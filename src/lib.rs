@@ -69,6 +69,7 @@ pub use data_type::{DataType, Register};
 pub mod debug;
 pub mod fields;
 pub mod interfaces;
+pub mod internal;
 
 mod local_register;
 pub use local_register::LocalRegisterCopy;
