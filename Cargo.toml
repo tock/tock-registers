@@ -2,21 +2,45 @@
 # SPDX-License-Identifier: Apache-2.0 OR MIT
 # Copyright Tock Contributors 2022.
 
-[package]
-name = "tock-registers"
+[workspace]
+members = [
+    "codegen",
+]
+
+[workspace.package]
 version = "0.10.1"
 authors = ["Tock Project Developers <devel@lists.tockos.org>"]
-description = "Memory-Mapped I/O and register interface developed for Tock."
 homepage = "https://www.tockos.org/"
 repository = "https://github.com/tock/tock-registers"
 readme = "README.md"
-keywords = ["tock", "embedded", "registers", "mmio", "bare-metal"]
-categories = ["data-structures", "embedded", "no-std"]
 license = "MIT/Apache-2.0"
 edition = "2021"
 # This must be kept in sync with rust-toolchain.toml; please see that file for
 # more information.
 rust-version = "1.82"
+
+[workspace.dependencies]
+proc-macro2 = { default-features = false, version = "1.0.106" }
+quote = { default-features = false, version = "1.0.45" }
+tock-registers-codegen = { path = "codegen", version = "=0.10.1" }
+
+[workspace.dependencies.syn]
+default-features = false
+features = ["clone-impls", "derive", "parsing", "printing"]
+version = "2.0.117"
+
+[package]
+name = "tock-registers"
+version.workspace = true
+authors.workspace = true
+categories = ["data-structures", "embedded", "no-std"]
+description = "Memory-Mapped I/O and register interface developed for Tock."
+edition.workspace = true
+homepage.workspace = true
+keywords = ["tock", "embedded", "registers", "mmio", "bare-metal"]
+license.workspace = true
+readme.workspace = true
+repository.workspace = true
 
 [features]
 default = [ "register_types" ]
