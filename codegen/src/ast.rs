@@ -10,9 +10,10 @@ use quote::quote;
 use std::{ops::Index, slice};
 use syn::{Attribute, Ident, LitInt, Path, Type, TypePath, Visibility};
 
-/// Represents the full input to the register_map! procedural macro. Note that
-/// `tock_registers::register_map!` prepends `$crate` to the input provided by the user, so that
-/// the generated code can refer to tock_registers even if the user has renamed the crate.
+/// Represents the full input to the register_map! procedural macro.
+///
+/// Note that `tock_registers::register_map!` prepends `$crate` to the input provided by the user,
+/// so that the generated code can refer to tock_registers even if the user has renamed the crate.
 /// Therefore, after `tock_registers::register_map!` is expanded, the full input looks like:
 ///
 /// ```
@@ -113,8 +114,10 @@ impl BusAttr {
     }
 }
 
-/// The part of a register that begins after the register's name. For individual register
-/// layouts, this starts with the colon, and in register blocks this begins with the opening brace.
+/// The part of a register that begins after the register's name.
+///
+/// For individual register layouts, this starts with the colon, and in register blocks this begins
+/// with the opening brace.
 ///
 /// ```
 /// # use tock_registers::{Read, Write};

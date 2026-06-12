@@ -30,7 +30,7 @@ macro_rules! mmio_structs {
 
         // Safety: Mmio* does not expose safe operations to access registers on its own. Instead,
         // it is used through two types:
-        // 1. The Real<> structs, which are always !Send + !Sync
+        // 1. The register accessor structs, which are always !Send + !Sync
         // 2. RegisterSender<>, which is Send if the bus is Send but which guarantees that only one
         //    thread can access the registers at a time. Making Mmio* Send enables RegisterSender<>
         //    to work with it.

@@ -61,11 +61,11 @@ macro_rules! UnsafeWrite {
             for $name<B>
         {
             unsafe fn set(self, value: <$datatype as $crate::DataType>::Value) {
-                // Safety: The caller assured this GenericReal points at a register on bus B with
-                // value type $datatype::Value that is safe to write. The code that constructed
-                // `self` guaranteed that they would avoid data races (precondition of Self::new).
-                // The caller has complied with the hardware-specific safety requirements for
-                // reading this register.
+                // Safety: The caller assured this register accessor points at a register on bus B
+                // with value type $datatype::Value that is safe to write. The code that
+                // constructed `self` guaranteed that they would avoid data races (precondition of
+                // Self::new). The caller has complied with the hardware-specific safety
+                // requirements for reading this register.
                 unsafe { self.address.write(value) }
             }
         }

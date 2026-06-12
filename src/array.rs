@@ -14,7 +14,7 @@ pub trait RegisterArray<L: Len>: Copy {
 
     // Default implementations of get() and get_unchecked() are provided that depend on each other.
     // RealArray implementations need to implement at least one of the methods to avoid infinite
-    // recursion. In general, Real register implementations (such as RealRegisterArray) will
+    // recursion. In general, real register implementations (such as RealRegisterArray) will
     // implement get_unchecked(), while fake implementations (for unit testing) will probably
     // implement get().
 

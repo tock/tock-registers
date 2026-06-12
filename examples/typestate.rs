@@ -30,9 +30,10 @@ mod typestate {
             {
                 type Token = $token;
                 fn set(self, _: $token, value: <$datatype as tock_registers::DataType>::Value) {
-                    // Safety: The caller assured this GenericReal points at a register on bus B with
-                    // value type $datatype::Value that is safe to write. The code that constructed
-                    // `self` guaranteed that they would avoid data races (precondition of Self::new).
+                    // Safety: The caller assured this register accessor points at a register on
+                    // bus B with value type $datatype::Value that is safe to write. The code that
+                    // constructed `self` guaranteed that they would avoid data races (precondition
+                    // of Self::new).
                     unsafe { self.address.write(value) }
                 }
             }

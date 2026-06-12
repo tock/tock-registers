@@ -198,8 +198,8 @@ macro_rules! Read {
             for $name<B>
         {
             fn get(self) -> <$datatype as $crate::DataType>::Value {
-                // Safety: The caller assured this GenericReal points at a register on bus B with
-                // value type $datatype::Value that is safe to read. The code that constructed
+                // Safety: The caller assured this register accessor points at a register on bus B
+                // with value type $datatype::Value that is safe to read. The code that constructed
                 // `self` guaranteed that they would avoid data races (precondition of Self::new).
                 unsafe { self.address.read() }
             }
