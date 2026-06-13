@@ -44,13 +44,14 @@ pub trait Address: Copy {
 /// PADDED_SIZE must be correct, as the generated code relies on PADDED_SIZE to calculate register
 /// offsets.
 pub unsafe trait Bus<T>: Address {
-    /// The size that a value of type T takes in this bus' address space. This exists because LiteX
-    /// buses have intra-register padding for some types.
+    /// The size that a value of type T takes in this bus' address space.
+    // This exists because some peripherals, such as LiteX peripherals and the 16550 UART, have
+    // different register spacing on different systems.
     const PADDED_SIZE: usize;
 }
 
-/// An accessor for a span of registers. Every Real type implements this. This trait is used to
-/// construct the register accessors, including fields of register blocks and elements of arrays.
+/// Used to construct the register accessors, including fields of register blocks and elements of
+/// arrays.
 ///
 /// # Safety
 /// SIZE must be correct, as it is used to calculate register offsets.
@@ -70,9 +71,9 @@ pub unsafe trait Span: Copy {
     ///    The exact requirements depend on the hardware, but it's usually best to access a
     ///    register span from only one thread at a time.
     // The usual name for this constructor would be `new`. However, `const` is not supported in
-    // traits, so the `const new` function for the Real types is an inherent method. The
-    // `clippy::same_name_method` lint triggers on the redundant `new` functions, so to make this
-    // work in projects that forbid `same_name_method` we use a different name instead.
+    // traits, so the `const new` function for the register accessor types is an inherent method.
+    // The `clippy::same_name_method` lint triggers on the redundant `new` functions, so to make
+    // this work in projects that forbid `same_name_method` we use a different name instead.
     unsafe fn with_addr(address: Self::Address) -> Self;
 
     /// Type of this register with its bus wrapped in BorrowedBus.
@@ -137,8 +138,8 @@ unsafe impl<'b, T, A: Address + Bus<T>> Bus<T> for BorrowedBus<'b, A> {
 
 /// A utility for sharing a register span between threads.
 ///
-/// Unlike the `Real` structs, this implements [`Send`], so it can be moved between threads (using
-/// something like a channel or mutex). To access the register span, call
+/// Unlike the register accessor types, this implements [`Send`], so it can be moved between
+/// threads (using something like a channel or mutex). To access the register span, call
 /// [`borrow`](RegisterSender::borrow) to get a temporary handle to the register span.
 ///
 /// Note that a bus can choose whether RegisterSender works with it by deciding whether to
@@ -153,7 +154,8 @@ where
 }
 
 // Safety: RegisterSender is not Copy or Sync, so only one thread can have an active borrow at a
-// time. That means the hierarchy of Real<> structs can only be accessed from one thread at a time.
+// time. That means the hierarchy of register accessor types can only be accessed from one thread
+// at a time.
 unsafe impl<R: Span> Send for RegisterSender<R> where R::Address: Send {}
 
 impl<R: Span> RegisterSender<R>
