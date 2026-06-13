@@ -17,7 +17,7 @@ pub use core;
 #[cfg(feature = "proc_macros")]
 pub use tock_registers_macros::register_map;
 
-/// Phantom type to make Real structs !Send and !Sync.
+/// Phantom type to make register accessor structs !Send and !Sync.
 #[derive(Clone, Copy, Default)]
 pub struct RealPhantom(PhantomData<*mut ()>);
 
