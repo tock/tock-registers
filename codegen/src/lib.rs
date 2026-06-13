@@ -46,9 +46,9 @@ pub enum Env {
     ProcMacro,
 }
 
-/// Generates the Real struct for a register definition (one that has an operations list).
-/// `struct_name` is the name of the struct to generate, which does not need to match the name of
-/// the register.
+/// Generates the register accessor struct for a single register definition or register definition
+/// field. `struct_name` is the name of the struct to generate, which does not need to match the
+/// name of the register.
 #[allow(unused)] // TODO: Remove when code generation is implemented.
 fn register_definition(
     tock_registers: &Path,
