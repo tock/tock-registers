@@ -12,6 +12,8 @@
 //    cases.
 
 mod ast;
+#[cfg(all(test, not(miri)))]
+mod test_util;
 
 use ast::RegisterSpec;
 use proc_macro2::TokenStream;
