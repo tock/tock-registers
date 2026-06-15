@@ -4,7 +4,6 @@
 
 [workspace]
 members = [
-    "codegen",
 ]
 
 [workspace.package]
@@ -42,8 +41,18 @@ license.workspace = true
 readme.workspace = true
 repository.workspace = true
 
+[dependencies.tock-registers-macros]
+optional = true
+path = "macros"
+version = "=0.10.1"
+
 [features]
-default = [ "register_types" ]
+default = ["proc_macros", "register_types"]
+
+# Includes the tock-registers-macros crate, which provides tock-registers'
+# procedural macros. Note that macros may also require the register_types
+# feature.
+proc_macros = ["dep:tock-registers-macros"]
 
 # Include actual register types (except LocalRegisterCopy). Disabling
 # the feature makes this an interface-only library and removes all
