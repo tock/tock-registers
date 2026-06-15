@@ -63,6 +63,11 @@
 #![cfg_attr(not(feature = "register_types"), forbid(unsafe_code))]
 #![forbid(unsafe_op_in_unsafe_fn)]
 
+#[cfg(feature = "register_types")]
+mod bus;
+#[cfg(feature = "register_types")]
+pub use bus::{Address, BorrowedBus, Bus, DataTypeBus, RegisterSender, Span};
+
 mod data_type;
 pub use data_type::{DataType, Register};
 
