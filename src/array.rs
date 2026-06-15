@@ -70,9 +70,7 @@ pub trait RegisterArray<L: Len>: Copy {
 ///         Register<DataType = u8> + Read + Write>>>;
 /// }
 /// ```
-/// and unfortunately this bound results in a compiler error. As best as I can tell, what happens
-/// is that during implied bounds generation, anti-infinite-recursion logic kicks in and prevents
-/// some of the implied bounds from being generated.
+/// and unfortunately this bound results in a compiler error.
 ///
 /// This issue can pass through the `Interface` traits, so simply banning nested array fields does
 /// not solve the issue:
