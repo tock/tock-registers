@@ -81,8 +81,18 @@ pub use local_register::LocalRegisterCopy;
 
 pub mod macros;
 
+mod read;
+#[cfg(feature = "register_types")]
+pub use read::BusRead;
+pub use read::Read;
+
 #[cfg(feature = "register_types")]
 pub mod registers;
+
+mod write;
+#[cfg(feature = "register_types")]
+pub use write::BusWrite;
+pub use write::{ReadWrite, Write};
 
 use core::fmt::Debug;
 use core::ops::{BitAnd, BitOr, BitOrAssign, Not, Shl, Shr};
