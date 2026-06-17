@@ -12,8 +12,7 @@ pub trait Write: Register {
     /// Set the raw register value
     fn set(self, value: <Self::DataType as DataType>::Value);
 
-    /// Write the value of one or more fields, overwriting the other fields with
-    /// zero
+    /// Write the value of one or more fields, overwriting the other fields with zero.
     fn write(
         &self,
         field: FieldValue<
@@ -24,6 +23,20 @@ pub trait Write: Register {
         <Self::DataType as DataType>::Value: UIntLike,
     {
         self.set(field.value);
+    }
+
+    /// Write the value of one or more fields, leaving the other fields unchanged.
+    fn modify(
+        &self,
+        field: FieldValue<
+            <Self::DataType as DataType>::Value,
+            <Self::DataType as DataType>::LongName,
+        >,
+    ) where
+        Self: Read,
+        <Self::DataType as DataType>::Value: UIntLike,
+    {
+        self.set(field.modify(self.get()));
     }
 
     /// Write the value of one or more fields, maintaining the value of
@@ -45,26 +58,6 @@ pub trait Write: Register {
         self.set(field.modify(original.get()));
     }
 }
-
-/// A register that can be read and written with the same RegisterLongName. This is automatically
-/// implemented for registers that are both Read and Write with the same RegisterLongName.
-pub trait ReadWrite: Read + Write {
-    /// Write the value of one or more fields, leaving the other fields
-    /// unchanged
-    fn modify(
-        &self,
-        field: FieldValue<
-            <Self::DataType as DataType>::Value,
-            <Self::DataType as DataType>::LongName,
-        >,
-    ) where
-        <Self::DataType as DataType>::Value: UIntLike,
-    {
-        self.set(field.modify(self.get()));
-    }
-}
-
-impl<R: Read + Write> ReadWrite for R {}
 
 /// A Bus that implements `BusWrite<T>` can support Write implementations with DataType T. Other
 /// crates (e.g. LiteX registers) can implement this on their own buses so that Write works with
