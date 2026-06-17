@@ -8,31 +8,21 @@ use core::marker::PhantomData;
 
 /// Interface for an array of registers (or register blocks, or register arrays). Each register
 /// type should only implement RegisterArray for a single Len.
+///
+/// A default implementation of [`get_unchecked`](RegisterArray::get_unchecked) is provided that
+/// panics if called with an out-of-bounds index. This default implementation is intended for use
+/// in tests. Real register implementations (such as RealRegisterArray) should provide their own
+/// implementation of `get_unchecked` that omits the index check for efficiency.
 pub trait RegisterArray<L: Len>: Copy {
     /// The type of each element of this array.
     type Element: Copy;
 
-    // Default implementations of get() and get_unchecked() are provided that depend on each other.
-    // RealArray implementations need to implement at least one of the methods to avoid infinite
-    // recursion. In general, real register implementations (such as RealRegisterArray) will
-    // implement get_unchecked(), while fake implementations (for unit testing) will probably
-    // implement get().
-
     /// Returns the `index`-th element of this array, or `None` if `index >= L::LEN`.
-    fn get(self, index: usize) -> Option<Self::Element> {
-        if index >= L::LEN {
-            return None;
-        }
-        // Safety: We returned early if `index >= L::LEN`, so because `index` is an integer type we
-        // know that `index < L::LEN`.
-        Some(unsafe { self.get_unchecked(index) })
-    }
+    fn get(self, index: usize) -> Option<Self::Element>;
 
     /// Returns the `index`-th element of this array.
     /// # Safety
     /// `index` must be less than `L::LEN`
-    // Because this default implementation will only be used in testing environments, it's okay
-    // (and beneficial) for it to have a runtime check.
     unsafe fn get_unchecked(self, index: usize) -> Self::Element {
         self.get(index).unwrap_or_else(|| {
             panic!(
@@ -71,7 +61,19 @@ pub trait RegisterArray<L: Len>: Copy {
 ///         Register<DataType = u8> + Read + Write>>>;
 /// }
 /// ```
-/// and unfortunately this bound results in a compiler error.
+/// and unfortunately this bound results in a compiler error. Moving `LEN` to a const generic:
+/// ```
+/// trait RegisterArray<const LEN: usize> {
+///     type Element;
+/// }
+/// ```
+/// results in the same error:
+/// ```ignore
+/// trait Interface {
+///     type a: RegisterArray<2, Element: RegisterArray<2, Element: RegisterArray<2, Element:
+///         Register<DataType = u8> + Read + Write>>>;
+/// }
+/// ```
 ///
 /// This issue can pass through the `Interface` traits, so simply banning nested array fields does
 /// not solve the issue:
@@ -146,6 +148,15 @@ impl<Element: Span, L: Len> Copy for RealRegisterArray<Element, L> {}
 
 impl<Element: Span, L: Len> RegisterArray<L> for RealRegisterArray<Element, L> {
     type Element = Element;
+
+    fn get(self, index: usize) -> Option<Element> {
+        if index >= L::LEN {
+            return None;
+        }
+        // Safety: We returned early if `index >= L::LEN`, so because `index` is an integer type we
+        // know that `index < L::LEN`.
+        Some(unsafe { self.get_unchecked(index) })
+    }
 
     unsafe fn get_unchecked(self, index: usize) -> Element {
         let offset = index * Element::SIZE;
