@@ -127,7 +127,7 @@ register_bitfields! [
     // Each subsequent parameter is a register abbreviation, its descriptive
     // name, and its associated bitfields.
     // The descriptive name defines this 'group' of bitfields. Only registers
-    // defined as ReadWrite<_, Control::Register> can use these bitfields.
+    // defined with data type Control::Register can use these bitfields.
     Control [
         // Bitfields are defined as:
         // name OFFSET(shift) NUMBITS(num) [ /* optional values */ ]
@@ -262,13 +262,12 @@ Write:
 .set(value: T)                                 // Set the raw register value
 .write(value: FieldValue<T, R>)                // Write the value of one or more fields,
                                                //  overwriting other fields to zero
+.modify(value: FieldValue<T, R>)               // Write the value of one or more fields, leaving
+                                               // other fields unchanged (requires the register is
+                                               // Read as well)
 .modify_no_read(                               // Write the value of one or more fields,
       original: LocalRegisterCopy<T, R>,       //  leaving other fields unchanged, but pass in
       value: FieldValue<T, R>)                 //  the original value, instead of doing a register read
-
-ReadWrite (implemented for all Read + Write registers):
-.modify(value: FieldValue<T, R>)               // Write the value of one or more fields,
-                                               //  leaving other fields unchanged
 ```
 
 In addition to `Read` and `Write`, tock-registers also provides the `UnsafeRead`
@@ -450,8 +449,8 @@ This interface helps the compiler catch some common types of bugs via type check
 
 If you define the bitfields for e.g. a control register, you can give them a
 descriptive group name like `Control`. This group of bitfields will only work
-with a register of the type `ReadWrite<_, Control>` (or `ReadOnly/WriteOnly`,
-etc). For instance, if we have the bitfields and registers as defined above,
+with a register whose data type is `Control::Register`. For instance, if we have
+the bitfields and registers as defined above,
 
 ```rust
 // This line compiles, because registers.cr is associated with the Control group
@@ -469,7 +468,7 @@ There are several related names in the register definitions. Below is a
 description of the naming convention for each:
 
 ```rust
-use tock_registers::registers::ReadWrite;
+use tock_registers::{mmio32_register_map, register_bitfields, Read, Write};
 
 mmio32_register_map! {
     registers {
