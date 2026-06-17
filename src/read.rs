@@ -26,7 +26,7 @@ pub trait Read: Register {
         field.read(self.get())
     }
 
-    /// Set the raw register value
+    /// Read value of the given field as an enum member
     ///
     /// The [`register_bitfields!`](crate::register_bitfields) macro will
     /// generate an enum containing the various named field variants and

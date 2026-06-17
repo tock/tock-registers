@@ -121,7 +121,7 @@ pub use unsafe_write::UnsafeWrite;
 mod write;
 #[cfg(feature = "register_types")]
 pub use write::BusWrite;
-pub use write::{ReadWrite, Write};
+pub use write::Write;
 
 use core::fmt::Debug;
 use core::ops::{BitAnd, BitOr, BitOrAssign, Not, Shl, Shr};
