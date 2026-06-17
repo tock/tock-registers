@@ -26,7 +26,7 @@ pub fn generate(
     // This pattern avoids a lot of code duplication that would occur if we tried to generate each
     // piece of the output module in sequence.
     //
-    // When you're trying to understand this code, I suggest:
+    // When you're trying to understand this code, a good route is:
     //
     // 1. Finding the portion of the generated code you're interested in within scalar_test_basic
     // 2. Tracing that portion of the generated code back through the final quote! invocation to

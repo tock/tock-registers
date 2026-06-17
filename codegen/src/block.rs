@@ -21,12 +21,12 @@ pub fn generate(env: Env, tock_registers: &Path, layout: &Layout, fields: &[Fiel
     // which removes a lot of code duplication.
     //
     // This is generally more complex than single::generate, so if you need to understand/modify
-    // both functions, I suggest working on single::generate first. That knowledge will transfer
+    // both functions, consider working on single::generate first. That knowledge will transfer
     // over to this function.
     //
     // The advice from single::generate's comment about looking at the generated code first, then
     // tracing backwards through the final quote! invocation to find the relevant variables works
-    // in this function as well. I suggest starting from block_test_all_fields.
+    // in this function as well. block_test_all_fields is a good test to look at first.
 
     // Step 1: variable declarations
     let env_allows = match env {
