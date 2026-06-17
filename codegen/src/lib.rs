@@ -12,6 +12,15 @@
 //    cases.
 
 mod ast;
+mod block;
+#[cfg(all(test, not(miri)))]
+mod block_test_all_fields;
+#[cfg(all(test, not(miri)))]
+mod block_test_docs;
+#[cfg(all(test, not(miri)))]
+mod block_test_empty;
+#[cfg(all(test, not(miri)))]
+mod block_test_offsets;
 mod parse;
 #[cfg(all(test, not(miri)))]
 mod parse_tests;
@@ -42,7 +51,7 @@ pub fn register_map(input: TokenStream, env: Env) -> Result<TokenStream, TokenSt
     let mut out = TokenStream::new();
     for layout in input.layouts {
         out.extend(match &layout.value {
-            Block(_fields) => quote![],    // TODO: Implement block generation
+            Block(fields) => block::generate(env, &input.tock_registers, &layout, fields),
             Single(_register) => quote![], // TODO: Implement single generation
         });
     }
