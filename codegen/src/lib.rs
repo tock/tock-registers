@@ -12,14 +12,17 @@
 //    cases.
 
 mod ast;
+mod parse;
+#[cfg(all(test, not(miri)))]
+mod parse_tests;
 #[cfg(all(test, not(miri)))]
 mod test_util;
 
-use ast::RegisterSpec;
+use ast::{Input, RegisterSpec, Value};
 use proc_macro2::TokenStream;
 use quote::quote;
 use std::mem::replace;
-use syn::{Ident, Path, PathArguments};
+use syn::{parse2, Ident, Path, PathArguments};
 
 /// Returns the generated code for a `tock_registers_macro::register_map!` invocation.
 ///
@@ -33,8 +36,17 @@ use syn::{Ident, Path, PathArguments};
 /// If an error is encountered, Err() is returned and the contained TokenStream produces a compiler
 /// error.
 pub fn register_map(input: TokenStream, env: Env) -> Result<TokenStream, TokenStream> {
-    let _ = (input, env);
-    todo!()
+    let _ = env; // TODO: Remove when code generation is implemented
+    use Value::{Block, Single};
+    let input: Input = parse2(input).map_err(|e| e.to_compile_error())?;
+    let mut out = TokenStream::new();
+    for layout in input.layouts {
+        out.extend(match &layout.value {
+            Block(_fields) => quote![],    // TODO: Implement block generation
+            Single(_register) => quote![], // TODO: Implement single generation
+        });
+    }
+    Ok(out)
 }
 
 /// register_map generates slightly different code (different `#![allow()]` attributes) depending
