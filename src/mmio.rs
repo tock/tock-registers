@@ -10,6 +10,14 @@ use core::ptr::{read_volatile, write_volatile, NonNull};
 macro_rules! mmio_structs {
     [$($(#[$docs:meta])* $name:ident($storage:ty))*] => {$(
         $(#[$docs])*
+        ///
+        /// **Note: These cannot be used to start or stop DMA operations.** This bus implements the
+        /// [`Read`](trait@crate::Read) and [`Write`](trait@crate::Write) operations using volatile
+        /// operations. These operations are not synchronizing, which means they do not create
+        /// happens-before relationships in the memory model. This means they cannot be soundly
+        /// used to start DMA operations, stop DMA operations, or check if a DMA operation has
+        /// stopped. See <https://github.com/rust-lang/unsafe-code-guidelines/issues/615> for more
+        /// information.
         #[derive(Clone, Copy)]
         pub struct $name($storage);
 

@@ -8,7 +8,7 @@ use crate::fields::{Field, FieldValue, TryFromValue};
 use crate::{DataType, LocalRegisterCopy, Register, UIntLike};
 use core::marker::PhantomData;
 
-/// A register that can be read, but which can induce Undefined Behavior if read at the wrong time.
+/// A register that can be read, but which can induce undefined behavior if read at the wrong time.
 ///
 /// # Safety
 /// The exact safety invariants of this register are hardware-dependent and should be specified as

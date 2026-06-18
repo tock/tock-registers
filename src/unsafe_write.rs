@@ -5,7 +5,7 @@
 
 use crate::{fields::FieldValue, DataType, LocalRegisterCopy, Register, UIntLike};
 
-/// A register that can be written, but which can induce Undefined Behavior if written incorrectly.
+/// A register that can be written, but which can induce undefined behavior if written incorrectly.
 ///
 /// # Safety
 /// The exact safety invariants of this register are hardware-dependent and should be specified as
