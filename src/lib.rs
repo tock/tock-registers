@@ -64,6 +64,11 @@
 #![forbid(unsafe_op_in_unsafe_fn)]
 
 #[cfg(feature = "register_types")]
+pub mod array;
+#[cfg(feature = "register_types")]
+pub use array::{RealRegisterArray, RegisterArray};
+
+#[cfg(feature = "register_types")]
 mod bus;
 #[cfg(feature = "register_types")]
 pub use bus::{Address, BorrowedBus, Bus, DataTypeBus, RegisterSender, Span};
