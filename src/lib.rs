@@ -86,6 +86,11 @@ pub use local_register::LocalRegisterCopy;
 
 pub mod macros;
 
+#[cfg(feature = "register_types")]
+mod mmio;
+#[cfg(feature = "register_types")]
+pub use mmio::{Mmio32, Mmio32Nullable, Mmio64, Mmio64Nullable};
+
 mod read;
 #[cfg(feature = "register_types")]
 pub use read::BusRead;
