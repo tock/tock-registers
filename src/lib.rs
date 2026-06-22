@@ -64,6 +64,11 @@
 #![forbid(unsafe_op_in_unsafe_fn)]
 
 #[cfg(feature = "register_types")]
+pub mod array;
+#[cfg(feature = "register_types")]
+pub use array::{RealRegisterArray, RegisterArray};
+
+#[cfg(feature = "register_types")]
 mod bus;
 #[cfg(feature = "register_types")]
 pub use bus::{Address, BorrowedBus, Bus, DataTypeBus, RegisterSender, Span};
@@ -82,7 +87,22 @@ pub use local_register::LocalRegisterCopy;
 pub mod macros;
 
 #[cfg(feature = "register_types")]
+mod mmio;
+#[cfg(feature = "register_types")]
+pub use mmio::{Mmio32, Mmio32Nullable, Mmio64, Mmio64Nullable};
+
+mod read;
+#[cfg(feature = "register_types")]
+pub use read::BusRead;
+pub use read::Read;
+
+#[cfg(feature = "register_types")]
 pub mod registers;
+
+mod write;
+#[cfg(feature = "register_types")]
+pub use write::BusWrite;
+pub use write::Write;
 
 use core::fmt::Debug;
 use core::ops::{BitAnd, BitOr, BitOrAssign, Not, Shl, Shr};

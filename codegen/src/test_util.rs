@@ -10,7 +10,6 @@ use syn::parse2;
 
 /// Asserts that two token streams are identical. If they differ, panics with a
 /// pretty-printed diff.
-#[allow(unused)] // TODO: Remove when code generation has been merged.
 #[track_caller]
 pub fn assert_tokens_eq(left: TokenStream, right: TokenStream) {
     if let Err((left, right)) = assert_tokens_eq_impl(left, right) {

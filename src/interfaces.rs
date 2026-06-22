@@ -182,8 +182,6 @@ pub trait Readable {
         field.read(self.get())
     }
 
-    /// Set the raw register value
-    ///
     /// The [`register_bitfields!`](crate::register_bitfields) macro will
     /// generate an enum containing the various named field variants and
     /// implementing the required [`TryFromValue`] trait. It is accessible as

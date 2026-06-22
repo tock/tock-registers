@@ -24,6 +24,13 @@ mod block_test_offsets;
 mod parse;
 #[cfg(all(test, not(miri)))]
 mod parse_tests;
+mod single;
+#[cfg(all(test, not(miri)))]
+mod single_test_array;
+#[cfg(all(test, not(miri)))]
+mod single_test_docs;
+#[cfg(all(test, not(miri)))]
+mod single_test_scalar;
 #[cfg(all(test, not(miri)))]
 mod test_util;
 
@@ -45,14 +52,13 @@ use syn::{parse2, Ident, Path, PathArguments};
 /// If an error is encountered, Err() is returned and the contained TokenStream produces a compiler
 /// error.
 pub fn register_map(input: TokenStream, env: Env) -> Result<TokenStream, TokenStream> {
-    let _ = env; // TODO: Remove when code generation is implemented
     use Value::{Block, Single};
     let input: Input = parse2(input).map_err(|e| e.to_compile_error())?;
     let mut out = TokenStream::new();
     for layout in input.layouts {
         out.extend(match &layout.value {
             Block(fields) => block::generate(env, &input.tock_registers, &layout, fields),
-            Single(_register) => quote![], // TODO: Implement single generation
+            Single(register) => single::generate(env, &input.tock_registers, &layout, register),
         });
     }
     Ok(out)
@@ -72,7 +78,6 @@ pub enum Env {
 /// Generates the register accessor struct for a single register definition or register definition
 /// field. `struct_name` is the name of the struct to generate, which does not need to match the
 /// name of the register.
-#[allow(unused)] // TODO: Remove when code generation is implemented.
 fn register_definition(
     tock_registers: &Path,
     docs: TokenStream,
