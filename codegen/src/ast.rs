@@ -5,8 +5,6 @@
 
 //! The Abstract Syntax Tree for a register_map! invocation.
 
-#![allow(unused)] // TODO: Remove once code generation (block, single) is merged.
-
 // TODO: Remove `ignore` from the doc tests once the macros and Read/Write ops have been merged.
 
 use proc_macro2::TokenStream;

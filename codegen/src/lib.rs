@@ -12,6 +12,15 @@
 //    cases.
 
 mod ast;
+mod block;
+#[cfg(all(test, not(miri)))]
+mod block_test_all_fields;
+#[cfg(all(test, not(miri)))]
+mod block_test_docs;
+#[cfg(all(test, not(miri)))]
+mod block_test_empty;
+#[cfg(all(test, not(miri)))]
+mod block_test_offsets;
 mod parse;
 #[cfg(all(test, not(miri)))]
 mod parse_tests;
@@ -47,10 +56,8 @@ pub fn register_map(input: TokenStream, env: Env) -> Result<TokenStream, TokenSt
     let input: Input = parse2(input).map_err(|e| e.to_compile_error())?;
     let mut out = TokenStream::new();
     for layout in input.layouts {
-        // TODO: Remove rustfmt::skip after block generation is merged.
-        #[rustfmt::skip]
         out.extend(match &layout.value {
-            Block(_fields) => quote![],    // TODO: Implement block generation
+            Block(fields) => block::generate(env, &input.tock_registers, &layout, fields),
             Single(register) => single::generate(env, &input.tock_registers, &layout, register),
         });
     }
