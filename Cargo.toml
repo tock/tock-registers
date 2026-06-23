@@ -4,6 +4,8 @@
 
 [workspace]
 members = [
+    "multi_crate_test/child",
+    "multi_crate_test/parent",
 ]
 
 [workspace.package]
