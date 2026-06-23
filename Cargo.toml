@@ -4,6 +4,7 @@
 
 [workspace]
 members = [
+    "expand_macros",
 ]
 
 [workspace.package]

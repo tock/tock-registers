@@ -1,0 +1,17 @@
+# Licensed under the Apache License, Version 2.0 or the MIT License.
+# SPDX-License-Identifier: Apache-2.0 OR MIT
+# Copyright Tock Contributors 2026.
+# Copyright Better Bytes 2026.
+
+[workspace]
+
+[package]
+name = "expand-macros-test"
+edition = "2021"
+publish = false
+version = "0.1.0"
+
+[dependencies.tock-registers]
+default-features = false
+features = ["register_types"]
+path = "../.."
