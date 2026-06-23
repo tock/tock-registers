@@ -44,8 +44,7 @@ pub trait RegisterArray<L: Len>: Copy {
 /// }
 /// ```
 /// However, when you have a nested array in a register block:
-// TODO: Remove `ignore` once mmio32_register_map exists.
-/// ```ignore
+/// ```
 /// # fn main() {}
 /// # use tock_registers::{mmio32_register_map, Read, Write};
 /// mmio32_register_map! {
@@ -77,8 +76,7 @@ pub trait RegisterArray<L: Len>: Copy {
 ///
 /// This issue can pass through the `Interface` traits, so simply banning nested array fields does
 /// not solve the issue:
-// TODO: Remove `ignore` once mmio32_register_map exists.
-/// ```ignore
+/// ```
 /// # fn main() {}
 /// # use tock_registers::{mmio32_register_map, Read, Write};
 /// mmio32_register_map! {

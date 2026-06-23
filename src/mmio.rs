@@ -179,8 +179,7 @@ bus_impls!(Mmio64, Mmio64Nullable, [], usize, 8);
 bus_impls!(Mmio64, Mmio64Nullable, [T: Sized], *const T, 8);
 bus_impls!(Mmio64, Mmio64Nullable, [T: Sized], *mut T, 8);
 
-// TODO: Link using [`register_map!`](crate::register_map) when register_map! is merged.
-/// An alias for `register_map!` with `#![bus(Mmio32)]` at the top.
+/// An alias for [`register_map!`](crate::register_map) with `#![bus(Mmio32)]` at the top.
 /// In other words:
 /// ```
 /// use tock_registers::{mmio32_register_map, Mmio32};
@@ -189,8 +188,7 @@ bus_impls!(Mmio64, Mmio64Nullable, [T: Sized], *mut T, 8);
 /// }
 /// ```
 /// is equivalent to:
-// TODO: Remove `ignore` when register_map is merged.
-/// ```ignore
+/// ```
 /// use tock_registers::{register_map, Mmio32};
 /// register_map! {
 ///     #![bus(Mmio32)]
@@ -207,8 +205,7 @@ macro_rules! mmio32_register_map {
     }
 }
 
-// TODO: Link using [`register_map!`](crate::register_map) when register_map! is merged.
-/// An alias for `register_map!` with `#![bus(Mmio64)]` at the top.
+/// An alias for [`register_map!`](crate::register_map) with `#![bus(Mmio64)]` at the top.
 /// In other words:
 /// ```
 /// use tock_registers::{mmio64_register_map, Mmio64};
@@ -217,8 +214,7 @@ macro_rules! mmio32_register_map {
 /// }
 /// ```
 /// is equivalent to:
-// TODO: Remove `ignore` when register_map is merged.
-/// ```ignore
+/// ```
 /// use tock_registers::{register_map, Mmio64};
 /// register_map! {
 ///     #![bus(Mmio64)]
