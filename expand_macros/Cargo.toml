@@ -1,0 +1,23 @@
+# Licensed under the Apache License, Version 2.0 or the MIT License.
+# SPDX-License-Identifier: Apache-2.0 OR MIT
+# Copyright Tock Contributors 2026.
+# Copyright Better Bytes 2026.
+
+[package]
+name = "tock-registers-expand-macros"
+version.workspace = true
+authors.workspace = true
+description = "Tool to expand tock-registers' procedural macros."
+homepage.workspace = true
+repository.workspace = true
+license.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+clap = { default-features = false, features = ["std"], version = "3.2.23" }
+prettyplease = { features = ["verbatim"], version = "0.2.37" }
+proc-macro2.workspace = true
+quote.workspace = true
+syn.workspace = true
+tock-registers-codegen.workspace = true
