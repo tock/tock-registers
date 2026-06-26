@@ -86,6 +86,9 @@ pub use local_register::LocalRegisterCopy;
 
 pub mod macros;
 
+#[cfg(all(feature = "proc_macros", feature = "register_types"))]
+mod map;
+
 #[cfg(feature = "register_types")]
 mod mmio;
 #[cfg(feature = "register_types")]

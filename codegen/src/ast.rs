@@ -5,8 +5,6 @@
 
 //! The Abstract Syntax Tree for a register_map! invocation.
 
-// TODO: Remove `ignore` from the doc tests once the macros and Read/Write ops have been merged.
-
 use proc_macro2::TokenStream;
 use quote::quote;
 use std::{ops::Index, slice};
@@ -18,7 +16,7 @@ use syn::{Attribute, Ident, LitInt, Path, Type, TypePath, Visibility};
 /// so that the generated code can refer to tock_registers even if the user has renamed the crate.
 /// Therefore, after `tock_registers::register_map!` is expanded, the full input looks like:
 ///
-/// ```ignore
+/// ```
 /// # use tock_registers::{Mmio32, Read, Write};
 /// # fn main() {}
 /// tock_registers::internal::register_map! {
@@ -48,7 +46,7 @@ pub struct Input {
 
 /// An individual register or register block layout.
 ///
-/// ```ignore
+/// ```
 /// # use tock_registers::{Read, Write};
 /// # fn main() {}
 /// tock_registers::mmio32_register_map! {
@@ -121,7 +119,7 @@ impl BusAttr {
 /// For individual register layouts, this starts with the colon, and in register blocks this begins
 /// with the opening brace.
 ///
-/// ```ignore
+/// ```
 /// # use tock_registers::{Read, Write};
 /// # fn main() {}
 /// tock_registers::mmio32_register_map! {
@@ -150,7 +148,7 @@ pub enum Value {
 
 /// An individual field in a register block. A Field can be padding or a register.
 ///
-/// ```ignore
+/// ```
 /// # use tock_registers::{Read, Write};
 /// # fn main() {}
 /// tock_registers::mmio32_register_map! {
@@ -183,7 +181,7 @@ pub struct Field {
 /// Note that when a FieldDef::Register is initially parsed, `aliased` is always false and `docs`
 /// is always empty. The Parse impl on Field sets those fields.
 ///
-/// ```ignore
+/// ```
 /// # use tock_registers::Read;
 /// # fn main() {}
 /// tock_registers::mmio32_register_map! {
@@ -220,7 +218,7 @@ pub enum FieldDef {
 /// value, which applies to all buses, or an array of values. The number of values in the array
 /// must match the number of buses.
 ///
-/// ```ignore
+/// ```
 /// # use tock_registers::{Mmio32, Mmio64, Read, Write};
 /// # fn main() {}
 /// tock_registers::register_map! {
@@ -267,7 +265,7 @@ impl Index<usize> for PerBusInt {
 /// reference (whic refers to a register definition elsewhere). The RegisterSpec begins immediately
 /// after the register's name (i.e. it includes the ':').
 ///
-/// ```ignore
+/// ```
 /// # use tock_registers::{Read, Write};
 /// # fn main() {}
 /// tock_registers::mmio32_register_map! {

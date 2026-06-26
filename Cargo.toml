@@ -4,6 +4,7 @@
 
 [workspace]
 members = [
+    "expand_macros",
     "multi_crate_test/child",
     "multi_crate_test/parent",
 ]
