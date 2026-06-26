@@ -5,8 +5,8 @@
 [workspace]
 members = [
     "expand_macros",
-    "multi_crate_test/child",
-    "multi_crate_test/parent",
+    "tests/multi_crate/child",
+    "tests/multi_crate/parent",
 ]
 
 [workspace.package]
