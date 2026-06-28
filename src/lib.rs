@@ -81,7 +81,7 @@ pub mod debug;
 mod fake_register;
 #[cfg(feature = "register_types")]
 pub use fake_register::FakeRegisterArray;
-pub use fake_register::{FakeRegister, NoAccess, Safe, Unsafe};
+pub use fake_register::{FakeRegister, NoAccess, Safe};
 
 pub mod fields;
 pub mod interfaces;
@@ -107,16 +107,6 @@ pub use read::Read;
 
 #[cfg(feature = "register_types")]
 pub mod registers;
-
-#[cfg(feature = "register_types")]
-mod unsafe_read;
-#[cfg(feature = "register_types")]
-pub use unsafe_read::UnsafeRead;
-
-#[cfg(feature = "register_types")]
-mod unsafe_write;
-#[cfg(feature = "register_types")]
-pub use unsafe_write::UnsafeWrite;
 
 mod write;
 #[cfg(feature = "register_types")]

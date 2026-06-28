@@ -4,7 +4,7 @@
 // Copyright Better Bytes 2026.
 
 #[cfg(feature = "register_types")]
-use crate::{array::Len, RegisterArray, UnsafeRead, UnsafeWrite};
+use crate::{array::Len, RegisterArray};
 use crate::{DataType, Read, Register, Write};
 #[cfg(feature = "register_types")]
 use core::marker::PhantomData;
@@ -40,10 +40,8 @@ use core::marker::PhantomData;
 ///
 /// A FakeRegister is constructed using the builder pattern. When the FakeRegister is first
 /// constructed, it does not support any operations (the read and write access are both NoAccess).
-/// That can be changed by calling [on_read](FakeRegister::on_read),
-/// [on_write](FakeRegister::on_write), [on_unsafe_read](FakeRegister::on_unsafe_read), and/or
-/// [on_unsafe_write](FakeRegister::on_unsafe_write), which will return a new FakeRegister with a
-/// different type.
+/// That can be changed by calling [on_read](FakeRegister::on_read) or
+/// [on_write](FakeRegister::on_write), which will return a new FakeRegister with a different type.
 ///
 /// FakeRegister is limited to the Read and Write operations. Crates that add other operations
 /// should consider implementing their own version of FakeRegister to make it easy to write fake
@@ -87,30 +85,6 @@ impl<Data: Copy, DT: DataType, R: Access, W: Access> FakeRegister<Data, DT, R, W
             write: fcn,
         }
     }
-
-    /// Returns a new FakeRegister that implements `trait@UnsafeRead` by invoking `fcn`.
-    pub const fn on_unsafe_read(
-        self,
-        fcn: unsafe fn(Data) -> DT::Value,
-    ) -> FakeRegister<Data, DT, Unsafe, W> {
-        FakeRegister {
-            data: self.data,
-            read: fcn,
-            write: self.write,
-        }
-    }
-
-    /// Returns a new FakeRegister that implements `trait@UnsafeWrite` by invoking `fcn`.
-    pub const fn on_unsafe_write(
-        self,
-        fcn: unsafe fn(Data, DT::Value),
-    ) -> FakeRegister<Data, DT, R, Unsafe> {
-        FakeRegister {
-            data: self.data,
-            read: self.read,
-            write: fcn,
-        }
-    }
 }
 
 // #[derive(Clone, Copy)] emits overly-conservative trait bounds which make FakeRegister not
@@ -138,35 +112,15 @@ impl<Data: Copy, DT: DataType, W: Access> Read for FakeRegister<Data, DT, Safe, 
     }
 }
 
-#[cfg(feature = "register_types")]
-impl<Data: Copy, DT: DataType, W: Access> UnsafeRead for FakeRegister<Data, DT, Unsafe, W> {
-    unsafe fn get(self) -> DT::Value {
-        // Safety: There may or not actually be any safety requirements because this is a fake
-        // rather than the real hardware, but either way the caller has complied with the
-        // register's safety requirements.
-        unsafe { (self.read)(self.data) }
-    }
-}
-
-#[cfg(feature = "register_types")]
-impl<Data: Copy, DT: DataType, R: Access> UnsafeWrite for FakeRegister<Data, DT, R, Unsafe> {
-    unsafe fn set(self, value: DT::Value) {
-        // Safety: There may or not actually be any safety requirements because this is a fake
-        // rather than the real hardware, but either way the caller has complied with the
-        // register's safety requirements.
-        unsafe { (self.write)(self.data, value) }
-    }
-}
-
 impl<Data: Copy, DT: DataType, R: Access> Write for FakeRegister<Data, DT, R, Safe> {
     fn set(self, value: DT::Value) {
         (self.write)(self.data, value)
     }
 }
 
-/// Trait used to control whether a FakeRegister implements Read, Write, UnsafeRead, and
-/// UnsafeWrite. This trait is sealed, as the only options are [`NoAccess`], [`Safe`], and
-/// [`Unsafe`].
+/// Trait used to control whether a FakeRegister implements Read and/or Write. This trait is
+/// sealed, as the only options are [`NoAccess`] and [`Safe`]. In the future, we may add more
+/// variants, such as an `Unsafe` variant to support `UnsafeRead` and `UnsafeWrite` operations.
 pub trait Access: sealed::Access {
     /// The function pointer type used for read operations.
     type ReadFn<Data: Copy, DT: DataType>: Copy;
@@ -189,21 +143,12 @@ impl Access for Safe {
     type WriteFn<Data: Copy, DT: DataType> = fn(Data, DT::Value);
 }
 
-/// Indicates that this FakeRegister does implements the corresponding unsafe read or write
-/// operation.
-pub enum Unsafe {}
-impl Access for Unsafe {
-    type ReadFn<Data: Copy, DT: DataType> = unsafe fn(Data) -> DT::Value;
-    type WriteFn<Data: Copy, DT: DataType> = unsafe fn(Data, DT::Value);
-}
-
 mod sealed {
     pub trait Access {}
 }
 
 impl sealed::Access for NoAccess {}
 impl sealed::Access for Safe {}
-impl sealed::Access for Unsafe {}
 
 /// A fake register array, for use in unit tests.
 ///

@@ -10,14 +10,14 @@
 #![no_implicit_prelude]
 #![no_std]
 
-use ::tock_registers::{mmio32_register_map, Read, UnsafeRead, UnsafeWrite, Write};
+use ::tock_registers::{mmio32_register_map, Read, Write};
 
 mmio32_register_map! {
     a: u8 { Read, Write },
-    b: u8 { UnsafeRead, Write },
+    b: u8 { Write },
     c {
-        0 => scalar_definition: u8 { Read, UnsafeWrite },
-        1 => array_definition: [[u8; 2]; 3] { UnsafeRead, UnsafeWrite },
+        0 => scalar_definition: u8 { Read },
+        1 => array_definition: [[u8; 2]; 3] { Read, Write },
         7 => _: 1,
         8 => scalar_reference: a,
         9 => array_reference: [[b; 2]; 3],

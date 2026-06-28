@@ -99,15 +99,15 @@
 #![forbid(non_upper_case_globals)]
 #![forbid(unused)]
 
-use tock_registers::{register_map, Mmio32, Mmio64, Read, UnsafeRead, UnsafeWrite, Write};
+use tock_registers::{register_map, Mmio32, Mmio64, Read, Write};
 
 register_map! {
     #![buses(Mmio32, Mmio64)]
     aa: u8 { Read, Write },
-    bb: u8 { UnsafeRead, Write },
+    bb: u8 { Write },
     cc {
-        0usize => scalar_definition: u8 { Read, UnsafeWrite },
-        1usize => array_definition: [[u8; 2]; 3] { UnsafeRead, UnsafeWrite },
+        0usize => scalar_definition: u8 { Read },
+        1usize => array_definition: [[u8; 2]; 3] { Read, Write },
         7usize => _: [1usize, 1usize],
         [8usize, 8usize] => scalar_reference: aa,
         9usize => array_reference: [[bb; 2]; 3],
