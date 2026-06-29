@@ -270,10 +270,6 @@ Write:
       value: FieldValue<T, R>)                 //  the original value, instead of doing a register read
 ```
 
-In addition to `Read` and `Write`, tock-registers also provides the `UnsafeRead`
-and `UnsafeWrite` operations for hardware registers that are unsafe (such as DMA
-peripherals).
-
 External crates can [define new
 operations](doc/AddingRegisterTypes.md#adding-new-operations), allowing them to
 support register types that tock-registers does not directly support.
