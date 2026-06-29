@@ -40,8 +40,7 @@
 ///
 /// To unit test code that uses the generated register, modify the code that you want to test so
 /// that it takes a `C: ctrl::Interface` rather than a `Real`. Then, in the unit test, you can pass
-// TODO: Link FakeRegister using [`FakeRegister`](crate::FakeRegister)
-/// in a `FakeRegister` with whatever behavior the test case needs. See
+/// in a [`FakeRegister`](crate::FakeRegister) with whatever behavior the test case needs. See
 /// `doc/UnitTesting.md` in the tock-registers repository for more information.
 ///
 /// # mmio32_register_map and mmio64_register_map
