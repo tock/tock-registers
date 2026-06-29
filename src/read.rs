@@ -171,8 +171,8 @@ pub trait Read: Register {
 pub trait BusRead<T>: Bus<T> {
     /// # Safety
     /// There must be a readable register of type T at `pointer`, and if the register itself has
-    /// safety invariants (i.e. it is `UnsafeRead`) the caller must satisfy those. The caller is
-    /// responsible for avoiding data races.
+    /// safety invariants the caller must satisfy those. The caller is responsible for avoiding
+    /// data races.
     unsafe fn read(self) -> T;
 }
 
