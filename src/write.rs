@@ -66,8 +66,8 @@ pub trait Write: Register {
 pub trait BusWrite<T>: Bus<T> {
     /// # Safety
     /// There must be a writable register of type T at `pointer`, and if the register itself has
-    /// safety invariants (i.e. it is `UnsafeWrite`) the caller must satisfy those. The caller is
-    /// responsible for avoiding data races.
+    /// safety invariants the caller must satisfy those. The caller is responsible for avoiding
+    /// data races.
     unsafe fn write(self, value: T);
 }
 
