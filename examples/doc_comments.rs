@@ -44,9 +44,6 @@ mmio32_register_map! {
 }
 
 mmio32_register_map! {
-    //! Inner doc comment on the register_map! invocation itself. This doc comment will be copied
-    //! onto both `buttons` and `pins`.
-
     /// Doc comment that only applies to buttons.
     pub buttons: u8 { Read },
 
