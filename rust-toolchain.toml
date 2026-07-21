@@ -7,7 +7,8 @@
 #
 # Update policy: Update this if doing so allows you to use a Rust feature that
 # you'd like to use. When you do so, update this to the first Rust version that
-# includes that feature. Whenever this value is updated, the rust-version field
-# in Cargo.toml must be updated as well.
+# includes that feature. Whenever this value is updated, you should update the
+# rust-version field in Cargo.toml and add any newly-available lints to
+# tests/many_lints.rs.
 channel = "1.82"
 components = ["clippy", "rustfmt"]

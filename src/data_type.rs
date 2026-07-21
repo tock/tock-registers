@@ -7,8 +7,7 @@ use crate::{RegisterLongName, UIntLike};
 
 /// Trait implemented by accessors for individual registers.
 pub trait Register: Copy {
-    // TODO: Link `register_map! using [`register_map!`](crate::register_map).
-    /// This register's data type, as specified in `register_map!`'s input.
+    /// This register's data type, as specified in [`register_map!`](crate::register_map)'s input.
     type DataType: DataType;
 }
 

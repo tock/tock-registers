@@ -77,6 +77,12 @@ mod data_type;
 pub use data_type::{DataType, Register};
 
 pub mod debug;
+
+mod fake_register;
+#[cfg(feature = "register_types")]
+pub use fake_register::FakeRegisterArray;
+pub use fake_register::{FakeRegister, NoAccess, Safe};
+
 pub mod fields;
 pub mod interfaces;
 pub mod internal;
@@ -85,6 +91,9 @@ mod local_register;
 pub use local_register::LocalRegisterCopy;
 
 pub mod macros;
+
+#[cfg(all(feature = "proc_macros", feature = "register_types"))]
+mod map;
 
 #[cfg(feature = "register_types")]
 mod mmio;
