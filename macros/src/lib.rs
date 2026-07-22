@@ -3,6 +3,15 @@
 // Copyright Tock Contributors 2026.
 // Copyright Better Bytes 2026.
 
+// TODO: Figure out tock-registers version numbering (interacts with deprecation strategy). Label
+//       register_structs! as deprecated in the appropriate manner.
+// TODO: Update the top-level crate doc comment. It should probably match or be similar to
+//       the README.
+// TODO: Implement a RegisterArray iterator.
+// TODO: Implement UnimplementedRegister, add to operation documentation.
+// TODO: Implement macro that automatically provides the type defs for Interface trait impls.
+// TODO: Implement doc/ParseErrorRecovery
+
 use tock_registers_codegen::Env::ProcMacro;
 
 #[proc_macro]
