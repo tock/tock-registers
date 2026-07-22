@@ -14,23 +14,48 @@ mmio32_register_map! {
     }
 }
 
-/// A driver for this hardware, which fills the provided buffer with random data.
+/// Method to create and use an instance of Rng backed by real hardware.
 ///
-/// This function is unit testable: it can be used with either the real hardware or a fake/mock
-/// implementation of the hardware.
-pub fn getrandom_impl<R: rng::Interface>(registers: R, buffer: &mut [u8]) {
-    for byte in buffer {
-        *byte = registers.random_byte().get();
-    }
+/// Normally, this logic would be external to the driver, e.g. in some board
+/// hardware setup method or similar.
+///
+/// None of this code is exercised when running tests, rather, it's included
+/// as a reference for a minimal complete example.
+pub fn create_and_use_rng<R: rng::Interface>() {
+    // MMIO address of the hardware peripheral (e.g., from a datasheet).
+    const RNG_HARDWARE_ADDRESS: usize = 0x100 as usize;
+
+    // Create Rng Instance
+    let mmio = Mmio32::from_addr(RNG_HARDWARE_ADDRESS);
+    // Safety: We know this device exists at address RNG_HARDWARE_ADDRESS, and
+    // can be accessed from multiple threads with no issue.
+    let registers = unsafe { rng::Real::new(mmio) };
+    let rng = Rng::new(registers);
+
+    // Use the hardware Rng
+    let mut buffer = [0; 3];
+    rng.getrandom(&mut buffer);
 }
 
-/// Driver usable with the real hardware. Fills the provided buffer with random data.
-pub fn getrandom(buffer: &mut [u8]) {
-    let mmio = Mmio32::from_addr(0x100);
-    // Safety: We know this device exists at address 0x100, and can be access from multiple threads
-    // with no issue.
-    let registers = unsafe { rng::Real::new(mmio) };
-    getrandom_impl(registers, buffer);
+/// Instance of an RNG (may be backed by hardware or mocks).
+struct Rng<R: rng::Interface> {
+    registers: R,
+}
+
+impl<R: rng::Interface> Rng<R> {
+    pub const fn new(regs: R) -> Rng<R> {
+        Rng { registers: regs }
+    }
+
+    /// A driver method that fills the provided buffer with random data.
+    ///
+    /// This function is unit testable: it can be used with either the real
+    /// hardware or a fake/mock implementation of the hardware.
+    pub fn getrandom(&self, buffer: &mut [u8]) {
+        for byte in buffer {
+            *byte = self.registers.random_byte().get();
+        }
+    }
 }
 
 #[cfg(test)]
@@ -59,8 +84,11 @@ mod tests {
 
     #[test]
     fn getrandom_test() {
+        let fake_rng = FakeRng::default();
+        let rng = Rng::new(&fake_rng);
+
         let mut buffer = [0; 3];
-        getrandom_impl(&FakeRng::default(), &mut buffer);
+        rng.getrandom(&mut buffer);
         assert_eq!(buffer, [1, 2, 3]);
     }
 }
