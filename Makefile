@@ -24,24 +24,24 @@ toolchain:
 
 .PHONY: basic_test
 basic_test: toolchain
-	+RUSTFLAGS="-D warnings" cargo build --no-default-features
-	+RUSTFLAGS="-D warnings" cargo build --all-targets --workspace
-	+RUSTFLAGS="-D warnings" cargo test --all-targets --workspace
-	+RUSTFLAGS="-D warnings" cargo test --doc --workspace
-	+RUSTFLAGS="-D warnings" cargo clippy --all --all-targets --workspace
-	+RUSTDOCFLAGS="-D warnings" cargo doc --workspace
-	+cargo fmt --all --check
+	RUSTFLAGS="-D warnings" cargo build --no-default-features
+	RUSTFLAGS="-D warnings" cargo build --all-targets --workspace
+	RUSTFLAGS="-D warnings" cargo test --all-targets --workspace
+	RUSTFLAGS="-D warnings" cargo test --doc --workspace
+	RUSTFLAGS="-D warnings" cargo clippy --all --all-targets --workspace
+	RUSTDOCFLAGS="-D warnings" cargo doc --workspace
+	cargo fmt --all --check
 
 # Tests the expand_macros binary.
 .PHONY: expand_macros_test
 expand_macros_test: toolchain
-	+RUSTFLAGS="-D warnings" cargo run -p tock-registers-expand-macros \
+	RUSTFLAGS="-D warnings" cargo run -p tock-registers-expand-macros \
 		--release -- expand_macros/test/src/unexpanded.rs \
 		> expand_macros/test/src/lib.rs
-	+RUSTFLAGS="-D warnings" cargo test \
+	RUSTFLAGS="-D warnings" cargo test \
 		--manifest-path=expand_macros/test/Cargo.toml
 
 .PHONY: miri_test
 miri_test:
-	+cd nightly && RUSTFLAGS="-D warnings" \
+	cd nightly && RUSTFLAGS="-D warnings" \
 		cargo miri test --all-targets --manifest-path=../Cargo.toml --workspace
