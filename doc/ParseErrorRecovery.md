@@ -10,7 +10,7 @@ parsing and returns that error. This has a couple drawbacks:
 1. It means you can only fix one error at a time. For projects where `cargo
    check` (or their build systems' equivalent) takes a while, this adds a
    significant delay.
-1. It ran be bad for IDE integration, because any minor typo/error results in
+1. It can be bad for IDE integration, because any minor typo/error results in
    type checking failing throughout the file.
 
 I (jrvanwhy) started reworking the parsing logic to allow for recovery from some
