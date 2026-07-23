@@ -3,6 +3,16 @@
 tock-registers is designed to enable you to unit test code that depends on
 tock-registers.
 
+## Examples
+
+ - [examples/rng_simplified.rs](../examples/rng_simplified.rs) is a complete
+     testable implementation of the minimal interface described here.
+ - [examples/rng_full.rs](../examples/rng_full.rs) is a more complete example
+     of a hardware definition and associated test harness one might expect to
+     see in a typical codebase.
+
+## Description
+
 Suppose you have a register interface and a driver that uses the register
 interface:
 
@@ -91,5 +101,3 @@ mod tests {
     }
 }
 ```
-
-See [examples/rng.rs](../examples/rng.rs) for the complete example.
