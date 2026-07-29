@@ -10,7 +10,6 @@ associated test harness one might expect to see in a typical codebase.
 ## Description
 
 Suppose you have hardware RNG peripheral with the following register interface:
-
 ```rust
 use tock_registers::{mmio32_register_map, Mmio32, Read};
 
@@ -35,6 +34,7 @@ impl<R: rng::Interface> Rng<R> {
     pub const fn new(regs: R) -> Rng<R> {
         Rng { registers: regs }
     }
+}
 ```
 
 And then the driver presents a high-level interface by defining methods that
@@ -56,7 +56,6 @@ impl<R: rng::Interface> Rng<R> {
 Because the driver object is generic over the `rng::Interface` trait, it is
 unit-testable by simply instantiating the driver with an alternative version of
 the `rng::Interface` trait that emulates the hardware peripheral:
-
 ```rust
 #[cfg(test)]
 mod tests {
