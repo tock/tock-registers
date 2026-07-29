@@ -5,10 +5,8 @@
 
 /// This file is a companion to [Unit Testing](doc/UnitTesting.md).
 ///
-/// This is a full implementation designed to demonstrate how unit testing
-/// hooks integrate with typical hardware instantiation. For an example with
-/// less infrastrucutre around hardware types and definitions that centers on
-/// unit test hooks, consult [the simplified RNG](examples/rng_full.rs).
+/// This is designed to demonstrate how unit testing hooks integrate with
+/// typical hardware instantiation.
 
 use tock_registers::{mmio32_register_map, Mmio32, Read};
 
