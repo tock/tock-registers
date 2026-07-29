@@ -26,6 +26,11 @@ macro_rules! mmio_structs {
             pub const fn new(ptr: $storage) -> Self {
                 Self(ptr)
             }
+
+            /// Returns the inner address.
+            pub const fn address(self) -> $storage {
+                self.0
+            }
         }
 
         impl Address for $name {

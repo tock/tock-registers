@@ -45,3 +45,5 @@ expand_macros_test: toolchain
 miri_test:
 	cd nightly && RUSTFLAGS="-D warnings" \
 		cargo miri test --all-targets --manifest-path=../Cargo.toml --workspace
+	cd nightly && RUSTFLAGS="-D warnings" \
+		cargo miri run --example=safe_dma --manifest-path=../Cargo.toml
