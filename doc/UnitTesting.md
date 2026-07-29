@@ -3,9 +3,13 @@
 tock-registers is designed to enable you to unit test code that depends on
 tock-registers.
 
-Suppose you have a register interface and a driver that uses the register
-interface:
+[examples/rng.rs](../examples/rng.rs) is a complete testable implementation of
+the interfaces described here.  It demonstrates a hardware definition and
+associated test harness one might expect to see in a typical codebase.
 
+## Description
+
+Suppose you have hardware RNG peripheral with the following register interface:
 ```rust
 use tock_registers::{mmio32_register_map, Mmio32, Read};
 
@@ -17,47 +21,41 @@ mmio32_register_map! {
         0 => random_byte: u8 { Read },
     }
 }
-
-/// A driver for this hardware, which fills the provided buffer with random
-/// data.
-pub fn getrandom(buffer: &mut [u8]) {
-    use rng::Interface;
-    let mmio = Mmio32::from_addr(0x100);
-    // Safety: We know this device exists at address 0x100, and can be access from multiple threads
-    // with no issue.
-    let registers = unsafe { rng::Real::new(mmio) };
-    for byte in buffer {
-        *byte = registers.random_byte().get();
-    }
-}
 ```
 
-To make the driver unit-testable, split the portion that uses the registers
-out into a separate function that is generic over the `rng::Interface` trait:
-
+A typical pattern for drivers is to create a struct to hold an instance of a peripheral, i.e.:
 ```rust
-/// A driver for this hardware, which fills the provided buffer with random data. This function is
-/// unit testable: it can be used with either the real hardware or a fake/mock implementation of
-/// the hardware.
-pub fn getrandom_impl<R: rng::Interface>(registers: R, buffer: &mut [u8]) {
-    for byte in buffer {
-        *byte = registers.random_byte().get();
-    }
+/// Instance of an RNG (may be backed by hardware or mocks).
+struct Rng<R: rng::Interface> {
+    registers: R,
 }
 
-/// Driver usable with the real hardware. Fills the provided buffer with random data.
-pub fn getrandom(buffer: &mut [u8]) {
-    let mmio = Mmio32::from_addr(0x100);
-    // Safety: We know this device exists at address 0x100, and can be access from multiple threads
-    // with no issue.
-    let registers = unsafe { rng::Real::new(mmio) };
-    getrandom_impl(registers, buffer);
+impl<R: rng::Interface> Rng<R> {
+    pub const fn new(regs: R) -> Rng<R> {
+        Rng { registers: regs }
+    }
 }
 ```
 
-You can now create an alternative version of the Interface trait which emulates
-the hardware peripheral:
+And then the driver presents a high-level interface by defining methods that
+operate on the low-level register interface:
+```rust
+impl<R: rng::Interface> Rng<R> {
+    /// A driver method that fills the provided buffer with random data.
+    ///
+    /// This method is unit testable: it can be used with either the real
+    /// hardware or a fake/mock implementation of the hardware.
+    pub fn getrandom(&self, buffer: &mut [u8]) {
+        for byte in buffer {
+            *byte = self.registers.random_byte().get();
+        }
+    }
+}
+```
 
+Because the driver object is generic over the `rng::Interface` trait, it is
+unit-testable by simply instantiating the driver with an alternative version of
+the `rng::Interface` trait that emulates the hardware peripheral:
 ```rust
 #[cfg(test)]
 mod tests {
@@ -86,10 +84,15 @@ mod tests {
     #[test]
     fn getrandom_test() {
         let mut buffer = [0; 3];
-        getrandom_impl(&FakeRng::default(), &mut buffer);
+
+        // Create an instance of an `Rng` backed by mocked hardware.
+        let fake_rng = FakeRng::default();
+        let rng = Rng::new(&fake_rng);
+
+        // Invoke the driver method (on the mocked hardware).
+        rng.getrandom(&mut buffer);
+
         assert_eq!(buffer, [1, 2, 3]);
     }
 }
 ```
-
-See [examples/rng.rs](../examples/rng.rs) for the complete example.
