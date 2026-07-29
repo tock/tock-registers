@@ -70,9 +70,9 @@ mod tests {
     struct FakeRng {
         state: Cell<u8>,
     }
-    impl rng::Interface for &FakeRng {
-        type random_byte = FakeRegister<Self, u8, Safe, NoAccess>;
-        fn random_byte(self) -> FakeRegister<Self, u8, Safe, NoAccess> {
+    impl rng::Interface for FakeRng {
+        type random_byte<'s> = FakeRegister<&'s Self, u8, Safe, NoAccess>;
+        fn random_byte(&self) -> FakeRegister<&'_ Self, u8, Safe, NoAccess> {
             FakeRegister::new(self).on_read(|this| {
                 let next = this.state.get().wrapping_add(1);
                 this.state.set(next);

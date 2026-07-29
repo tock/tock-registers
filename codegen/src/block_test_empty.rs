@@ -22,8 +22,9 @@ fn empty() {
     let expected = quote! {
         pub mod foo {
             #![allow(non_camel_case_types,dead_code,non_upper_case_globals)] use super::*;
-            #interface_comment
-            pub trait Interface: ::tock_registers::internal::core::marker::Copy {}
+            #interface_comment pub trait Interface {}
+            impl<T: ::tock_registers::internal::core::ops::Deref<Target: Interface>>
+                Interface for T {}
             pub mod lens {}
             #bus_comment #[allow(clippy::trait_duplication_in_bounds)]
             pub trait Bus: ::tock_registers::Address + sealed::Bus {

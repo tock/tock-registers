@@ -103,20 +103,20 @@ pub fn check9<E: RegisterArray<e::lens::array, Element: d::Interface>>() {
 
 #[rustfmt::skip]
 pub fn check10<E: e::Interface>() {
-    check0::<<<<<<E::array as RegisterArray<_>>::Element as RegisterArray<_>>::Element
+    check0::<<<<<<E::array<'_> as RegisterArray<_>>::Element as RegisterArray<_>>::Element
         as RegisterArray<_>>::Element as RegisterArray<_>>::Element
         as RegisterArray<_>>::Element>();
-    check1::<<<<<E::array as RegisterArray<_>>::Element as RegisterArray<_>>::Element
+    check1::<<<<<E::array<'_> as RegisterArray<_>>::Element as RegisterArray<_>>::Element
         as RegisterArray<_>>::Element as RegisterArray<_>>::Element>();
-    check2::<<<<<E::array as RegisterArray<_>>::Element as RegisterArray<_>>::Element
+    check2::<<<<<E::array<'_> as RegisterArray<_>>::Element as RegisterArray<_>>::Element
         as RegisterArray<_>>::Element as RegisterArray<_>>::Element>();
-    check3::<<<<E::array as RegisterArray<_>>::Element as RegisterArray<_>>::Element
+    check3::<<<<E::array<'_> as RegisterArray<_>>::Element as RegisterArray<_>>::Element
         as RegisterArray<_>>::Element>();
-    check4::<<<<E::array as RegisterArray<_>>::Element as RegisterArray<_>>::Element
+    check4::<<<<E::array<'_> as RegisterArray<_>>::Element as RegisterArray<_>>::Element
         as RegisterArray<_>>::Element>();
-    check5::<<<E::array as RegisterArray<_>>::Element as RegisterArray<_>>::Element>();
-    check6::<<<E::array as RegisterArray<_>>::Element as RegisterArray<_>>::Element>();
-    check7::<<E::array as RegisterArray<_>>::Element>();
-    check8::<<E::array as RegisterArray<_>>::Element>();
-    check9::<E::array>();
+    check5::<<<E::array<'_> as RegisterArray<_>>::Element as RegisterArray<_>>::Element>();
+    check6::<<<E::array<'_> as RegisterArray<_>>::Element as RegisterArray<_>>::Element>();
+    check7::<<E::array<'_> as RegisterArray<_>>::Element>();
+    check8::<<E::array<'_> as RegisterArray<_>>::Element>();
+    check9::<E::array<'_>>();
 }
