@@ -7,7 +7,7 @@
 ///
 /// This is designed to demonstrate how unit testing hooks integrate with
 /// typical hardware instantiation.
-use tock_registers::{mmio32_register_map, Mmio32, Read};
+use tock_registers::{mmio32_register_map, Read};
 
 // This defines the peripheral interface. This interface definition is
 // independent of underlying implementation (i.e., real hardware or a mock).
@@ -28,7 +28,10 @@ mmio32_register_map! {
 ///
 /// None of this code is exercised when running tests, rather, it's included
 /// as a reference for a minimal complete example.
+#[cfg(target_pointer_width = "32")]
 pub fn create_and_use_rng<R: rng::Interface>() {
+    use tock_registers::Mmio32;
+
     // MMIO address of the hardware peripheral (e.g., from a datasheet).
     const RNG_HARDWARE_ADDRESS: usize = 0x100;
 
@@ -48,7 +51,7 @@ pub fn create_and_use_rng<R: rng::Interface>() {
 }
 
 /// Instance of an RNG (may be backed by hardware or mocks).
-struct Rng<R: rng::Interface> {
+pub struct Rng<R: rng::Interface> {
     registers: R,
 }
 

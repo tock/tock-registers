@@ -3,6 +3,10 @@
 // Copyright Tock Contributors 2026.
 // Copyright Better Bytes 2026.
 
+//! This tests verifies that the Mmio32 and Mmio64 buses work correctly. Indirectly, it also
+//! verifies that register offsets are calculated correctly. It is designed to run in Miri on
+//! 32-bit and 64-bit targets.
+
 #![no_std]
 
 use core::{cell::UnsafeCell, ptr::NonNull};
@@ -33,9 +37,14 @@ register_map! {
     },
 }
 
+#[cfg(target_pointer_width = "32")]
+type Usize = u32;
+#[cfg(target_pointer_width = "64")]
+type Usize = u64;
+
 #[derive(PartialEq)]
 #[repr(C)]
-struct InnerBlock<Usize> {
+struct InnerBlock {
     scalar_definition: Usize,
     _padding0: Usize,
     array_definition: [[u32; 2]; 3],
@@ -46,122 +55,22 @@ struct InnerBlock<Usize> {
 
 #[derive(PartialEq)]
 #[repr(C)]
-struct OuterBlock<Usize> {
+struct OuterBlock {
     scalar: u64,
-    nested: InnerBlock<Usize>,
-    nested_array: [InnerBlock<Usize>; 2],
+    nested: InnerBlock,
+    nested_array: [InnerBlock; 2],
     flat_array: [u8; 2],
     flat_array_reference: [u8; 2],
 }
 
 #[test]
-fn mmio32() {
-    let peripheral = UnsafeCell::new(OuterBlock::<u32> {
-        scalar: 1,
-        nested: InnerBlock {
-            scalar_definition: 2,
-            _padding0: 0,
-            array_definition: [[3, 4], [5, 6], [7, 8]],
-            scalar_reference: 9,
-            _padding1: [0; 3],
-            array_reference: [[10, 11], [12, 13], [14, 15]],
-        },
-        nested_array: [
-            InnerBlock {
-                scalar_definition: 16,
-                _padding0: 0,
-                array_definition: [[17, 18], [19, 20], [21, 22]],
-                scalar_reference: 23,
-                _padding1: [0; 3],
-                array_reference: [[24, 25], [26, 27], [28, 29]],
-            },
-            InnerBlock {
-                scalar_definition: 30,
-                _padding0: 0,
-                array_definition: [[31, 32], [33, 34], [35, 36]],
-                scalar_reference: 37,
-                _padding1: [0; 3],
-                array_reference: [[38, 39], [40, 41], [42, 43]],
-            },
-        ],
-        flat_array: [44, 45],
-        flat_array_reference: [46, 47],
-    });
-    let mmio = Mmio32::new(NonNull::new(peripheral.get()).unwrap().cast());
-    let registers = unsafe { outer_block::Real::new(mmio) };
-    // Pointer offset validation: verifies that pointer offsets are correctly calculated through
-    // the various field types.
-    assert_eq!(registers.scalar().get(), 1);
-    assert_eq!(registers.overlapped().get(), 0);
-    #[cfg(any(target_pointer_width = "32", target_endian = "little"))]
-    assert_eq!(registers.nested().scalar_definition().get(), 2);
-    let array = registers.nested().array_definition();
-    assert_eq!(array.get(0).unwrap().get(0).unwrap().get(), 3);
-    assert_eq!(array.get(0).unwrap().get(1).unwrap().get(), 4);
-    assert_eq!(array.get(1).unwrap().get(0).unwrap().get(), 5);
-    assert_eq!(array.get(1).unwrap().get(1).unwrap().get(), 6);
-    assert_eq!(array.get(2).unwrap().get(0).unwrap().get(), 7);
-    assert_eq!(array.get(2).unwrap().get(1).unwrap().get(), 8);
-    assert_eq!(registers.nested().scalar_reference().get(), 9);
-    let array = registers.nested().array_reference();
-    assert_eq!(array.get(0).unwrap().get(0).unwrap().get(), 10);
-    assert_eq!(array.get(0).unwrap().get(1).unwrap().get(), 11);
-    assert_eq!(array.get(1).unwrap().get(0).unwrap().get(), 12);
-    assert_eq!(array.get(1).unwrap().get(1).unwrap().get(), 13);
-    assert_eq!(array.get(2).unwrap().get(0).unwrap().get(), 14);
-    assert_eq!(array.get(2).unwrap().get(1).unwrap().get(), 15);
-    let nested = registers.nested_array().get(0).unwrap();
-    #[cfg(any(target_pointer_width = "32", target_endian = "little"))]
-    assert_eq!(nested.scalar_definition().get(), 16);
-    let array = nested.array_definition();
-    assert_eq!(array.get(0).unwrap().get(0).unwrap().get(), 17);
-    assert_eq!(array.get(0).unwrap().get(1).unwrap().get(), 18);
-    assert_eq!(array.get(1).unwrap().get(0).unwrap().get(), 19);
-    assert_eq!(array.get(1).unwrap().get(1).unwrap().get(), 20);
-    assert_eq!(array.get(2).unwrap().get(0).unwrap().get(), 21);
-    assert_eq!(array.get(2).unwrap().get(1).unwrap().get(), 22);
-    assert_eq!(nested.scalar_reference().get(), 23);
-    let array = nested.array_reference();
-    assert_eq!(array.get(0).unwrap().get(0).unwrap().get(), 24);
-    assert_eq!(array.get(0).unwrap().get(1).unwrap().get(), 25);
-    assert_eq!(array.get(1).unwrap().get(0).unwrap().get(), 26);
-    assert_eq!(array.get(1).unwrap().get(1).unwrap().get(), 27);
-    assert_eq!(array.get(2).unwrap().get(0).unwrap().get(), 28);
-    assert_eq!(array.get(2).unwrap().get(1).unwrap().get(), 29);
-    let nested = registers.nested_array().get(1).unwrap();
-    #[cfg(any(target_pointer_width = "32", target_endian = "little"))]
-    assert_eq!(nested.scalar_definition().get(), 30);
-    let array = nested.array_definition();
-    assert_eq!(array.get(0).unwrap().get(0).unwrap().get(), 31);
-    assert_eq!(array.get(0).unwrap().get(1).unwrap().get(), 32);
-    assert_eq!(array.get(1).unwrap().get(0).unwrap().get(), 33);
-    assert_eq!(array.get(1).unwrap().get(1).unwrap().get(), 34);
-    assert_eq!(array.get(2).unwrap().get(0).unwrap().get(), 35);
-    assert_eq!(array.get(2).unwrap().get(1).unwrap().get(), 36);
-    assert_eq!(nested.scalar_reference().get(), 37);
-    let array = nested.array_reference();
-    assert_eq!(array.get(0).unwrap().get(0).unwrap().get(), 38);
-    assert_eq!(array.get(0).unwrap().get(1).unwrap().get(), 39);
-    assert_eq!(array.get(1).unwrap().get(0).unwrap().get(), 40);
-    assert_eq!(array.get(1).unwrap().get(1).unwrap().get(), 41);
-    assert_eq!(array.get(2).unwrap().get(0).unwrap().get(), 42);
-    assert_eq!(array.get(2).unwrap().get(1).unwrap().get(), 43);
-    assert_eq!(registers.flat_array().get(0).unwrap().get(), 44);
-    assert_eq!(registers.flat_array().get(1).unwrap().get(), 45);
-    assert_eq!(registers.flat_array_reference().get(0).unwrap().get(), 46);
-    assert_eq!(registers.flat_array_reference().get(1).unwrap().get(), 47);
-    // External write: verify Mmio can handle varying register values.
-    unsafe { (*peripheral.get()).scalar = 48 };
-    assert_eq!(registers.scalar().get(), 48);
-    // Perform a write.
-    registers.scalar().set(u64::MAX);
-    assert_eq!(unsafe { (*peripheral.get()).scalar }, u64::MAX);
-    assert_eq!(registers.overlapped().get(), 0xff);
-}
+fn mmio() {
+    #[cfg(target_pointer_width = "32")]
+    type Mmio = Mmio32;
+    #[cfg(target_pointer_width = "64")]
+    type Mmio = Mmio64;
 
-#[test]
-fn mmio64() {
-    let peripheral = UnsafeCell::new(OuterBlock::<u64> {
+    let peripheral = UnsafeCell::new(OuterBlock {
         scalar: 1,
         nested: InnerBlock {
             scalar_definition: 2,
@@ -192,13 +101,12 @@ fn mmio64() {
         flat_array: [44, 45],
         flat_array_reference: [46, 47],
     });
-    let mmio = Mmio64::new(NonNull::new(peripheral.get()).unwrap().cast());
+    let mmio = Mmio::new(NonNull::new(peripheral.get()).unwrap().cast());
     let registers = unsafe { outer_block::Real::new(mmio) };
     // Pointer offset validation: verifies that pointer offsets are correctly calculated through
     // the various field types.
     assert_eq!(registers.scalar().get(), 1);
     assert_eq!(registers.overlapped().get(), 0);
-    #[cfg(any(target_pointer_width = "64", target_endian = "little"))]
     assert_eq!(registers.nested().scalar_definition().get(), 2);
     let array = registers.nested().array_definition();
     assert_eq!(array.get(0).unwrap().get(0).unwrap().get(), 3);
@@ -216,7 +124,6 @@ fn mmio64() {
     assert_eq!(array.get(2).unwrap().get(0).unwrap().get(), 14);
     assert_eq!(array.get(2).unwrap().get(1).unwrap().get(), 15);
     let nested = registers.nested_array().get(0).unwrap();
-    #[cfg(any(target_pointer_width = "64", target_endian = "little"))]
     assert_eq!(nested.scalar_definition().get(), 16);
     let array = nested.array_definition();
     assert_eq!(array.get(0).unwrap().get(0).unwrap().get(), 17);
@@ -234,7 +141,6 @@ fn mmio64() {
     assert_eq!(array.get(2).unwrap().get(0).unwrap().get(), 28);
     assert_eq!(array.get(2).unwrap().get(1).unwrap().get(), 29);
     let nested = registers.nested_array().get(1).unwrap();
-    #[cfg(any(target_pointer_width = "64", target_endian = "little"))]
     assert_eq!(nested.scalar_definition().get(), 30);
     let array = nested.array_definition();
     assert_eq!(array.get(0).unwrap().get(0).unwrap().get(), 31);

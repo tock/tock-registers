@@ -8,7 +8,7 @@ use core::ptr::{read_volatile, write_volatile, NonNull};
 
 /// Macro to declare the Mmio* structs and provide a few impls for each.
 macro_rules! mmio_structs {
-    [$($(#[$docs:meta])* $name:ident($storage:ty))*] => {$(
+    [$($(#[$docs:meta])* $name:ident($storage:ty)[$width:literal])*] => {$(
         $(#[$docs])*
         ///
         /// **Note: These cannot be used to start or stop DMA operations.** This bus implements the
@@ -23,6 +23,7 @@ macro_rules! mmio_structs {
 
         impl $name {
             /// Returns a new MMIO address containing the given pointer.
+            #[cfg(target_pointer_width = $width)]
             pub const fn new(ptr: $storage) -> Self {
                 Self(ptr)
             }
@@ -48,21 +49,21 @@ macro_rules! mmio_structs {
 
 mmio_structs! {
     /// MMIO register bus for 32-bit systems.
-    Mmio32(NonNull<()>)
+    Mmio32(NonNull<()>)["32"]
 
     /// MMIO register bus for 64-bit systems.
-    Mmio64(NonNull<()>)
+    Mmio64(NonNull<()>)["64"]
 
     /// MMIO register bus for 32-bit systems that can point to a register at the 0 address.
-    Mmio32Nullable(*mut ())
+    Mmio32Nullable(*mut ())["32"]
 
     /// MMIO register bus for 64-bit systems that can point to a register at the 0 address.
-    Mmio64Nullable(*mut ())
+    Mmio64Nullable(*mut ())["64"]
 }
 
 /// Macro to provide the from_addr functions for the non-nullable Mmio* structs.
 macro_rules! from_addr_nonnull {
-    [$($name:ident)*] => {$(impl $name {
+    [$($name:ident[$width:literal])*] => {$(impl $name {
         /// Constructs a new MMIO register bus pointing to the given address. If you have an
         /// address from a datasheet and want to access it as a register struct, this is probably
         /// the method you want.
@@ -76,6 +77,7 @@ macro_rules! from_addr_nonnull {
         /// Panics if the provided address is null, and panics during const evaluation if the
         /// pointer cannot be determined to be null or not. If you want to access a register at
         /// address 0, use one of the nullable MMIO structs.
+        #[cfg(target_pointer_width = $width)]
         #[track_caller]
         pub const fn from_addr(addr: usize) -> Self {
             // TODO: Once the MSRV reaches:
@@ -93,11 +95,11 @@ macro_rules! from_addr_nonnull {
     })*}
 }
 
-from_addr_nonnull![Mmio32 Mmio64];
+from_addr_nonnull![Mmio32["32"] Mmio64["64"]];
 
 /// Macro to provide the from_addr functions for the Mmio*Nullable structs.
 macro_rules! from_addr_nullable {
-    [$($name:ident)*] => {$(impl $name {
+    [$($name:ident[$width:literal])*] => {$(impl $name {
         /// Constructs a new MMIO register bus pointing to the given address. If you have an
         /// address from a datasheet and want to access it as a register struct, this is probably
         /// the method you want.
@@ -106,6 +108,7 @@ macro_rules! from_addr_nullable {
         /// memory, but it means it cannot be used to access Rust memory. If you want to access
         /// Rust memory (i.e. if this is pointing somewhere other than MMIO memory) then you must
         /// use [`new`](Self::new) to construct this bus instead.
+        #[cfg(target_pointer_width = $width)]
         pub const fn from_addr(addr: usize) -> Self {
             // TODO: Once the MSRV reaches 1.84, replace this cast with
             // core::ptr::without_provenance_mut.
@@ -114,11 +117,11 @@ macro_rules! from_addr_nullable {
     })*}
 }
 
-from_addr_nullable![Mmio32Nullable Mmio64Nullable];
+from_addr_nullable![Mmio32Nullable["32"] Mmio64Nullable["64"]];
 
 /// Macro to implement the Bus traits for the Mmio* structs.
 macro_rules! bus_impls {
-    [$nonnull:ident, $nullable:ident, [$($generics:tt)*], $value:ty, $size:literal] => {
+    [$nonnull:ident, $nullable:ident, $width:literal, [$($generics:tt)*], $value:ty, $size:literal] => {
         /// Safety: All the bus_impls! invocations have the correct size.
         unsafe impl<$($generics)*> Bus<$value> for $nonnull {
             const PADDED_SIZE: usize = $size;
@@ -127,6 +130,7 @@ macro_rules! bus_impls {
         unsafe impl<$($generics)*> Bus<$value> for $nullable {
             const PADDED_SIZE: usize = $size;
         }
+        #[cfg(target_pointer_width = $width)]
         impl<$($generics)*> BusRead<$value> for $nonnull {
             unsafe fn read(self) -> $value {
                 // BusRead::read's preconditions guarantee that a readable register with value type
@@ -135,6 +139,7 @@ macro_rules! bus_impls {
                 unsafe { self.0.cast().read_volatile() }
             }
         }
+        #[cfg(target_pointer_width = $width)]
         impl<$($generics)*> BusRead<$value> for $nullable {
             unsafe fn read(self) -> $value {
                 // BusRead::read's preconditions guarantee that a readable register with value type
@@ -143,6 +148,7 @@ macro_rules! bus_impls {
                 unsafe { read_volatile(self.0.cast_const().cast()) }
             }
         }
+        #[cfg(target_pointer_width = $width)]
         impl<$($generics)*> BusWrite<$value> for $nonnull {
             unsafe fn write(self, value: $value) {
                 // BusRead::write's preconditions guarantee that a writable register with value
@@ -152,6 +158,7 @@ macro_rules! bus_impls {
                 unsafe { self.0.cast().write_volatile(value) }
             }
         }
+        #[cfg(target_pointer_width = $width)]
         impl<$($generics)*> BusWrite<$value> for $nullable {
             unsafe fn write(self, value: $value) {
                 // BusRead::write's preconditions guarantee that a writable register with value
@@ -163,21 +170,21 @@ macro_rules! bus_impls {
     }
 }
 
-bus_impls!(Mmio32, Mmio32Nullable, [], u8, 1);
-bus_impls!(Mmio32, Mmio32Nullable, [], u16, 2);
-bus_impls!(Mmio32, Mmio32Nullable, [], u32, 4);
-bus_impls!(Mmio32, Mmio32Nullable, [], u64, 8);
-bus_impls!(Mmio32, Mmio32Nullable, [], usize, 4);
-bus_impls!(Mmio32, Mmio32Nullable, [T: Sized], *const T, 4);
-bus_impls!(Mmio32, Mmio32Nullable, [T: Sized], *mut T, 4);
-bus_impls!(Mmio64, Mmio64Nullable, [], u8, 1);
-bus_impls!(Mmio64, Mmio64Nullable, [], u16, 2);
-bus_impls!(Mmio64, Mmio64Nullable, [], u32, 4);
-bus_impls!(Mmio64, Mmio64Nullable, [], u64, 8);
-bus_impls!(Mmio64, Mmio64Nullable, [], u128, 16);
-bus_impls!(Mmio64, Mmio64Nullable, [], usize, 8);
-bus_impls!(Mmio64, Mmio64Nullable, [T: Sized], *const T, 8);
-bus_impls!(Mmio64, Mmio64Nullable, [T: Sized], *mut T, 8);
+bus_impls!(Mmio32, Mmio32Nullable, "32", [], u8, 1);
+bus_impls!(Mmio32, Mmio32Nullable, "32", [], u16, 2);
+bus_impls!(Mmio32, Mmio32Nullable, "32", [], u32, 4);
+bus_impls!(Mmio32, Mmio32Nullable, "32", [], u64, 8);
+bus_impls!(Mmio32, Mmio32Nullable, "32", [], usize, 4);
+bus_impls!(Mmio32, Mmio32Nullable, "32", [T: Sized], *const T, 4);
+bus_impls!(Mmio32, Mmio32Nullable, "32", [T: Sized], *mut T, 4);
+bus_impls!(Mmio64, Mmio64Nullable, "64", [], u8, 1);
+bus_impls!(Mmio64, Mmio64Nullable, "64", [], u16, 2);
+bus_impls!(Mmio64, Mmio64Nullable, "64", [], u32, 4);
+bus_impls!(Mmio64, Mmio64Nullable, "64", [], u64, 8);
+bus_impls!(Mmio64, Mmio64Nullable, "64", [], u128, 16);
+bus_impls!(Mmio64, Mmio64Nullable, "64", [], usize, 8);
+bus_impls!(Mmio64, Mmio64Nullable, "64", [T: Sized], *const T, 8);
+bus_impls!(Mmio64, Mmio64Nullable, "64", [T: Sized], *mut T, 8);
 
 /// An alias for [`register_map!`](crate::register_map) with `#![bus(Mmio32)]` at the top.
 /// In other words:
