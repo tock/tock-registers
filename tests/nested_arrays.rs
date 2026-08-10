@@ -86,7 +86,7 @@ pub fn check8<D: d::Interface>() {
     check7::<D>();
 }
 
-pub fn check9<E: RegisterArray<e::lens::array, Element: d::Interface>>() {
+pub fn check9<E: RegisterArray<e::lengths::array, Element: d::Interface>>() {
     check0::<<<<<E::Element as RegisterArray<_>>::Element as RegisterArray<_>>::Element
         as RegisterArray<_>>::Element as RegisterArray<_>>::Element>();
     check1::<<<<E::Element as RegisterArray<_>>::Element as RegisterArray<_>>::Element

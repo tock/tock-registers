@@ -55,8 +55,8 @@ fn doc_comments() {
                 /// Doc comment H
                 fn scalar_definition(self) -> Self::scalar_definition;
                 type array_definition: ::tock_registers::RegisterArray<
-                    lens::array_definition<1usize>, Element:
-                        ::tock_registers::RegisterArray<lens::array_definition<0usize>, Element:
+                    lengths::array_definition<1usize>, Element:
+                        ::tock_registers::RegisterArray<lengths::array_definition<0usize>, Element:
                             ::tock_registers::Register<DataType = u8> + Read + Write> >;
                 /// Doc comment I
                 /// Doc comment J
@@ -66,8 +66,8 @@ fn doc_comments() {
                 /// Doc comment L
                 fn scalar_reference(self) -> Self::scalar_reference;
                 type array_reference: ::tock_registers::RegisterArray<
-                    lens::array_reference<1usize>, Element: ::tock_registers::RegisterArray<
-                        lens::array_reference<0usize>, Element: b::Interface> >;
+                    lengths::array_reference<1usize>, Element: ::tock_registers::RegisterArray<
+                        lengths::array_reference<0usize>, Element: b::Interface> >;
                 /// Doc comment M
                 /// Doc comment N
                 fn array_reference(self) -> Self::array_reference;
@@ -78,9 +78,9 @@ fn doc_comments() {
             /// over register arrays in this block, for example:
             ///
             /// ```ignore
-            /// fn process<R: RegisterArray<my_block::lens::my_array>>(regs: R) { ... }
+            /// fn process<R: RegisterArray<my_block::lengths::my_array>>(regs: R) { ... }
             /// ```
-            pub mod lens {
+            pub mod lengths {
                 pub enum array_definition<const N: usize> {}
                 impl ::tock_registers::array::Len for
                     array_definition<0usize> { const LEN: usize = 2; }
@@ -180,7 +180,7 @@ fn doc_comments() {
                 }
                 type array_definition = ::tock_registers::RealRegisterArray<
                     ::tock_registers::RealRegisterArray<real_array_definition<B>,
-                    lens::array_definition<0usize> >, lens::array_definition<1usize> >;
+                    lengths::array_definition<0usize> >, lengths::array_definition<1usize> >;
                 fn array_definition(self) -> Self::array_definition {
                     unsafe {
                         Self::array_definition::new(
@@ -195,8 +195,8 @@ fn doc_comments() {
                     }
                 }
                 type array_reference = ::tock_registers::RealRegisterArray<
-                    ::tock_registers::RealRegisterArray<b::Real<B>, lens::array_reference<0usize>
-                    >, lens::array_reference<1usize> >;
+                    ::tock_registers::RealRegisterArray<b::Real<B>, lengths::array_reference<0usize>
+                    >, lengths::array_reference<1usize> >;
                 fn array_reference(self) -> Self::array_reference {
                     unsafe {
                         Self::array_reference::new(
