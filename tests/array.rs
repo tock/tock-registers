@@ -13,7 +13,7 @@ use tock_registers::{
 use {array_demo::Interface as _, variable_increment::Interface as _};
 
 mmio32_register_map! {
-    variable_increment {
+    unsafe variable_increment {
         /// The amount to increment the shared counter by when `counter` is read.
         0 => increment: u8 { Read, Write },
         /// Accessor for the shared counter. Each time this is read, the shared counter is
@@ -23,7 +23,7 @@ mmio32_register_map! {
 
     /// A demonstration of register arrays. This type contains a single, shared counter that wraps
     /// modulo 256.
-    array_demo {
+    unsafe array_demo {
         /// Reading from the array with index i increments the counter by i+1, wrapping modulo 256.
         0 => counter: [u8; 3] { Read },
         /// A set of variable-counter-incrementers. These all access the same shared counter, but

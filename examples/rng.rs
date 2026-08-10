@@ -13,7 +13,9 @@ use tock_registers::{mmio32_register_map, Mmio32, Read};
 // independent of underlying implementation (i.e., real hardware or a mock).
 mmio32_register_map! {
     /// Registers for a hardware device that generates random numbers.
-    pub rng {
+    ///
+    /// # Safety: This matches the (fictional) hardware.
+    pub unsafe rng {
         /// This register returns a new random value on every read. It can be
         /// read concurrently by multiple cores, returning separate random data
         /// on each core.

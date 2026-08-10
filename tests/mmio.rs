@@ -12,9 +12,9 @@ use {inner_block::Interface as _, outer_block::Interface as _};
 register_map! {
     #![buses(Mmio32, Mmio64)]
     // External registers to reference.
-    a: u8 { Read, Write },
-    b: u16 { Read, Write },
-    inner_block {
+    unsafe a: u8 { Read, Write },
+    unsafe b: u16 { Read, Write },
+    unsafe inner_block {
         0 => scalar_definition: usize { Read, Write },
         [4, 8] => _: [4, 8],
         [8, 16] => array_definition: [[u32; 2]; 3] { Read, Write },
@@ -22,7 +22,7 @@ register_map! {
         [33, 41] => _,
         [36, 44] => array_reference: [[b; 2]; 3],
     },
-    outer_block {
+    unsafe outer_block {
         0 => scalar: u64 { Read, Write },
         #[aliased]
         1 => overlapped: u8 { Read, Write },

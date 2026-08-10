@@ -9,7 +9,7 @@ use std::{ptr::NonNull, sync::mpsc::channel, thread::spawn};
 use tock_registers::{mmio64_register_map, Mmio64, Read, RegisterSender, Write};
 
 mmio64_register_map! {
-    counter {
+    unsafe counter {
         0 => ctrl: u8 { Read, Write },
     }
 }

@@ -73,10 +73,12 @@ impl Parse for Input {
 impl Parse for Layout {
     fn parse(input: ParseStream) -> Result<Layout> {
         let (docs, bus) = layout_attributes(Attribute::parse_outer(input)?)?;
+        let visibility = input.parse()?;
+        input.parse::<Token![unsafe]>()?;
         Ok(Layout {
             docs,
             bus,
-            visibility: input.parse()?,
+            visibility,
             name: input.parse()?,
             value: input.parse()?,
         })

@@ -22,7 +22,7 @@ fn scalar_definition() {
         //! Doc comment D
         /// Doc comment E
         /// Doc comment F
-        pub foo: u8 { Read, Write },
+        pub unsafe foo: u8 { Read, Write },
     };
     let expected = quote! {
         /// Doc comment A
@@ -53,11 +53,9 @@ fn scalar_definition() {
             impl<B: Bus> Real<B> {
                 /// Constructs an accessor for this register or register block.
                 /// # Safety
-                /// 1. `address` must point to register(s) on the bus corresponding to
-                ///    `B`.
-                /// 2. The register(s)' definition (as provided to the
-                ///    `tock_registers::register_map!` macro) must correctly
-                ///    describe the pointed-to register(s).
+                /// 1. `address` must point to register(s) corresponding to this
+                ///    register map.
+                /// 2. Those registers must be on the bus corresponding to `B`.
                 /// 3. The returned register accessor must not be used in a way that
                 ///    causes data races. The exact requirements depend on the hardware,
                 ///    but it's usually best to access a register from only one thread
@@ -96,7 +94,7 @@ fn array_definition() {
         //! Doc comment D
         /// Doc comment E
         /// Doc comment F
-        pub foo: [u8; 2] { Read, Write }
+        pub unsafe foo: [u8; 2] { Read, Write }
     };
     let expected = quote! {
         /// Doc comment A
@@ -132,11 +130,9 @@ fn array_definition() {
             impl<B: Bus> Element<B> {
                 /// Constructs an accessor for this register or register block.
                 /// # Safety
-                /// 1. `address` must point to register(s) on the bus corresponding to
-                ///    `B`.
-                /// 2. The register(s)' definition (as provided to the
-                ///    `tock_registers::register_map!` macro) must correctly
-                ///    describe the pointed-to register(s).
+                /// 1. `address` must point to register(s) corresponding to this
+                ///    register map.
+                /// 2. Those registers must be on the bus corresponding to `B`.
                 /// 3. The returned register accessor must not be used in a way that
                 ///    causes data races. The exact requirements depend on the hardware,
                 ///    but it's usually best to access a register from only one thread
@@ -177,7 +173,7 @@ fn scalar_reference() {
         //! Doc comment D
         /// Doc comment E
         /// Doc comment F
-        pub foo: status,
+        pub unsafe foo: status,
     };
     let expected = quote! {
         /// Doc comment A
@@ -219,7 +215,7 @@ fn array_reference() {
         //! Doc comment D
         /// Doc comment E
         /// Doc comment F
-        pub foo: [[status; 2]; 3],
+        pub unsafe foo: [[status; 2]; 3],
     };
     let expected = quote! {
         /// Doc comment A

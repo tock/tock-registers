@@ -98,13 +98,14 @@ pub struct Basket;
 #[derive(Debug)]
 pub struct Disco;
 
-register_map![#[buses(LiteX<8, 32>, LiteX<32, 32>)] a: u8 { Read, Dance<Tango>, Dance<Waltz> }];
-register_map![#[buses(LiteX<8, 32>, LiteX<32, 32>)] b: [u8; 2] { Read, Ball<Use = Basket> }];
-register_map![#[buses(LiteX<8, 32>, LiteX<32, 32>)] c: a];
-register_map![#[buses(LiteX<8, 32>, LiteX<32, 32>)] d: [b; 2]];
+register_map![#[buses(LiteX<8, 32>, LiteX<32, 32>)]
+    unsafe a: u8 { Read, Dance<Tango>, Dance<Waltz> }];
+register_map![#[buses(LiteX<8, 32>, LiteX<32, 32>)] unsafe b: [u8; 2] { Read, Ball<Use = Basket> }];
+register_map![#[buses(LiteX<8, 32>, LiteX<32, 32>)] unsafe c: a];
+register_map![#[buses(LiteX<8, 32>, LiteX<32, 32>)] unsafe d: [b; 2]];
 register_map! {
     #[buses(LiteX<8, 32>, LiteX<32, 32>)]
-    e {
+    unsafe e {
         0 => f: u8 { Read, Dance<Tango> },
         [4, 4] => g: [u8; 2] { Read, Ball<Use = Disco> },
         12 => h: c,

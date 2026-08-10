@@ -22,7 +22,7 @@ fn doc_comments() {
         //! Doc comment D
         /// Doc comment E
         /// Doc comment F
-        pub foo {
+        pub unsafe foo {
             /// Doc comment G
             /// Doc comment H
             0 => scalar_definition: u8 { Read, Write },
@@ -142,11 +142,9 @@ fn doc_comments() {
             impl<B: Bus> Real<B> {
                 /// Constructs an accessor for this register or register block.
                 /// # Safety
-                /// 1. `address` must point to register(s) on the bus corresponding to
-                ///    `B`.
-                /// 2. The register(s)' definition (as provided to the
-                ///    `tock_registers::register_map!` macro) must correctly
-                ///    describe the pointed-to register(s).
+                /// 1. `address` must point to register(s) corresponding to this
+                ///    register map.
+                /// 2. Those registers must be on the bus corresponding to `B`.
                 /// 3. The returned register accessor must not be used in a way that
                 ///    causes data races. The exact requirements depend on the hardware,
                 ///    but it's usually best to access a register from only one thread
@@ -213,11 +211,9 @@ fn doc_comments() {
             impl<B: Bus> real_scalar_definition<B> {
                 /// Constructs an accessor for this register or register block.
                 /// # Safety
-                /// 1. `address` must point to register(s) on the bus corresponding to
-                ///    `B`.
-                /// 2. The register(s)' definition (as provided to the
-                ///    `tock_registers::register_map!` macro) must correctly
-                ///    describe the pointed-to register(s).
+                /// 1. `address` must point to register(s) corresponding to this
+                ///    register map.
+                /// 2. Those registers must be on the bus corresponding to `B`.
                 /// 3. The returned register accessor must not be used in a way that
                 ///    causes data races. The exact requirements depend on the hardware,
                 ///    but it's usually best to access a register from only one thread
@@ -250,11 +246,9 @@ fn doc_comments() {
             impl<B: Bus> real_array_definition<B> {
                 /// Constructs an accessor for this register or register block.
                 /// # Safety
-                /// 1. `address` must point to register(s) on the bus corresponding to
-                ///    `B`.
-                /// 2. The register(s)' definition (as provided to the
-                ///    `tock_registers::register_map!` macro) must correctly
-                ///    describe the pointed-to register(s).
+                /// 1. `address` must point to register(s) corresponding to this
+                ///    register map.
+                /// 2. Those registers must be on the bus corresponding to `B`.
                 /// 3. The returned register accessor must not be used in a way that
                 ///    causes data races. The exact requirements depend on the hardware,
                 ///    but it's usually best to access a register from only one thread

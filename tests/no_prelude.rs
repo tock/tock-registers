@@ -13,9 +13,9 @@
 use ::tock_registers::{mmio32_register_map, Read, Write};
 
 mmio32_register_map! {
-    a: u8 { Read, Write },
-    b: u8 { Write },
-    c {
+    unsafe a: u8 { Read, Write },
+    unsafe b: u8 { Write },
+    unsafe c {
         0 => scalar_definition: u8 { Read },
         1 => array_definition: [[u8; 2]; 3] { Read, Write },
         7 => _: 1,
@@ -25,11 +25,11 @@ mmio32_register_map! {
 }
 
 mmio32_register_map! {
-    pub inner {
+    pub unsafe inner {
         [0] => ctrl: u8 { Read, Write },
     },
 
-    pub outer {
+    pub unsafe outer {
         [0] => ctrl: u8 { Read },
         [1] => inner: inner,
     },

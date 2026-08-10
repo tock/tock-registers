@@ -13,11 +13,11 @@
 use tock_registers::{mmio32_register_map, Read, Register, RegisterArray, Write};
 
 mmio32_register_map! {
-    pub a: [u8; 2] { Read, Write },
-    pub b: [a; 2],
-    pub c: [b; 2],
-    pub d: [c; 2],
-    pub e {
+    pub unsafe a: [u8; 2] { Read, Write },
+    pub unsafe b: [a; 2],
+    pub unsafe c: [b; 2],
+    pub unsafe d: [c; 2],
+    pub unsafe e {
         0 => array: [d; 2],
     }
 }

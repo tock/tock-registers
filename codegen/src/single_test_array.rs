@@ -17,7 +17,7 @@ fn flat_array_definition_example() {
     let input = quote! {
         ::tock_registers
         #[buses(Mmio32, Mmio64)]
-        pub foo: [u8; 2] { Read, Write }
+        pub unsafe foo: [u8; 2] { Read, Write }
     };
     let interface_comment = interface_doc_comment();
     let bus_comment = bus_doc_comment();
@@ -83,7 +83,7 @@ fn nested_array_definition_example() {
     let input = quote! {
         ::tock_registers
         #[buses(Mmio32, Mmio64)]
-        pub foo: [[u8; 2]; 3] { Read, Write }
+        pub unsafe foo: [[u8; 2]; 3] { Read, Write }
     };
     let interface_comment = interface_doc_comment();
     let bus_comment = bus_doc_comment();
@@ -149,7 +149,7 @@ fn flat_array_reference_example() {
     let input = quote! {
         ::tock_registers
         #[buses(Mmio32, Mmio64)]
-        pub foo: [status; 2],
+        pub unsafe foo: [status; 2],
     };
     let interface_comment = interface_doc_comment();
     let bus_comment = bus_doc_comment();
@@ -184,7 +184,7 @@ fn nested_array_reference_example() {
     let input = quote! {
         ::tock_registers
         #[buses(Mmio32, Mmio64)]
-        pub foo: [[status; 2]; 3],
+        pub unsafe foo: [[status; 2]; 3],
     };
     let interface_comment = interface_doc_comment();
     let bus_comment = bus_doc_comment();

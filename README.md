@@ -25,7 +25,9 @@ use tock_registers::{mmio32_register_map, Mmio32, Read, Write};
 // addresses.
 mmio32_register_map! {
     /// Documentation for `peripheral`.
-    peripheral {
+    ///
+    /// # Safety: This matches peripheral X; datasheet: <URL>.
+    unsafe peripheral {
         // Control register: read-write. `Control` is defined using the
         // `register_bitfields!` macro.
         0x000 => cr: Control::Register { Read, Write },
@@ -52,8 +54,9 @@ mmio32_register_map! {
 }
 ```
 
-The fields (registers and padding) must be in order of increasing offset with no
-gaps.
+Declaring a register map is `unsafe` because it is important (for memory safety)
+that the register map be correct for the hardware. The fields (registers and
+padding) must be in order of increasing offset with no gaps.
 
 The macro generates a module that is designed to be used both on real hardware
 and in a unit test environment. Therefore, the module contains traits and a
@@ -101,7 +104,7 @@ the `pub` keyword just before the module name:
 use tock_registers::{mmio32_register_map, Read};
 
 mmio32_register_map! {
-    pub peripheral {
+    pub unsafe peripheral {
         0 => status: u8 { Read },
     }
 }
@@ -467,7 +470,7 @@ description of the naming convention for each:
 use tock_registers::{mmio32_register_map, register_bitfields, Read, Write};
 
 mmio32_register_map! {
-    registers {
+    unsafe registers {
         // The register name in the struct should be a lowercase version of the
         // register abbreviation, as written in the datasheet:
         0 => cr: Control::Register { Read, Write },

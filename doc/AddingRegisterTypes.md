@@ -113,7 +113,7 @@ use my_bus_crate::{MyBus, MyOperation};
 
 tock_registers::register_map! {
     #[bus(MyBus)]
-    foo {
+    unsafe foo {
         0 => control: u8 { MyOperation },
     }
 }

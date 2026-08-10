@@ -12,13 +12,13 @@
 use tock_registers::{mmio32_register_map, Read, Write};
 
 mmio32_register_map! {
-    pub inner {
+    pub unsafe inner {
         // We use an offset array to make the #name_offset entries exist in both the Bus
         // declaration and impls, as the name collision error tends to show up in the impls.
         [0] => ctrl: u8 { Read, Write },
     },
 
-    pub outer {
+    pub unsafe outer {
         [0] => ctrl: u8 { Read },
         [1] => inner: inner,
     },

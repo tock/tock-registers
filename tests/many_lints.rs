@@ -103,9 +103,9 @@ use tock_registers::{register_map, Mmio32, Mmio64, Read, Write};
 
 register_map! {
     #![buses(Mmio32, Mmio64)]
-    aa: u8 { Read, Write },
-    bb: u8 { Write },
-    cc {
+    unsafe aa: u8 { Read, Write },
+    unsafe bb: u8 { Write },
+    unsafe cc {
         0usize => scalar_definition: u8 { Read },
         1usize => array_definition: [[u8; 2]; 3] { Read, Write },
         7usize => _: [1usize, 1usize],

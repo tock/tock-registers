@@ -51,7 +51,7 @@ use tock_registers::{mmio64_register_map, Mmio64};
 use typestate::TypestateWrite;
 
 mmio64_register_map! {
-    temperature {
+    unsafe temperature {
         // Declare that task_start and task_stop may only be written by the typestate module.
         0 => task_start: u32 { TypestateWrite<Token = wrapper::Token> },
         4 => task_stop: u32 { TypestateWrite<Token = wrapper::Token> },

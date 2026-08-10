@@ -11,10 +11,10 @@ use multi_crate_parent::scalar_definition;
 use multi_crate_parent::scalar_reference;
 
 tock_registers::mmio32_register_map! {
-    scalar_definition_reference: scalar_definition,
-    array_definition_reference: array_definition,
-    block_definition_reference: block_definition,
-    scalar_reference_reference: scalar_reference,
-    array_reference_reference: array_reference,
-    block_reference_reference: block_reference,
+    unsafe scalar_definition_reference: scalar_definition,
+    unsafe array_definition_reference: array_definition,
+    unsafe block_definition_reference: block_definition,
+    unsafe scalar_reference_reference: scalar_reference,
+    unsafe array_reference_reference: array_reference,
+    unsafe block_reference_reference: block_reference,
 }

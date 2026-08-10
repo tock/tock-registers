@@ -20,19 +20,19 @@ use syn::{Attribute, Ident, LitInt, Path, Type, TypePath, Visibility};
 /// # use tock_registers::{Mmio32, Read, Write};
 /// # fn main() {}
 /// tock_registers::internal::register_map! {
-///     ::tock_registers             // The prepended $crate
-///     //! Global doc comment       // This doc comment should attach to everything in the macro.
-///     #![buses(Mmio32)]            // Global buses attribute
-///     a: u8 { Read, Write },       // A register defined by primitive type and operation list
-///     /// Doc comment              // Doc comment that should attach to `b`
-///     pub b: [a; 2],               // A register array that refers to another definition
-///     /// Doc comment              // Doc comment that should attach to `foo`
-///     pub foo {                    // Start of a register block
-///         0 => c: u8 { Read },     // Field register defined by primitive type and operation list
-///         1 => _: 1,               // Padding of size 1 byte
-///         2 => d: a,               // Field register that refers to another definition
-///         /// Doc comment          // Doc comment that should attach to `e`
-///         3 => e: [b; 2],          // Field array register that contains another definition
+///     ::tock_registers              // The prepended $crate
+///     //! Global doc comment        // This doc comment should attach to everything in the macro.
+///     #![buses(Mmio32)]             // Global buses attribute
+///     unsafe a: u8 { Read, Write }, // A register defined by primitive type and operation list
+///     /// Doc comment               // Doc comment that should attach to `b`
+///     pub unsafe b: [a; 2],         // A register array that refers to another definition
+///     /// Doc comment               // Doc comment that should attach to `foo`
+///     pub unsafe foo {              // Start of a register block
+///         0 => c: u8 { Read },      // Field register defined by primitive type and operation list
+///         1 => _: 1,                // Padding of size 1 byte
+///         2 => d: a,                // Field register that refers to another definition
+///         /// Doc comment           // Doc comment that should attach to `e`
+///         3 => e: [b; 2],           // Field array register that contains another definition
 ///     }
 /// }
 /// ```
@@ -51,15 +51,15 @@ pub struct Input {
 /// # fn main() {}
 /// tock_registers::mmio32_register_map! {
 ///     // `a` is a Layout
-///     a: u8 { Read, Write },
+///     unsafe a: u8 { Read, Write },
 ///
 ///     // `b` is a Layout, and it includes the doc comment before it.
 ///     /// Doc comment
-///     pub b: [a; 2],
+///     pub unsafe b: [a; 2],
 ///
 ///     // `foo` is a Layout, and it includes the doc comment and attributes before it.
 ///     /// Doc comment
-///     pub foo {
+///     pub unsafe foo {
 ///         0 => c: u8 { Read },  // Individual fields are `Field`s, not Layouts
 ///         1 => _: 1,
 ///         2 => d: a,
@@ -123,16 +123,16 @@ impl BusAttr {
 /// # use tock_registers::{Read, Write};
 /// # fn main() {}
 /// tock_registers::mmio32_register_map! {
-///     aa: u8 { Read, Write },
-///     //^^^^^^^^^^^^^^^^^^^^ Value::Single
+///     unsafe aa: u8 { Read, Write },
+///     //       ^^^^^^^^^^^^^^^^^^^^ Value::Single
 ///
 ///     /// Doc comment
-///     pub b: [aa; 2],
-///     //   ^^^^^^^^ Value::Single
+///     pub unsafe b: [aa; 2],
+///     //          ^^^^^^^^^ Value::Single
 ///
 ///     /// Doc comment
-///     pub foo {
-///     //      ^  The Value::Block starts here, and continues through the final }
+///     pub unsafe foo {
+///     //             ^  The Value::Block starts here, and continues through the final }
 ///         0 => c: u8 { Read },
 ///         1 => _: 1,
 ///         2 => d: aa,
@@ -152,9 +152,9 @@ pub enum Value {
 /// # use tock_registers::{Read, Write};
 /// # fn main() {}
 /// tock_registers::mmio32_register_map! {
-///     a: u8 { Read, Write },
+///     unsafe a: u8 { Read, Write },
 ///
-///     pub foo {
+///     pub unsafe foo {
 ///         0 => c: u8 { Read },
 ///       //^^^^^^^^^^^^^^^^^^^ Field
 ///
@@ -185,9 +185,9 @@ pub struct Field {
 /// # use tock_registers::Read;
 /// # fn main() {}
 /// tock_registers::mmio32_register_map! {
-///     status: u8 { Read },
+///     unsafe status: u8 { Read },
 ///
-///     foo {
+///     unsafe foo {
 ///         0 => c: u8 { Read },
 ///         //   ^^^^^^^^^^^^^^ FieldDef::Register
 ///
@@ -223,7 +223,7 @@ pub enum FieldDef {
 /// # fn main() {}
 /// tock_registers::register_map! {
 ///     #[buses(Mmio32, Mmio64)]
-///     foo {
+///     unsafe foo {
 ///         0 => c: u8 { Read },
 ///       //^ PerBusInt::Single
 ///
@@ -269,11 +269,11 @@ impl Index<usize> for PerBusInt {
 /// # use tock_registers::{Read, Write};
 /// # fn main() {}
 /// tock_registers::mmio32_register_map! {
-///     pub pin: u8 { Read, Write },
-///     //     ^^^^^^^^^^^^^^^^^^^^ Top-level RegisterSpec defining a new register
-///     pub pin_pair: [pin; 2],
-///     //          ^^^^^^^^^^ Top-level RegisterSpec referencing a separate definition (`status`)
-///     pub foo {
+///     pub unsafe pin: u8 { Read, Write },
+///     //            ^^^^^^^^^^^^^^^^^^^^ Top-level RegisterSpec defining a new register
+///     pub unsafe pin_pair: [pin; 2],
+///     //                 ^^^^^^^^^^ Top-level RegisterSpec referencing a separate definition
+///     pub unsafe foo {
 ///         0x0 => ctrl: u8 { Read, Write },
 ///         //         ^^^^^^^^^^^^^^^^^^^^ Field RegisterSpec defining a new register
 ///

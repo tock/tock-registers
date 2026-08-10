@@ -48,7 +48,7 @@ pub trait RegisterArray<L: Len>: Copy {
 /// # fn main() {}
 /// # use tock_registers::{mmio32_register_map, Read, Write};
 /// mmio32_register_map! {
-///     foo {
+///     unsafe foo {
 ///         0 => a: [[[u8; 2]; 2]; 2] { Read, Write },
 ///     }
 /// }
@@ -80,9 +80,9 @@ pub trait RegisterArray<L: Len>: Copy {
 /// # fn main() {}
 /// # use tock_registers::{mmio32_register_map, Read, Write};
 /// mmio32_register_map! {
-///     a: [u8; 2] { Read, Write },
-///     b: [a; 2],
-///     foo {
+///     unsafe a: [u8; 2] { Read, Write },
+///     unsafe b: [a; 2],
+///     unsafe foo {
 ///         // This results in a compile error too
 ///         0 => c: [b; 2],
 ///     },

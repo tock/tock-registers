@@ -13,7 +13,7 @@ fn empty() {
     let input = quote! {
         ::tock_registers
         #[bus(Mmio32)]
-        pub foo {}
+        pub unsafe foo {}
     };
     let interface_comment = interface_doc_comment();
     let bus_comment = bus_doc_comment();

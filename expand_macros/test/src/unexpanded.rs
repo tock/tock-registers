@@ -12,12 +12,12 @@ use tock_registers::{Mmio32, Mmio64, Read, Write};
 
 register_map! {
     #![buses(Mmio32, Mmio64)]
-    a: u8 { Read, Write },
-    b: u8 { Read, Write },
+    unsafe a: u8 { Read, Write },
+    unsafe b: u8 { Read, Write },
 }
 
 ::tock_registers::mmio32_register_map! {
-    c {
+    unsafe c {
         0 => scalar_definition: u8 { Read, Write },
         1 => array_definition: [[u8; 2]; 3] { Read, Write },
         7 => _: 1,
@@ -27,7 +27,7 @@ register_map! {
 }
 
 tock_registers::mmio64_register_map! {
-    d: a,
+    unsafe d: a,
 }
 
 // Uncomment this to verify that tock_registers is being used without the proc_macros feature (this

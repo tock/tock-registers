@@ -11,9 +11,9 @@ use tock_registers::{mmio32_register_map, Read, Write};
 
 mmio32_register_map! {
     // External registers to reference.
-    a: u8 { Read, Write },
-    b: u8 { Write },
-    c {
+    unsafe a: u8 { Read, Write },
+    unsafe b: u8 { Write },
+    unsafe c {
         0 => scalar_definition: u8 { Read },
         1 => array_definition: [[u8; 2]; 3] { Read, Write },
         7 => _: 1,

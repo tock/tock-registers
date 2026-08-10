@@ -17,7 +17,7 @@ fn all_field_types_example() {
     let input = quote! {
         ::tock_registers
         #[buses(Mmio32, Mmio64)]
-        pub foo {
+        pub unsafe foo {
             0 => scalar_definition: u8 { Read, Dance<Waltz> },
             1 => array_definition: [[u8; 2]; 3] { Read, Write },
             7 => _: 1, // Padding

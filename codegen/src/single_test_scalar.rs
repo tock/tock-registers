@@ -16,7 +16,7 @@ fn scalar_definition_example() {
     let input = quote! {
         ::tock_registers
         #[buses(Mmio32, Mmio64)]
-        pub foo: u8 { Read, Write },
+        pub unsafe foo: u8 { Read, Write },
     };
     let interface_comment = interface_doc_comment();
     let bus_comment = bus_doc_comment();
@@ -88,7 +88,7 @@ fn scalar_reference_example() {
     let input = quote! {
         ::tock_registers
         #[buses(Mmio32, Mmio64)]
-        pub foo: status,
+        pub unsafe foo: status,
     };
     let interface_comment = interface_doc_comment();
     let bus_comment = bus_doc_comment();
@@ -124,7 +124,7 @@ fn generic_operation() {
     let input = quote! {
         ::tock_registers
         #[bus(Mmio32)]
-        foo: u8 { Dance<Waltz> },
+        unsafe foo: u8 { Dance<Waltz> },
     };
     let interface_comment = interface_doc_comment();
     let bus_comment = bus_doc_comment();

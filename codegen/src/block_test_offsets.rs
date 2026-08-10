@@ -15,7 +15,7 @@ fn offsets() {
     let input = quote! {
         ::tock_registers
         #[buses(Mmio32, Mmio64)]
-        pub foo {
+        pub unsafe foo {
             0 => variable_size: usize { Read },
             [4, 8] => size_variable_pos: u32 { Read },
             #[aliased]

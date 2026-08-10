@@ -14,12 +14,15 @@
 /// use tock_registers::{register_map, Mmio32, Read, Write};
 /// register_map! {
 ///     #[bus(Mmio32)]
-///     ctrl: u8 { Read, Write },
+///     unsafe ctrl: u8 { Read, Write },
 /// }
 /// ```
 /// This declares an MMIO register (for 32-bit systems) called `ctrl`, whose data type is `u8`,
-/// which can be read from or written to. This definition generates a module that contains the
-/// following items:
+/// which can be read from or written to. Declaring a register is `unsafe` because an incorrect
+/// register map can cause undefined behavior. We suggest adding a `/// # Safety` comment
+/// describing exactly which peripheral (or part of a peripheral) the definition matches.
+///
+/// This definition generates a module that contains the following items:
 /// ```
 /// # fn main() {}
 /// # use tock_registers::{Mmio32, Read, Write};
@@ -57,7 +60,7 @@
 /// register_bitfields! [u8,
 ///     Control [OFF 0, ON 1],
 /// ];
-/// mmio32_register_map![ctrl: Control::Register { Read, Write }];
+/// mmio32_register_map![unsafe ctrl: Control::Register { Read, Write }];
 /// ```
 ///
 /// # Register arrays
@@ -65,9 +68,9 @@
 /// ```
 /// # fn main() {}
 /// use tock_registers::{mmio32_register_map, Read, Write};
-/// mmio32_register_map![buttons: [u8; 8] { Read }];
+/// mmio32_register_map![unsafe buttons: [u8; 8] { Read }];
 /// // You can nest array types as well.
-/// mmio32_register_map![led_grid: [[u8; 8]; 8] { Read, Write }];
+/// mmio32_register_map![unsafe led_grid: [[u8; 8]; 8] { Read, Write }];
 /// ```
 /// In the generated module, the `Interface` trait will depend on
 /// [`RegisterArray`](crate::RegisterArray) instead of `Register`, and the `RegisterArray::Element`
@@ -79,11 +82,11 @@
 /// # fn main() {}
 /// use tock_registers::{mmio32_register_map, Read};
 /// // The original register definition.
-/// mmio32_register_map![button: u8 { Read }];
+/// mmio32_register_map![unsafe button: u8 { Read }];
 /// // A clone of the register.
-/// mmio32_register_map![button2: button];
+/// mmio32_register_map![unsafe button2: button];
 /// // An array of buttons:
-/// mmio32_register_map![button_array: [button; 8]];
+/// mmio32_register_map![unsafe button_array: [button; 8]];
 /// ```
 /// The data type and operations that a register has are inherited from the register it refers to
 /// (so `button2` implements `Read`, and `button_array` is an array of readable registers). These
@@ -96,7 +99,7 @@
 /// # fn main() {}
 /// use tock_registers::{mmio32_register_map, Read, Write};
 /// mmio32_register_map! {
-///     uart {
+///     unsafe uart {
 ///         0 => status: u8 { Read },
 ///         1 => ctrl: u16 { Read, Write },
 ///         3 => buffer: u8 { Read, Write },
@@ -136,13 +139,13 @@
 ///     Control [OFF 0, INPUT 1, OUTPUT 2],
 /// ];
 /// mmio32_register_map! {
-///     gpio_pin {
+///     unsafe gpio_pin {
 ///         0 => control: Control::Register { Read, Write },
 ///         1 => value: u8 { Read, Write },
 ///     }
 /// }
 /// mmio32_register_map! {
-///     pinmux {
+///     unsafe pinmux {
 ///         0 => status: u8 { Read },
 ///         // `pins` is an array of references to gpio_pin register blocks. This results in
 ///         // gpio_pin::control and gpio_pin::value being interleaved for a total of 32 bytes.
@@ -158,7 +161,7 @@
 /// # fn main() {}
 /// use tock_registers::{mmio32_register_map, Read, Write};
 /// mmio32_register_map! {
-///     uart {
+///     unsafe uart {
 ///         0 => status: u8 { Read },
 ///         // Padding is specified by replacing the field definition with a _
 ///         1 => _,
@@ -186,7 +189,7 @@
 ///     /// Uart with an unusual property: the "control" register and "status" register are located
 ///     /// at the same offset. Writes go to the control register, while reads go to the status
 ///     /// register.
-///     uart {
+///     unsafe uart {
 ///         0 => control: Control::Register { Write },
 ///         #[aliased]
 ///         0 => status: u8 { Read },
@@ -206,9 +209,9 @@
 /// ```
 /// # fn main() {}
 /// use tock_registers::{mmio32_register_map, Read};
-/// mmio32_register_map![pub button: u8 { Read }];     // pub mod button { ... }
-/// mmio32_register_map![pub(crate) button2: button];  // pub(crate) mod button2 { ... }
-/// mmio32_register_map![button_array: [button; 8]];   // mod button2 { ... }
+/// mmio32_register_map![pub unsafe button: u8 { Read }];     // pub mod button { ... }
+/// mmio32_register_map![pub(crate) unsafe button2: button];  // pub(crate) mod button2 { ... }
+/// mmio32_register_map![unsafe button_array: [button; 8]];   // mod button2 { ... }
 /// ```
 ///
 /// # Specifying multiple buses
@@ -220,7 +223,7 @@
 /// use tock_registers::{register_map, Mmio32, Mmio64, Read, Write};
 /// register_map! {
 ///     #[buses(Mmio32, Mmio64)]
-///     rng {
+///     unsafe rng {
 ///         0 => ctrl: u8 { Read, Write },
 ///         1 => random_byte: u8 { Read },
 ///     }
@@ -238,7 +241,7 @@
 /// use tock_registers::{register_map, Mmio32, Mmio64, Read, Write};
 /// register_map! {
 ///     #[buses(Mmio32, Mmio64)]
-///     dma_rng {
+///     unsafe dma_rng {
 ///         0 => address: usize { Read, Write },
 ///         [4, 8] => length: u32 { Read, Write },
 ///         // Padding can also move around, and have per-bus length.
@@ -256,7 +259,7 @@
 /// use tock_registers::{mmio32_register_map, Read, Write};
 /// mmio32_register_map! {
 ///     /// This is an outer doc comment, which will be copied to the generated `uart` module.
-///     uart {
+///     unsafe uart {
 ///         /// This doc comment will be copied onto `Interface::status()`.
 ///         0 => status: u8 { Read },
 ///         /// This doc comment will be copied onto `Interface::buffer()`.
@@ -279,12 +282,12 @@
 ///     #![buses(Mmio32, Mmio64)]
 ///     //! Inner doc comments are copied onto every declaration.
 ///     // Both `button` and `led` support both 32-bit and 64-bit MMIO.
-///     button: u8 { Read },
+///     unsafe button: u8 { Read },
 ///     /// You can still have outer doc comments per-declaration.
-///     led: u8 { Read, Write },
+///     unsafe led: u8 { Read, Write },
 ///     // But `touch` only supports 32-bit MMIO.
 ///     #[bus(Mmio32)]
-///     touch: u8 { Read },
+///     unsafe touch: u8 { Read },
 /// }
 /// ```
 ///

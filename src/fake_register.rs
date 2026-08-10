@@ -16,7 +16,7 @@ use core::marker::PhantomData;
 /// # use tock_registers::{FakeRegister, NoAccess, Read, Safe};
 /// tock_registers::mmio32_register_map! {
 ///     /// A random number generator, which simply returns a random byte on each read.
-///     rng {
+///     unsafe rng {
 ///         0 => random_byte: u8 { Read },
 ///     }
 /// }
@@ -158,7 +158,7 @@ impl sealed::Access for Safe {}
 /// # use tock_registers::{LocalRegisterCopy, Read, Write, Safe};
 /// mmio32_register_map! {
 ///     /// An array of registers that remember values written into them.
-///     storage {
+///     unsafe storage {
 ///         0 => scratch: [u8; 4] { Read, Write },
 ///     }
 /// }

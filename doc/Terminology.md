@@ -36,10 +36,10 @@ Examples:
 ```rust
 mmio32_register_map! {
     // A single register layout
-    a: u8 { Read },
+    unsafe a: u8 { Read },
 
     // A register block layout
-    b {
+    unsafe b {
         // `c` is *not* a layout, it is a field of the register block
         0 => c: u8 { Read, Write },
     },
@@ -48,7 +48,7 @@ mmio32_register_map! {
     // block. This is because register_map! is not aware that the element type
     // is a register block, it merely sees that it uses the single register
     // syntax.
-    d: b,
+    unsafe d: b,
 }
 ```
 
@@ -56,7 +56,7 @@ Each field in a register block can be either a register or padding:
 
 ```rust
 mmio32_register_map! {
-    uart {
+    unsafe uart {
         0 => status: u8 { Read },       // `status` is a field.
         1 => _,                         // padding is a field.
         2 => ctrl: u8 { Read, Write },  // `ctrl` is a field.
@@ -74,9 +74,9 @@ Examples:
 
 ```rust
 mmio32_register_map! {
-    a: u8 { Read },  // definition
-    b: a,            // reference (refers to `a`)
-    c {
+    unsafe a: u8 { Read },  // definition
+    unsafe b: a,            // reference (refers to `a`)
+    unsafe c {
         0 => d: u8 { Read },  // definition
         1 => e: a,            // reference (refers to `a`)
     },
@@ -88,9 +88,9 @@ based on whether its type specification contains an array:
 
 ```rust
 mmio32_register_map! {
-    a: u8 { Read },                // A scalar register
-    b: [u8; 2] { Read },           // An array register
-    c {
+    unsafe a: u8 { Read },         // A scalar register
+    unsafe b: [u8; 2] { Read },    // An array register
+    unsafe c {
         0 => d: u8 { Read },       // A scalar register field
         1 => e: [u8; 2] { Read },  // An array register field
     },
@@ -99,13 +99,13 @@ mmio32_register_map! {
     // "array" is based only on the syntax of the register/field, not based on
     // what it points to. Therefore:
 
-    f: b,                // A scalar register
-    g: [a; 2],           // An array register
-    h {
+    unsafe f: b,         // A scalar register
+    unsafe g: [a; 2],    // An array register
+    unsafe h {
         0 => i: b,       // A scalar register field
         1 => j: [a; 2],  // An array register field
     },
-    k: c,                // A scalar register
+    unsafe k: c,         // A scalar register
 }
 ```
 
@@ -113,13 +113,13 @@ To sum it all up:
 
 ```rust
 mmio32_register_map! {
-    a: u8 { Read },       // A single scalar register definition layout
-    b: a,                 // A single scalar register reference layout
-    c: [u8; 2] { Read },  // A single array register definition layout
-    d: [a; 2],            // A single array register reference layout
+    unsafe a: u8 { Read },       // A single scalar register definition layout
+    unsafe b: a,                 // A single scalar register reference layout
+    unsafe c: [u8; 2] { Read },  // A single array register definition layout
+    unsafe d: [a; 2],            // A single array register reference layout
 
     // A register block layout
-    e {
+    unsafe e {
         0 => f: u8 { Read },       // A scalar register definition field
         1 => g: a,                 // A scalar register reference field
         2 => h: [u8; 2] { Read },  // An array register definition field
