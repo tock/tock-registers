@@ -4,7 +4,8 @@
 // Copyright Better Bytes 2026.
 
 use crate::block::{
-    bus_doc_comment, field_struct_doc_comment, interface_doc_comment, real_doc_comment,
+    bus_doc_comment, field_struct_doc_comment, interface_doc_comment, lens_doc_comment,
+    real_doc_comment,
 };
 use crate::{new_doc_comment, register_map, test_util::assert_tokens_eq, Env::ProcMacro};
 use quote::quote;
@@ -32,6 +33,7 @@ fn offsets() {
         }
     };
     let interface_comment = interface_doc_comment();
+    let lens_comment = lens_doc_comment();
     let bus_comment = bus_doc_comment();
     let real_comment = real_doc_comment();
     let new_comment = new_doc_comment();
@@ -56,7 +58,7 @@ fn offsets() {
                 type padded_pos: ::tock_registers::Register<DataType = u8> + Read;
                 fn padded_pos(self) -> Self::padded_pos;
             }
-            pub mod lens {}
+            #lens_comment pub mod lens {}
             #bus_comment #[allow(clippy::trait_duplication_in_bounds)]
             pub trait Bus: ::tock_registers::Address + ::tock_registers::DataTypeBus<usize> +
                 ::tock_registers::DataTypeBus<u32> + ::tock_registers::DataTypeBus<u16> +
