@@ -55,8 +55,8 @@ fn doc_comments() {
                 /// Doc comment G
                 /// Doc comment H
                 fn scalar_definition(&self) -> Self::scalar_definition<'_>;
-                type array_definition<'s>: ::tock_registers::RegisterArray<lens::array_definition<
-                    1usize>, Element: ::tock_registers::RegisterArray<lens::array_definition<
+                type array_definition<'s>: ::tock_registers::RegisterArray<lengths::array_definition
+                    <1usize>, Element: ::tock_registers::RegisterArray<lengths::array_definition<
                     0usize>, Element: ::tock_registers::Register<DataType = u8> + Read + Write> >
                     where Self: 's;
                 /// Doc comment I
@@ -67,8 +67,8 @@ fn doc_comments() {
                 /// Doc comment L
                 fn scalar_reference(&self) -> Self::scalar_reference<'_>;
                 type array_reference<'s>: ::tock_registers::RegisterArray<
-                    lens::array_reference<1usize>, Element: ::tock_registers::RegisterArray<
-                        lens::array_reference<0usize>, Element: b::Interface> > where Self: 's;
+                    lengths::array_reference<1usize>, Element: ::tock_registers::RegisterArray<
+                        lengths::array_reference<0usize>, Element: b::Interface> > where Self: 's;
                 /// Doc comment M
                 /// Doc comment N
                 fn array_reference(&self) -> Self::array_reference<'_>;
@@ -92,7 +92,15 @@ fn doc_comments() {
                 fn array_reference(&self) -> Self::array_reference<'_>
                     { self.deref().array_reference() }
             }
-            pub mod lens {
+            /// Phantom types encoding the lengths of register arrays in this block.
+            ///
+            /// Driver code can use these as type parameters when writing generic functions
+            /// over register arrays in this block, for example:
+            ///
+            /// ```ignore
+            /// fn process<R: RegisterArray<my_block::lengths::my_array>>(regs: R) { ... }
+            /// ```
+            pub mod lengths {
                 pub enum array_definition<const N: usize> {}
                 impl ::tock_registers::array::Len for
                     array_definition<0usize> { const LEN: usize = 2; }
@@ -117,14 +125,14 @@ fn doc_comments() {
             }
             impl Bus for Mmio32 {
                 const SIZE: usize = 8 + <::tock_registers::RealRegisterArray<
-                    ::tock_registers::RealRegisterArray<b::Real<Mmio32>, lens::array_reference<
-                    0usize> >, lens::array_reference<1usize> > as ::tock_registers::Span>::SIZE;
+                    ::tock_registers::RealRegisterArray<b::Real<Mmio32>, lengths::array_reference<
+                    0usize> >, lengths::array_reference<1usize> > as ::tock_registers::Span>::SIZE;
             }
             impl sealed::Bus for Mmio32 {}
             impl Bus for Mmio64 {
                 const SIZE: usize = 8 + <::tock_registers::RealRegisterArray<
-                    ::tock_registers::RealRegisterArray<b::Real<Mmio64>, lens::array_reference<
-                    0usize> >, lens::array_reference<1usize> > as ::tock_registers::Span>::SIZE;
+                    ::tock_registers::RealRegisterArray<b::Real<Mmio64>, lengths::array_reference<
+                    0usize> >, lengths::array_reference<1usize> > as ::tock_registers::Span>::SIZE;
             }
             impl sealed::Bus for Mmio64 {}
             impl<B: Bus> Bus for ::tock_registers::BorrowedBus<'_, B> {
@@ -144,13 +152,13 @@ fn doc_comments() {
                     "offset mismatch for bus Mmio64");
                 assert!(7 == ::tock_registers::internal::core::convert::identity(1 + <
                     ::tock_registers::RealRegisterArray<::tock_registers::RealRegisterArray<
-                    real_array_definition<Mmio32>, lens::array_definition<0usize> >,
-                    lens::array_definition<1usize> > as ::tock_registers::Span>::SIZE),
+                    real_array_definition<Mmio32>, lengths::array_definition<0usize> >,
+                    lengths::array_definition<1usize> > as ::tock_registers::Span>::SIZE),
                     "offset mismatch for bus Mmio32");
                 assert!(7 == ::tock_registers::internal::core::convert::identity(1 + <
                     ::tock_registers::RealRegisterArray<::tock_registers::RealRegisterArray<
-                    real_array_definition<Mmio64>, lens::array_definition<0usize> >,
-                    lens::array_definition<1usize> > as ::tock_registers::Span>::SIZE),
+                    real_array_definition<Mmio64>, lengths::array_definition<0usize> >,
+                    lengths::array_definition<1usize> > as ::tock_registers::Span>::SIZE),
                     "offset mismatch for bus Mmio64");
                 assert!(8 == ::tock_registers::internal::core::convert::identity(7 + <a::Real<
                     Mmio32> as ::tock_registers::Span>::SIZE), "offset mismatch for bus Mmio32");
@@ -196,7 +204,7 @@ fn doc_comments() {
                 }
                 type array_definition<'s> = ::tock_registers::RealRegisterArray<
                     ::tock_registers::RealRegisterArray<real_array_definition<B>,
-                    lens::array_definition<0usize> >, lens::array_definition<1usize> >
+                    lengths::array_definition<0usize> >, lengths::array_definition<1usize> >
                     where Self: 's;
                 fn array_definition(&self) -> Self::array_definition<'_> {
                     unsafe {
@@ -212,8 +220,8 @@ fn doc_comments() {
                     }
                 }
                 type array_reference<'s> = ::tock_registers::RealRegisterArray<
-                    ::tock_registers::RealRegisterArray<b::Real<B>, lens::array_reference<0usize>
-                    >, lens::array_reference<1usize> > where Self: 's;
+                    ::tock_registers::RealRegisterArray<b::Real<B>, lengths::array_reference<0usize>
+                    >, lengths::array_reference<1usize> > where Self: 's;
                 fn array_reference(&self) -> Self::array_reference<'_> {
                     unsafe {
                         Self::array_reference::new(

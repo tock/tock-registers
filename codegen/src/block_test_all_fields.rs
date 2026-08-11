@@ -4,7 +4,8 @@
 // Copyright Better Bytes 2026.
 
 use crate::block::{
-    bus_doc_comment, field_struct_doc_comment, interface_doc_comment, real_doc_comment,
+    bus_doc_comment, field_struct_doc_comment, interface_doc_comment, lengths_doc_comment,
+    real_doc_comment,
 };
 use crate::{new_doc_comment, register_map, test_util::assert_tokens_eq, Env::ProcMacro};
 use quote::quote;
@@ -28,6 +29,7 @@ fn all_field_types_example() {
         }
     };
     let interface_comment = interface_doc_comment();
+    let lengths_comment = lengths_doc_comment();
     let bus_comment = bus_doc_comment();
     let real_comment = real_doc_comment();
     let new_comment = new_doc_comment();
@@ -44,22 +46,22 @@ fn all_field_types_example() {
                     ::tock_registers::Register<DataType = u8> + Read + Dance<Waltz> where Self: 's;
                 fn scalar_definition(&self) -> Self::scalar_definition<'_>;
                 type array_definition<'s>: ::tock_registers::RegisterArray<
-                    lens::array_definition<1usize>, Element: ::tock_registers::RegisterArray<
-                    lens::array_definition<0usize>, Element: ::tock_registers::Register<
+                    lengths::array_definition<1usize>, Element: ::tock_registers::RegisterArray<
+                    lengths::array_definition<0usize>, Element: ::tock_registers::Register<
                     DataType = u8> + Read + Write> > where Self: 's;
                 fn array_definition(&self) -> Self::array_definition<'_>;
                 type scalar_reference<'s>: a::Interface where Self: 's;
                 fn scalar_reference(&self) -> Self::scalar_reference<'_>;
                 type array_reference<'s>: ::tock_registers::RegisterArray<
-                    lens::array_reference<1usize>, Element: ::tock_registers::RegisterArray<
-                        lens::array_reference<0usize>, Element: b::Interface> > where Self: 's;
+                    lengths::array_reference<1usize>, Element: ::tock_registers::RegisterArray<
+                        lengths::array_reference<0usize>, Element: b::Interface> > where Self: 's;
                 fn array_reference(&self) -> Self::array_reference<'_>;
                 type flat_array_definition<'s>: ::tock_registers::RegisterArray<
-                    lens::flat_array_definition, Element:
+                    lengths::flat_array_definition, Element:
                         ::tock_registers::Register<DataType = u8> + Read> where Self: 's;
                 fn flat_array_definition(&self) -> Self::flat_array_definition<'_>;
                 type flat_array_reference<'s>: ::tock_registers::RegisterArray<
-                    lens::flat_array_reference, Element: c::Interface> where Self: 's;
+                    lengths::flat_array_reference, Element: c::Interface> where Self: 's;
                 fn flat_array_reference(&self) -> Self::flat_array_reference<'_>;
             }
             impl<T: ::tock_registers::internal::core::ops::Deref<Target: Interface>> Interface for T
@@ -89,7 +91,7 @@ fn all_field_types_example() {
                 fn flat_array_reference(&self) -> Self::flat_array_reference<'_>
                     { self.deref().flat_array_reference() }
             }
-            pub mod lens {
+            #lengths_comment pub mod lengths {
                 pub enum array_definition<const N: usize> {}
                 impl ::tock_registers::array::Len for array_definition<0usize> { const LEN: usize = 2; }
                 impl ::tock_registers::array::Len for array_definition<1usize> { const LEN: usize = 3; }
@@ -120,12 +122,12 @@ fn all_field_types_example() {
             }
             impl Bus for Mmio32 {
                 const SIZE: usize = 17 + <::tock_registers::RealRegisterArray<c::Real<Mmio32>,
-                    lens::flat_array_reference> as ::tock_registers::Span>::SIZE;
+                    lengths::flat_array_reference> as ::tock_registers::Span>::SIZE;
             }
             impl sealed::Bus for Mmio32 {}
             impl Bus for Mmio64 {
                 const SIZE: usize = 17 + <::tock_registers::RealRegisterArray<c::Real<Mmio64>,
-                    lens::flat_array_reference> as ::tock_registers::Span>::SIZE;
+                    lengths::flat_array_reference> as ::tock_registers::Span>::SIZE;
             }
             impl sealed::Bus for Mmio64 {}
             impl<B: Bus> Bus for ::tock_registers::BorrowedBus<'_, B> {
@@ -147,13 +149,13 @@ fn all_field_types_example() {
                     "offset mismatch for bus Mmio64");
                 assert!(7 == ::tock_registers::internal::core::convert::identity(1 + <
                     ::tock_registers::RealRegisterArray<::tock_registers::RealRegisterArray<
-                    real_array_definition<Mmio32>, lens::array_definition<0usize> >,
-                    lens::array_definition<1usize> > as ::tock_registers::Span>::SIZE),
+                    real_array_definition<Mmio32>, lengths::array_definition<0usize> >,
+                    lengths::array_definition<1usize> > as ::tock_registers::Span>::SIZE),
                     "offset mismatch for bus Mmio32");
                 assert!(7 == ::tock_registers::internal::core::convert::identity(1 + <
                     ::tock_registers::RealRegisterArray<::tock_registers::RealRegisterArray<
-                    real_array_definition<Mmio64>, lens::array_definition<0usize> >,
-                    lens::array_definition<1usize> > as ::tock_registers::Span>::SIZE),
+                    real_array_definition<Mmio64>, lengths::array_definition<0usize> >,
+                    lengths::array_definition<1usize> > as ::tock_registers::Span>::SIZE),
                     "offset mismatch for bus Mmio64");
                 assert!(8 == ::tock_registers::internal::core::convert::identity(7 + 1),
                     "offset mismatch for bus Mmio32");
@@ -165,19 +167,19 @@ fn all_field_types_example() {
                     Mmio64> as ::tock_registers::Span>::SIZE), "offset mismatch for bus Mmio64");
                 assert!(15 == ::tock_registers::internal::core::convert::identity(9 + <
                     ::tock_registers::RealRegisterArray<::tock_registers::RealRegisterArray<b::Real<
-                    Mmio32>, lens::array_reference<0usize> >, lens::array_reference<1usize> > as
-                    ::tock_registers::Span>::SIZE), "offset mismatch for bus Mmio32");
+                    Mmio32>, lengths::array_reference<0usize> >, lengths::array_reference<1usize> >
+                    as ::tock_registers::Span>::SIZE), "offset mismatch for bus Mmio32");
                 assert!(15 == ::tock_registers::internal::core::convert::identity(9 + <
                     ::tock_registers::RealRegisterArray<::tock_registers::RealRegisterArray<b::Real<
-                    Mmio64>, lens::array_reference<0usize> >, lens::array_reference<1usize> > as
-                    ::tock_registers::Span>::SIZE), "offset mismatch for bus Mmio64");
+                    Mmio64>, lengths::array_reference<0usize> >, lengths::array_reference<1usize> >
+                    as ::tock_registers::Span>::SIZE), "offset mismatch for bus Mmio64");
                 assert!(17 == ::tock_registers::internal::core::convert::identity(15 + <
                     ::tock_registers::RealRegisterArray<real_flat_array_definition<Mmio32>,
-                    lens::flat_array_definition> as ::tock_registers::Span>::SIZE),
+                    lengths::flat_array_definition> as ::tock_registers::Span>::SIZE),
                     "offset mismatch for bus Mmio32");
                 assert!(17 == ::tock_registers::internal::core::convert::identity(15 + <
                     ::tock_registers::RealRegisterArray<real_flat_array_definition<Mmio64>,
-                    lens::flat_array_definition> as ::tock_registers::Span>::SIZE),
+                    lengths::flat_array_definition> as ::tock_registers::Span>::SIZE),
                     "offset mismatch for bus Mmio64");
             };
             mod sealed { pub trait Bus {} }
@@ -210,7 +212,7 @@ fn all_field_types_example() {
                 }
                 type array_definition<'s> = ::tock_registers::RealRegisterArray<
                     ::tock_registers::RealRegisterArray<real_array_definition<B>,
-                        lens::array_definition<0usize> >, lens::array_definition<1usize> >
+                        lengths::array_definition<0usize> >, lengths::array_definition<1usize> >
                         where Self: 's;
                 fn array_definition(&self) -> Self::array_definition<'_> {
                     unsafe {
@@ -226,8 +228,8 @@ fn all_field_types_example() {
                     }
                 }
                 type array_reference<'s> = ::tock_registers::RealRegisterArray<
-                    ::tock_registers::RealRegisterArray<b::Real<B>, lens::array_reference<0usize>
-                    >, lens::array_reference<1usize> > where Self: 's;
+                    ::tock_registers::RealRegisterArray<b::Real<B>, lengths::array_reference<0usize>
+                    >, lengths::array_reference<1usize> > where Self: 's;
                 fn array_reference(&self) -> Self::array_reference<'_> {
                     unsafe {
                         Self::array_reference::new(
@@ -235,7 +237,7 @@ fn all_field_types_example() {
                     }
                 }
                 type flat_array_definition<'s> = ::tock_registers::RealRegisterArray<
-                    real_flat_array_definition<B>, lens::flat_array_definition> where Self: 's;
+                    real_flat_array_definition<B>, lengths::flat_array_definition> where Self: 's;
                 fn flat_array_definition(&self) -> Self::flat_array_definition<'_> {
                     unsafe {
                         Self::flat_array_definition::new(
@@ -243,7 +245,7 @@ fn all_field_types_example() {
                     }
                 }
                 type flat_array_reference<'s> = ::tock_registers::RealRegisterArray<c::Real<B>,
-                    lens::flat_array_reference> where Self: 's;
+                    lengths::flat_array_reference> where Self: 's;
                 fn flat_array_reference(&self) -> Self::flat_array_reference<'_> {
                     unsafe {
                         Self::flat_array_reference::new(

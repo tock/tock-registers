@@ -166,7 +166,7 @@ impl sealed::Access for Safe {}
 /// struct Fake([Cell<u8>; 4]);
 /// impl storage::Interface for Fake {
 ///     type scratch<'s> = FakeRegisterArray<
-///         &'s Fake, FakeRegister<&'s Cell<u8>, u8, Safe, Safe>, storage::lens::scratch>;
+///         &'s Fake, FakeRegister<&'s Cell<u8>, u8, Safe, Safe>, storage::lengths::scratch>;
 ///     fn scratch(&self) -> Self::scratch<'_> {
 ///         FakeRegisterArray::new(self, |s, i| Some(
 ///             FakeRegister::new(s.0.get(i)?)
