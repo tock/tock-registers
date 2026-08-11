@@ -3,7 +3,7 @@
 // Copyright Tock Contributors 2026.
 // Copyright Better Bytes 2026.
 
-use crate::block::{bus_doc_comment, interface_doc_comment, real_doc_comment};
+use crate::block::{bus_doc_comment, interface_doc_comment, lengths_doc_comment, real_doc_comment};
 use crate::{new_doc_comment, register_map, test_util::assert_tokens_eq, Env::External};
 use quote::quote;
 
@@ -16,6 +16,7 @@ fn empty() {
         pub foo {}
     };
     let interface_comment = interface_doc_comment();
+    let lengths_comment = lengths_doc_comment();
     let bus_comment = bus_doc_comment();
     let real_comment = real_doc_comment();
     let new_comment = new_doc_comment();
@@ -25,7 +26,7 @@ fn empty() {
             #interface_comment pub trait Interface {}
             impl<T: ::tock_registers::internal::core::ops::Deref<Target: Interface>>
                 Interface for T {}
-            pub mod lens {}
+            #lengths_comment pub mod lengths {}
             #bus_comment #[allow(clippy::trait_duplication_in_bounds)]
             pub trait Bus: ::tock_registers::Address + sealed::Bus {
                 const SIZE: usize;

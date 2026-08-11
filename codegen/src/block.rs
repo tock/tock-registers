@@ -39,6 +39,7 @@ pub fn generate(env: Env, tock_registers: &Path, layout: &Layout, fields: &[Fiel
     let interface_comment = interface_doc_comment();
     let mut interface_fields = TokenStream::new();
     let mut deref_impl_items = TokenStream::new();
+    let lengths_comment = lengths_doc_comment();
     let mut len_definitions = TokenStream::new();
     let bus_comment = bus_doc_comment();
     let mut bus_bounds = TokenStream::new();
@@ -140,14 +141,13 @@ pub fn generate(env: Env, tock_registers: &Path, layout: &Layout, fields: &[Fiel
         };
         // Loop that runs once for each level of array nesting.
         for (len_type, size) in len_types_sizes {
-            interface_bound =
-                quote![#tock_registers::RegisterArray<lens::#len_type, Element: #interface_bound>];
+            interface_bound = quote![#tock_registers::RegisterArray<lengths::#len_type, Element: #interface_bound>];
             len_definitions.extend(quote! {
                 impl #tock_registers::array::Len for #len_type { const LEN: usize = #size; }
             });
-            real = quote![#tock_registers::RealRegisterArray<#real, lens::#len_type>];
+            real = quote![#tock_registers::RealRegisterArray<#real, lengths::#len_type>];
             for r in &mut real_per_bus {
-                *r = quote![#tock_registers::RealRegisterArray<#r, lens::#len_type>];
+                *r = quote![#tock_registers::RealRegisterArray<#r, lengths::#len_type>];
             }
         }
         interface_fields.extend(quote! {
@@ -216,7 +216,7 @@ pub fn generate(env: Env, tock_registers: &Path, layout: &Layout, fields: &[Fiel
             #interface_comment pub trait Interface { #interface_fields }
             impl<T: #tock_registers::internal::core::ops::Deref<Target: Interface>>
                 Interface for T { #deref_impl_items }
-            pub mod lens { #len_definitions }
+            #lengths_comment pub mod lengths { #len_definitions }
             #bus_comment #[allow(clippy::trait_duplication_in_bounds)]
             pub trait Bus: #tock_registers::Address #bus_bounds + sealed::Bus {
                 const SIZE: usize;
@@ -268,6 +268,19 @@ pub fn interface_doc_comment() -> TokenStream {
     quote! {
         /// Trait representing this register block. Driver code can use this trait to work with
         /// both real hardware and fake implementations of the peripheral (for unit testing).
+    }
+}
+
+pub fn lengths_doc_comment() -> TokenStream {
+    quote! {
+        /// Phantom types encoding the lengths of register arrays in this block.
+        ///
+        /// Driver code can use these as type parameters when writing generic functions
+        /// over register arrays in this block, for example:
+        ///
+        /// ```ignore
+        /// fn process<R: RegisterArray<my_block::lengths::my_array>>(regs: R) { ... }
+        /// ```
     }
 }
 
