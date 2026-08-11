@@ -72,6 +72,14 @@ fn doc_comments() {
                 /// Doc comment N
                 fn array_reference(self) -> Self::array_reference;
             }
+            /// Phantom types encoding the lengths of register arrays in this block.
+            ///
+            /// Driver code can use these as type parameters when writing generic functions
+            /// over register arrays in this block, for example:
+            ///
+            /// ```ignore
+            /// fn process<R: RegisterArray<my_block::lens::my_array>>(regs: R) { ... }
+            /// ```
             pub mod lens {
                 pub enum array_definition<const N: usize> {}
                 impl ::tock_registers::array::Len for

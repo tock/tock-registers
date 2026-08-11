@@ -38,6 +38,7 @@ pub fn generate(env: Env, tock_registers: &Path, layout: &Layout, fields: &[Fiel
     let name = &layout.name;
     let interface_comment = interface_doc_comment();
     let mut interface_fields = TokenStream::new();
+    let lens_comment = lens_doc_comment();
     let mut len_definitions = TokenStream::new();
     let bus_comment = bus_doc_comment();
     let mut bus_bounds = TokenStream::new();
@@ -202,7 +203,7 @@ pub fn generate(env: Env, tock_registers: &Path, layout: &Layout, fields: &[Fiel
             #interface_comment pub trait Interface: #tock_registers::internal::core::marker::Copy {
                 #interface_fields
             }
-            pub mod lens { #len_definitions }
+            #lens_comment pub mod lens { #len_definitions }
             #bus_comment #[allow(clippy::trait_duplication_in_bounds)]
             pub trait Bus: #tock_registers::Address #bus_bounds + sealed::Bus {
                 const SIZE: usize;
@@ -254,6 +255,19 @@ pub fn interface_doc_comment() -> TokenStream {
     quote! {
         /// Trait representing this register block. Driver code can use this trait to work with
         /// both real hardware and fake implementations of the peripheral (for unit testing).
+    }
+}
+
+pub fn lens_doc_comment() -> TokenStream {
+    quote! {
+        /// Phantom types encoding the lengths of register arrays in this block.
+        ///
+        /// Driver code can use these as type parameters when writing generic functions
+        /// over register arrays in this block, for example:
+        ///
+        /// ```ignore
+        /// fn process<R: RegisterArray<my_block::lens::my_array>>(regs: R) { ... }
+        /// ```
     }
 }
 

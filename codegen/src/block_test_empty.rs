@@ -3,7 +3,7 @@
 // Copyright Tock Contributors 2026.
 // Copyright Better Bytes 2026.
 
-use crate::block::{bus_doc_comment, interface_doc_comment, real_doc_comment};
+use crate::block::{bus_doc_comment, interface_doc_comment, lens_doc_comment, real_doc_comment};
 use crate::{new_doc_comment, register_map, test_util::assert_tokens_eq, Env::External};
 use quote::quote;
 
@@ -16,6 +16,7 @@ fn empty() {
         pub foo {}
     };
     let interface_comment = interface_doc_comment();
+    let lens_comment = lens_doc_comment();
     let bus_comment = bus_doc_comment();
     let real_comment = real_doc_comment();
     let new_comment = new_doc_comment();
@@ -24,7 +25,7 @@ fn empty() {
             #![allow(non_camel_case_types,dead_code,non_upper_case_globals)] use super::*;
             #interface_comment
             pub trait Interface: ::tock_registers::internal::core::marker::Copy {}
-            pub mod lens {}
+            #lens_comment pub mod lens {}
             #bus_comment #[allow(clippy::trait_duplication_in_bounds)]
             pub trait Bus: ::tock_registers::Address + sealed::Bus {
                 const SIZE: usize;

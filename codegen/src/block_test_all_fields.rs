@@ -4,7 +4,8 @@
 // Copyright Better Bytes 2026.
 
 use crate::block::{
-    bus_doc_comment, field_struct_doc_comment, interface_doc_comment, real_doc_comment,
+    bus_doc_comment, field_struct_doc_comment, interface_doc_comment, lens_doc_comment,
+    real_doc_comment,
 };
 use crate::{new_doc_comment, register_map, test_util::assert_tokens_eq, Env::ProcMacro};
 use quote::quote;
@@ -28,6 +29,7 @@ fn all_field_types_example() {
         }
     };
     let interface_comment = interface_doc_comment();
+    let lens_comment = lens_doc_comment();
     let bus_comment = bus_doc_comment();
     let real_comment = real_doc_comment();
     let new_comment = new_doc_comment();
@@ -62,7 +64,7 @@ fn all_field_types_example() {
                     lens::flat_array_reference, Element: c::Interface>;
                 fn flat_array_reference(self) -> Self::flat_array_reference;
             }
-            pub mod lens {
+            #lens_comment pub mod lens {
                 pub enum array_definition<const N: usize> {}
                 impl ::tock_registers::array::Len for array_definition<0usize> { const LEN: usize = 2; }
                 impl ::tock_registers::array::Len for array_definition<1usize> { const LEN: usize = 3; }
