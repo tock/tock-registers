@@ -4,7 +4,7 @@
 // Copyright Better Bytes 2026.
 
 use crate::block::{
-    bus_doc_comment, field_struct_doc_comment, interface_doc_comment, lens_doc_comment,
+    bus_doc_comment, field_struct_doc_comment, interface_doc_comment, lengths_doc_comment,
     real_doc_comment,
 };
 use crate::{new_doc_comment, register_map, test_util::assert_tokens_eq, Env::ProcMacro};
@@ -29,7 +29,7 @@ fn all_field_types_example() {
         }
     };
     let interface_comment = interface_doc_comment();
-    let lens_comment = lens_doc_comment();
+    let lengths_comment = lengths_doc_comment();
     let bus_comment = bus_doc_comment();
     let real_comment = real_doc_comment();
     let new_comment = new_doc_comment();
@@ -46,25 +46,25 @@ fn all_field_types_example() {
                     ::tock_registers::Register<DataType = u8> + Read + Dance<Waltz>;
                 fn scalar_definition(self) -> Self::scalar_definition;
                 type array_definition: ::tock_registers::RegisterArray<
-                    lens::array_definition<1usize>,
-                    Element: ::tock_registers::RegisterArray<lens::array_definition<0usize>,
+                    lengths::array_definition<1usize>,
+                    Element: ::tock_registers::RegisterArray<lengths::array_definition<0usize>,
                         Element: ::tock_registers::Register<DataType = u8> + Read + Write> >;
                 fn array_definition(self) -> Self::array_definition;
                 type scalar_reference: a::Interface;
                 fn scalar_reference(self) -> Self::scalar_reference;
                 type array_reference: ::tock_registers::RegisterArray<
-                    lens::array_reference<1usize>, Element: ::tock_registers::RegisterArray<
-                        lens::array_reference<0usize>, Element: b::Interface> >;
+                    lengths::array_reference<1usize>, Element: ::tock_registers::RegisterArray<
+                        lengths::array_reference<0usize>, Element: b::Interface> >;
                 fn array_reference(self) -> Self::array_reference;
                 type flat_array_definition: ::tock_registers::RegisterArray<
-                    lens::flat_array_definition, Element:
+                    lengths::flat_array_definition, Element:
                         ::tock_registers::Register<DataType = u8> + Read>;
                 fn flat_array_definition(self) -> Self::flat_array_definition;
                 type flat_array_reference: ::tock_registers::RegisterArray<
-                    lens::flat_array_reference, Element: c::Interface>;
+                    lengths::flat_array_reference, Element: c::Interface>;
                 fn flat_array_reference(self) -> Self::flat_array_reference;
             }
-            #lens_comment pub mod lens {
+            #lengths_comment pub mod lengths {
                 pub enum array_definition<const N: usize> {}
                 impl ::tock_registers::array::Len for array_definition<0usize> { const LEN: usize = 2; }
                 impl ::tock_registers::array::Len for array_definition<1usize> { const LEN: usize = 3; }
@@ -179,7 +179,7 @@ fn all_field_types_example() {
                 }
                 type array_definition = ::tock_registers::RealRegisterArray<
                     ::tock_registers::RealRegisterArray<real_array_definition<B>,
-                        lens::array_definition<0usize> >, lens::array_definition<1usize> >;
+                        lengths::array_definition<0usize> >, lengths::array_definition<1usize> >;
                 fn array_definition(self) -> Self::array_definition {
                     unsafe {
                         Self::array_definition::new(
@@ -194,8 +194,8 @@ fn all_field_types_example() {
                     }
                 }
                 type array_reference = ::tock_registers::RealRegisterArray<
-                    ::tock_registers::RealRegisterArray<b::Real<B>, lens::array_reference<0usize>
-                    >, lens::array_reference<1usize> >;
+                    ::tock_registers::RealRegisterArray<b::Real<B>, lengths::array_reference<0usize>
+                    >, lengths::array_reference<1usize> >;
                 fn array_reference(self) -> Self::array_reference {
                     unsafe {
                         Self::array_reference::new(
@@ -203,7 +203,7 @@ fn all_field_types_example() {
                     }
                 }
                 type flat_array_definition = ::tock_registers::RealRegisterArray<
-                    real_flat_array_definition<B>, lens::flat_array_definition>;
+                    real_flat_array_definition<B>, lengths::flat_array_definition>;
                 fn flat_array_definition(self) -> Self::flat_array_definition {
                     unsafe {
                         Self::flat_array_definition::new(
@@ -211,7 +211,7 @@ fn all_field_types_example() {
                     }
                 }
                 type flat_array_reference =
-                    ::tock_registers::RealRegisterArray<c::Real<B>, lens::flat_array_reference>;
+                    ::tock_registers::RealRegisterArray<c::Real<B>, lengths::flat_array_reference>;
                 fn flat_array_reference(self) -> Self::flat_array_reference {
                     unsafe {
                         Self::flat_array_reference::new(
