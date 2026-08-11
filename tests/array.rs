@@ -43,14 +43,14 @@ impl array_demo::Interface for Fake {
     type counter<'s> = FakeRegisterArray<
         &'s Self,
         FakeRegister<(&'s Self, u8), u8, Safe, NoAccess>,
-        array_demo::lens::counter,
+        array_demo::lengths::counter,
     >;
     fn counter(
         &self,
     ) -> FakeRegisterArray<
         &'_ Self,
         FakeRegister<(&'_ Self, u8), u8, Safe, NoAccess>,
-        array_demo::lens::counter,
+        array_demo::lengths::counter,
     > {
         FakeRegisterArray::new(self, |s, index| {
             if index >= 3 {
@@ -67,10 +67,10 @@ impl array_demo::Interface for Fake {
     }
 
     type incrementers<'s> =
-        FakeRegisterArray<&'s Self, FakeIncrement<'s>, array_demo::lens::incrementers>;
+        FakeRegisterArray<&'s Self, FakeIncrement<'s>, array_demo::lengths::incrementers>;
     fn incrementers(
         &self,
-    ) -> FakeRegisterArray<&'_ Self, FakeIncrement<'_>, array_demo::lens::incrementers> {
+    ) -> FakeRegisterArray<&'_ Self, FakeIncrement<'_>, array_demo::lengths::incrementers> {
         FakeRegisterArray::new(self, |s, index| {
             Some(FakeIncrement {
                 counter: &s.single_counter,
