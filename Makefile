@@ -44,4 +44,8 @@ expand_macros_test: toolchain
 .PHONY: miri_test
 miri_test:
 	cd nightly && RUSTFLAGS="-D warnings" \
-		cargo miri test --all-targets --manifest-path=../Cargo.toml --workspace
+		cargo miri test --all-targets --manifest-path=../Cargo.toml \
+			--target=x86_64-unknown-linux-gnu --workspace
+	cd nightly && RUSTFLAGS="-D warnings" \
+		cargo miri test --manifest-path=../Cargo.toml \
+			--target=i686-unknown-linux-gnu --tests

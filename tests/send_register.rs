@@ -5,6 +5,8 @@
 
 //! Tests passing a RegisterSender between threads and using it to access a single peripheral.
 
+#![cfg(target_pointer_width = "64")]
+
 use std::{ptr::NonNull, sync::mpsc::channel, thread::spawn};
 use tock_registers::{mmio64_register_map, Mmio64, Read, RegisterSender, Write};
 
