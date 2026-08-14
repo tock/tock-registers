@@ -99,9 +99,12 @@ build_all: toolchain
 clippy: toolchain
 	RUSTFLAGS="-D warnings" cargo clippy --all --all-targets --workspace
 
+# `cargo doc` seems to invalidate the Cargo cache for other commands (and
+# vice-versa), so we set a different target directory to stop that
+# invalidation.
 .PHONY: doc
 doc: toolchain
-	RUSTDOCFLAGS="-D warnings" cargo doc --target-dir=doc_target --workspace
+	RUSTDOCFLAGS="-D warnings" cargo doc --target-dir=target_doc --workspace
 
 # Tests the expand_macros binary.
 .PHONY: expand_macros_test
