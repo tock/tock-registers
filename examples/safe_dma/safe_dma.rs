@@ -6,7 +6,7 @@
 //! crate, e.g. it only supports 'static buffers.
 
 use core::cell::Cell;
-use tock_registers::{Bus, DataType, Mmio64, Register};
+use tock_registers::{Bus, DataType, Register};
 
 pub trait UnsafeWrite: Register {
     /// # Safety: The safety invariants are hardware-specific, and depend on which register this
@@ -84,7 +84,7 @@ pub unsafe trait BusDmaEnable<T>: Bus<T> {
 }
 /// Safety: get() must be correct.
 #[cfg(target_arch = "x86_64")]
-unsafe impl BusDmaEnable<u8> for Mmio64 {
+unsafe impl BusDmaEnable<u8> for tock_registers::Mmio64 {
     unsafe fn start(self) {
         let ptr = self.address().as_ptr();
         // Safety: We know this is a u8 register that we can write 1 to. This assumes the register

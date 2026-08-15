@@ -15,7 +15,7 @@
 use crate::chip_unsafe::{rng, RngDma};
 
 /// Driver for the RNG peripheral.
-pub struct Rng<R: rng::Interface = rng::Real> {
+pub struct Rng<R: rng::Interface> {
     manager: RngDma<R>,
 }
 

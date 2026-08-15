@@ -27,6 +27,7 @@ pub use safe_dma::{DmaEnable, UnsafeWrite};
 // on-stack fake peripheral).
 // -------------------------------------------------------------------------------------------------
 
+#[cfg(target_pointer_width = "64")]
 fn main() {
     use chip_safe::Rng;
     use chip_unsafe::RngDma;
@@ -80,3 +81,6 @@ fn main() {
 
     drop(unsafe { Box::from_raw(buffer) });
 }
+
+#[cfg(not(target_pointer_width = "64"))]
+fn main() {}
