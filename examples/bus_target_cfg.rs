@@ -51,7 +51,7 @@ unsafe impl Bus<u8> for Port {
 #[cfg(target_arch = "x86")]
 impl tock_registers::BusRead<u8> for Port {
     unsafe fn read(self) -> u8 {
-        panic!("This is an example, lets not perform a register access for real.");
+        0
     }
 }
 
@@ -66,5 +66,8 @@ fn main() {
     let _real = unsafe { registers::Real::new(Port::new(1)) };
     // This won't compile on non-x86 architectures, because `Real` does not implement Interface.
     #[cfg(target_arch = "x86")]
-    _real.read();
+    {
+        use registers::Interface;
+        _real.status().get();
+    }
 }
