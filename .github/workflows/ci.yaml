@@ -6,11 +6,34 @@ name: ci
 on: pull_request
 
 jobs:
-  build:
+  ci_nightly:
     runs-on: ubuntu-latest
-
     steps:
       - name: Clone
-        uses: actions/checkout@v6
-      - name: Test
-        run: make -j4 test
+        uses: actions/checkout@v7
+      - name: Nightly toolchain checks
+        run: make -j4 ci_nightly
+
+  ci_stable:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone
+        uses: actions/checkout@v7
+      - name: Stable toolchain checks
+        run: make -j4 ci_stable
+
+  license_check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone tock-registers
+        uses: actions/checkout@v7
+        with:
+          path: tock-registers
+      - name: Clone tock/tock
+        uses: actions/checkout@v7
+        with:
+          path: tock
+          repository: tock/tock
+      - name: License check
+        run: cargo +stable run --manifest-path=../tock/tools/ci/license-checker/Cargo.toml --release
+        working-directory: tock-registers
