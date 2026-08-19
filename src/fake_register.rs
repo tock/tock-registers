@@ -25,9 +25,9 @@ use core::marker::PhantomData;
 /// // Instead of defining a FakeRandomByte struct and implementing Register<DataType = u8> and
 /// // Read on it, this implementation uses FakeRegister. This saves a lot of boilerplate,
 /// // especially when a peripheral has many registers.
-/// impl rng::Interface for &FakeRng {
-///     type random_byte = FakeRegister<Self, u8, Safe, NoAccess>;
-///     fn random_byte(self) -> FakeRegister<Self, u8, Safe, NoAccess> {
+/// impl rng::Interface for FakeRng {
+///     type random_byte<'s> = FakeRegister<&'s Self, u8, Safe, NoAccess>;
+///     fn random_byte(&self) -> Self::random_byte<'_> {
 ///         FakeRegister::new(self).on_read(|this| {
 ///             let next = this.0.get().wrapping_add(1);
 ///             this.0.set(next);
@@ -164,10 +164,10 @@ impl sealed::Access for Safe {}
 /// }
 /// /// Fake version of the storage peripheral.
 /// struct Fake([Cell<u8>; 4]);
-/// impl<'f> storage::Interface for &'f Fake {
-///     type scratch = FakeRegisterArray<
-///         Self, FakeRegister<&'f Cell<u8>, u8, Safe, Safe>, storage::lengths::scratch>;
-///     fn scratch(self) -> Self::scratch {
+/// impl storage::Interface for Fake {
+///     type scratch<'s> = FakeRegisterArray<
+///         &'s Fake, FakeRegister<&'s Cell<u8>, u8, Safe, Safe>, storage::lengths::scratch>;
+///     fn scratch(&self) -> Self::scratch<'_> {
 ///         FakeRegisterArray::new(self, |s, i| Some(
 ///             FakeRegister::new(s.0.get(i)?)
 ///                 .on_read(|c| c.get())

@@ -56,8 +56,8 @@ pub trait RegisterArray<L: Len>: Copy {
 /// the generated `foo::Interface` trait contains a type bound:
 /// ```ignore
 /// trait Interface {
-///     type a: RegisterArray<Element: RegisterArray<Element: RegisterArray<Element:
-///         Register<DataType = u8> + Read + Write>>>;
+///     type a<'s>: RegisterArray<Element: RegisterArray<Element: RegisterArray<Element:
+///         Register<DataType = u8> + Read + Write>>> where Self: 's;
 /// }
 /// ```
 /// and unfortunately this bound results in a compiler error. Moving `LEN` to a const generic:
@@ -69,8 +69,8 @@ pub trait RegisterArray<L: Len>: Copy {
 /// results in the same error:
 /// ```ignore
 /// trait Interface {
-///     type a: RegisterArray<2, Element: RegisterArray<2, Element: RegisterArray<2, Element:
-///         Register<DataType = u8> + Read + Write>>>;
+///     type a<'s>: RegisterArray<2, Element: RegisterArray<2, Element: RegisterArray<2, Element:
+///         Register<DataType = u8> + Read + Write>>> where Self: 's;
 /// }
 /// ```
 ///

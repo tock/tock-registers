@@ -46,17 +46,36 @@ fn offsets() {
         pub mod foo {
             #![allow(non_camel_case_types)]
             use super::*;
-            #interface_comment pub trait Interface: ::tock_registers::internal::core::marker::Copy {
-                type variable_size: ::tock_registers::Register<DataType = usize> + Read;
-                fn variable_size(self) -> Self::variable_size;
-                type size_variable_pos: ::tock_registers::Register<DataType = u32> + Read;
-                fn size_variable_pos(self) -> Self::size_variable_pos;
-                type aliased: ::tock_registers::Register<DataType = u16> + Read;
-                fn aliased(self) -> Self::aliased;
-                type fixed_pos: ::tock_registers::Register<DataType = u32> + Read;
-                fn fixed_pos(self) -> Self::fixed_pos;
-                type padded_pos: ::tock_registers::Register<DataType = u8> + Read;
-                fn padded_pos(self) -> Self::padded_pos;
+            #interface_comment pub trait Interface {
+                type variable_size<'s>:
+                    ::tock_registers::Register<DataType = usize> + Read where Self: 's;
+                fn variable_size(&self) -> Self::variable_size<'_>;
+                type size_variable_pos<'s>:
+                    ::tock_registers::Register<DataType = u32> + Read where Self: 's;
+                fn size_variable_pos(&self) -> Self::size_variable_pos<'_>;
+                type aliased<'s>: ::tock_registers::Register<DataType = u16> + Read where Self: 's;
+                fn aliased(&self) -> Self::aliased<'_>;
+                type fixed_pos<'s>:
+                    ::tock_registers::Register<DataType = u32> + Read where Self: 's;
+                fn fixed_pos(&self) -> Self::fixed_pos<'_>;
+                type padded_pos<'s>:
+                    ::tock_registers::Register<DataType = u8> + Read where Self: 's;
+                fn padded_pos(&self) -> Self::padded_pos<'_>;
+            }
+            impl<T: ::tock_registers::internal::core::ops::Deref<Target: Interface>> Interface for T
+            {
+                type variable_size<'s> = <T::Target as Interface>::variable_size<'s> where Self: 's;
+                fn variable_size(&self) -> Self::variable_size<'_> { self.deref().variable_size() }
+                type size_variable_pos<'s> =
+                    <T::Target as Interface>::size_variable_pos<'s> where Self: 's;
+                fn size_variable_pos(&self) -> Self::size_variable_pos<'_>
+                    { self.deref().size_variable_pos() }
+                type aliased<'s> = <T::Target as Interface>::aliased<'s> where Self: 's;
+                fn aliased(&self) -> Self::aliased<'_> { self.deref().aliased() }
+                type fixed_pos<'s> = <T::Target as Interface>::fixed_pos<'s> where Self: 's;
+                fn fixed_pos(&self) -> Self::fixed_pos<'_> { self.deref().fixed_pos() }
+                type padded_pos<'s> = <T::Target as Interface>::padded_pos<'s> where Self: 's;
+                fn padded_pos(&self) -> Self::padded_pos<'_> { self.deref().padded_pos() }
             }
             #lengths_comment pub mod lengths {}
             #bus_comment #[allow(clippy::trait_duplication_in_bounds)]
@@ -94,33 +113,33 @@ fn offsets() {
                     "offset mismatch for bus Mmio32");
                 assert!(0 == ::tock_registers::internal::core::convert::identity(0),
                     "offset mismatch for bus Mmio64");
-                assert!(4 == ::tock_registers::internal::core::convert::identity(0 +
-                    <<Real<Mmio32> as Interface>::variable_size as ::tock_registers::Span>::SIZE),
+                assert!(4 == ::tock_registers::internal::core::convert::identity(
+                    0 + <real_variable_size<Mmio32> as ::tock_registers::Span>::SIZE),
                     "offset mismatch for bus Mmio32");
-                assert!(8 == ::tock_registers::internal::core::convert::identity(0 +
-                    <<Real<Mmio64> as Interface>::variable_size as ::tock_registers::Span>::SIZE),
+                assert!(8 == ::tock_registers::internal::core::convert::identity(
+                    0 + <real_variable_size<Mmio64> as ::tock_registers::Span>::SIZE),
                     "offset mismatch for bus Mmio64");
-                assert!(8 == ::tock_registers::internal::core::convert::identity(4 + <<Real<Mmio32>
-                    as Interface>::size_variable_pos as ::tock_registers::Span>::SIZE),
+                assert!(8 == ::tock_registers::internal::core::convert::identity(
+                    4 + <real_size_variable_pos<Mmio32> as ::tock_registers::Span>::SIZE),
                     "offset mismatch for bus Mmio32");
-                assert!(12 == ::tock_registers::internal::core::convert::identity(8 + <<Real<Mmio64>
-                    as Interface>::size_variable_pos as ::tock_registers::Span>::SIZE),
+                assert!(12 == ::tock_registers::internal::core::convert::identity(
+                    8 + <real_size_variable_pos<Mmio64> as ::tock_registers::Span>::SIZE),
                     "offset mismatch for bus Mmio64");
                 assert!(12 == ::tock_registers::internal::core::convert::identity(8 + 4),
                     "offset mismatch for bus Mmio32");
                 assert!(12 == ::tock_registers::internal::core::convert::identity(12 + 0),
                     "offset mismatch for bus Mmio64");
-                assert!(16 == ::tock_registers::internal::core::convert::identity(12 +
-                    <<Real<Mmio32> as Interface>::fixed_pos as ::tock_registers::Span>::SIZE),
+                assert!(16 == ::tock_registers::internal::core::convert::identity(
+                    12 + <real_fixed_pos<Mmio32> as ::tock_registers::Span>::SIZE),
                     "offset mismatch for bus Mmio32");
-                assert!(16 == ::tock_registers::internal::core::convert::identity(12 +
-                    <<Real<Mmio64> as Interface>::fixed_pos as ::tock_registers::Span>::SIZE),
+                assert!(16 == ::tock_registers::internal::core::convert::identity(
+                    12 + <real_fixed_pos<Mmio64> as ::tock_registers::Span>::SIZE),
                     "offset mismatch for bus Mmio64");
-                assert!(21 == ::tock_registers::internal::core::convert::identity(20 +
-                    <<Real<Mmio32> as Interface>::padded_pos as ::tock_registers::Span>::SIZE),
+                assert!(21 == ::tock_registers::internal::core::convert::identity(
+                    20 + <real_padded_pos<Mmio32> as ::tock_registers::Span>::SIZE),
                     "offset mismatch for bus Mmio32");
-                assert!(25 == ::tock_registers::internal::core::convert::identity(24 +
-                    <<Real<Mmio64> as Interface>::padded_pos as ::tock_registers::Span>::SIZE),
+                assert!(25 == ::tock_registers::internal::core::convert::identity(
+                    24 + <real_padded_pos<Mmio64> as ::tock_registers::Span>::SIZE),
                     "offset mismatch for bus Mmio64");
             };
             mod sealed { pub trait Bus {} }
@@ -142,32 +161,32 @@ fn offsets() {
                 real_fixed_pos<B>: ::tock_registers::Register<DataType = u32> + Read,
                 real_padded_pos<B>: ::tock_registers::Register<DataType = u8> + Read,
             {
-                type variable_size = real_variable_size<B>;
-                fn variable_size(self) -> Self::variable_size {
+                type variable_size<'s> = real_variable_size<B> where Self: 's;
+                fn variable_size(&self) -> Self::variable_size<'_> {
                     unsafe {
                         Self::variable_size::new(
                             self.address.byte_add(<B as Bus>::variable_size_offset))
                     }
                 }
-                type size_variable_pos = real_size_variable_pos<B>;
-                fn size_variable_pos(self) -> Self::size_variable_pos {
+                type size_variable_pos<'s> = real_size_variable_pos<B> where Self: 's;
+                fn size_variable_pos(&self) -> Self::size_variable_pos<'_> {
                     unsafe {
                         Self::size_variable_pos::new(
                             self.address.byte_add(<B as Bus>::size_variable_pos_offset))
                     }
                 }
-                type aliased = real_aliased<B>;
-                fn aliased(self) -> Self::aliased {
+                type aliased<'s> = real_aliased<B> where Self: 's;
+                fn aliased(&self) -> Self::aliased<'_> {
                     unsafe { Self::aliased::new(self.address.byte_add(<B as Bus>::aliased_offset)) }
                 }
-                type fixed_pos = real_fixed_pos<B>;
-                fn fixed_pos(self) -> Self::fixed_pos {
+                type fixed_pos<'s> = real_fixed_pos<B> where Self: 's;
+                fn fixed_pos(&self) -> Self::fixed_pos<'_> {
                     unsafe {
                         Self::fixed_pos::new(self.address.byte_add(<B as Bus>::fixed_pos_offset))
                     }
                 }
-                type padded_pos = real_padded_pos<B>;
-                fn padded_pos(self) -> Self::padded_pos {
+                type padded_pos<'s> = real_padded_pos<B> where Self: 's;
+                fn padded_pos(&self) -> Self::padded_pos<'_> {
                     unsafe {
                         Self::padded_pos::new(self.address.byte_add(<B as Bus>::padded_pos_offset))
                     }

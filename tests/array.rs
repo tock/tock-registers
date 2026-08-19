@@ -39,17 +39,17 @@ struct Fake {
     increments: [Cell<u8>; 3],
 }
 
-impl<'f> array_demo::Interface for &'f Fake {
-    type counter = FakeRegisterArray<
-        Self,
-        FakeRegister<(Self, u8), u8, Safe, NoAccess>,
+impl array_demo::Interface for Fake {
+    type counter<'s> = FakeRegisterArray<
+        &'s Self,
+        FakeRegister<(&'s Self, u8), u8, Safe, NoAccess>,
         array_demo::lengths::counter,
     >;
     fn counter(
-        self,
+        &self,
     ) -> FakeRegisterArray<
-        Self,
-        FakeRegister<(Self, u8), u8, Safe, NoAccess>,
+        &'_ Self,
+        FakeRegister<(&'_ Self, u8), u8, Safe, NoAccess>,
         array_demo::lengths::counter,
     > {
         FakeRegisterArray::new(self, |s, index| {
@@ -66,11 +66,11 @@ impl<'f> array_demo::Interface for &'f Fake {
         })
     }
 
-    type incrementers =
-        FakeRegisterArray<Self, FakeIncrement<'f>, array_demo::lengths::incrementers>;
+    type incrementers<'s> =
+        FakeRegisterArray<&'s Self, FakeIncrement<'s>, array_demo::lengths::incrementers>;
     fn incrementers(
-        self,
-    ) -> FakeRegisterArray<Self, FakeIncrement<'f>, array_demo::lengths::incrementers> {
+        &self,
+    ) -> FakeRegisterArray<&'_ Self, FakeIncrement<'_>, array_demo::lengths::incrementers> {
         FakeRegisterArray::new(self, |s, index| {
             Some(FakeIncrement {
                 counter: &s.single_counter,
@@ -87,16 +87,16 @@ struct FakeIncrement<'f> {
 }
 
 impl<'f> variable_increment::Interface for FakeIncrement<'f> {
-    type increment = FakeRegister<&'f Cell<u8>, u8, Safe, Safe>;
-    fn increment(self) -> Self::increment {
+    type increment<'s> = FakeRegister<&'f Cell<u8>, u8, Safe, Safe> where Self: 's;
+    fn increment(&self) -> Self::increment<'_> {
         FakeRegister::new(self.increment)
             .on_read(|i| i.get())
             .on_write(|i, v| i.set(v))
     }
 
-    type counter = FakeRegister<Self, u8, Safe, NoAccess>;
-    fn counter(self) -> Self::counter {
-        FakeRegister::new(self).on_read(|s| {
+    type counter<'s> = FakeRegister<Self, u8, Safe, NoAccess> where Self: 's;
+    fn counter(&self) -> Self::counter<'_> {
+        FakeRegister::new(*self).on_read(|s| {
             let out = s.counter.get();
             s.counter.set(out.wrapping_add(s.increment.get()));
             out

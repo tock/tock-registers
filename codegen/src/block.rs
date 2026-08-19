@@ -38,6 +38,7 @@ pub fn generate(env: Env, tock_registers: &Path, layout: &Layout, fields: &[Fiel
     let name = &layout.name;
     let interface_comment = interface_doc_comment();
     let mut interface_fields = TokenStream::new();
+    let mut deref_impl_items = TokenStream::new();
     let lengths_comment = lengths_doc_comment();
     let mut len_definitions = TokenStream::new();
     let bus_comment = bus_doc_comment();
@@ -92,6 +93,7 @@ pub fn generate(env: Env, tock_registers: &Path, layout: &Layout, fields: &[Fiel
         let element_type = &register.element_type;
         let mut interface_bound;
         let mut real;
+        let mut real_per_bus: Vec<_>;
         // If statement that handles differences between register definitions (which have
         // operations) and register references (which do not).
         if let Some(operations) = &register.operations {
@@ -99,6 +101,7 @@ pub fn generate(env: Env, tock_registers: &Path, layout: &Layout, fields: &[Fiel
                 quote![#tock_registers::Register<DataType = #element_type> #(+ #operations)*];
             let real_name = format_ident!("real_{name}");
             real = quote![#real_name<B>];
+            real_per_bus = buses.iter().map(|b| quote![#real_name<#b>]).collect();
             let bus_trait = quote![#tock_registers::DataTypeBus<#element_type>];
             bus_bounds.extend(quote![+ #bus_trait]);
             real_structs.extend(register_definition(
@@ -112,6 +115,10 @@ pub fn generate(env: Env, tock_registers: &Path, layout: &Layout, fields: &[Fiel
         } else {
             interface_bound = quote![#element_type::Interface];
             real = quote![#element_type::Real<B>];
+            real_per_bus = buses
+                .iter()
+                .map(|b| quote![#element_type::Real<#b>])
+                .collect();
             bus_bounds.extend(quote_spanned![element_type.span()=>+ #element_type::Bus]);
         };
         interface_bounds.extend(quote![#real: #interface_bound,]);
@@ -139,10 +146,17 @@ pub fn generate(env: Env, tock_registers: &Path, layout: &Layout, fields: &[Fiel
                 impl #tock_registers::array::Len for #len_type { const LEN: usize = #size; }
             });
             real = quote![#tock_registers::RealRegisterArray<#real, lengths::#len_type>];
+            for r in &mut real_per_bus {
+                *r = quote![#tock_registers::RealRegisterArray<#r, lengths::#len_type>];
+            }
         }
         interface_fields.extend(quote! {
-            type #name: #interface_bound;
-            #(#docs)* fn #name(self) -> Self::#name;
+            type #name<'s>: #interface_bound where Self: 's;
+            #(#docs)* fn #name(&self) -> Self::#name<'_>;
+        });
+        deref_impl_items.extend(quote! {
+            type #name<'s> = <T::Target as Interface>::#name<'s> where Self: 's;
+            fn #name(&self) -> Self::#name<'_> { self.deref().#name() }
         });
         let name_offset = format_ident!("{name}_offset");
         // match that handles the difference between scalar offset definitions and array offset
@@ -169,14 +183,14 @@ pub fn generate(env: Env, tock_registers: &Path, layout: &Layout, fields: &[Fiel
                 &field.offsets,
             );
             cumulative_sizes.clear();
-            for (bus_idx, bus) in buses.iter().enumerate() {
+            for (bus_idx, bus_real) in real_per_bus.into_iter().enumerate() {
                 let offset = &field.offsets[bus_idx];
-                cumulative_sizes.push(quote![#offset + <<Real<#bus> as Interface>::#name as #tock_registers::Span>::SIZE]);
+                cumulative_sizes.push(quote![#offset + <#bus_real as #tock_registers::Span>::SIZE]);
             }
         }
         interface_impl_items.extend(quote! {
-            type #name = #real;
-            fn #name(self) -> Self::#name {
+            type #name<'s> = #real where Self: 's;
+            fn #name(&self) -> Self::#name<'_> {
                 // Safety (see crate::new_doc_comment() for requirements):
                 // 1. When Self::new was called to construct `self`, the caller guaranteed that the
                 //    passed address points to registers on the bus of type B.
@@ -199,9 +213,9 @@ pub fn generate(env: Env, tock_registers: &Path, layout: &Layout, fields: &[Fiel
         #(#docs)*
         #visibility mod #name {
             #![allow(non_camel_case_types #env_allows)] use super::*;
-            #interface_comment pub trait Interface: #tock_registers::internal::core::marker::Copy {
-                #interface_fields
-            }
+            #interface_comment pub trait Interface { #interface_fields }
+            impl<T: #tock_registers::internal::core::ops::Deref<Target: Interface>>
+                Interface for T { #deref_impl_items }
             #lengths_comment pub mod lengths { #len_definitions }
             #bus_comment #[allow(clippy::trait_duplication_in_bounds)]
             pub trait Bus: #tock_registers::Address #bus_bounds + sealed::Bus {

@@ -110,13 +110,13 @@
 /// # use tock_registers::{Mmio32, Read, Write};
 /// mod uart {
 ///     use super::*;
-///     pub trait Interface: Copy {
-///         type status: tock_registers::Register<DataType = u8> + Read;
-///         fn status(self) -> Self::status;
-///         type ctrl: tock_registers::Register<DataType = u16> + Read + Write;
-///         fn ctrl(self) -> Self::ctrl;
-///         type buffer: tock_registers::Register<DataType = u8> + Read + Write;
-///         fn buffer(self) -> Self::buffer;
+///     pub trait Interface {
+///         type status<'s>: tock_registers::Register<DataType = u8> + Read where Self: 's;
+///         fn status(&self) -> Self::status<'_>;
+///         type ctrl<'s>: tock_registers::Register<DataType = u16> + Read + Write where Self: 's;
+///         fn ctrl(&self) -> Self::ctrl<'_>;
+///         type buffer<'s>: tock_registers::Register<DataType = u8> + Read + Write where Self: 's;
+///         fn buffer(&self) -> Self::buffer<'_>;
 ///     }
 ///     pub trait Bus {}
 ///     impl Bus for Mmio32 {}

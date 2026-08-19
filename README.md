@@ -66,15 +66,18 @@ mod peripheral {
     use super::*;
 
     // Trait representing the peripheral's registers.
-    pub trait Interface: Copy {
-        type cr: Register<DataType = Control::Register> + Read + Write;
-        fn cr(self) -> Self::cr;
-        type s: Register<DataType = Status::Register> + Read;
-        fn s(self) -> Self::s;
+    pub trait Interface {
+        type cr<'s>: Register<DataType = Control::Register> + Read + Write where Self: 's;
+        fn cr(&self) -> Self::cr<'_>;
+        type s<'s>: Register<DataType = Status::Register> + Read where Self: 's;
+        fn s(&self) -> Self::s<'_>;
         /* byte0, byte1, short, and word are similar, omitted */
-        type gpio_pins: RegisterArray<Element: Register<DataType = u32> + Read + Write>;
-        fn gpio_pins(self) -> Self::gpio_pins;
-        type port_ctrl: RegisterArray<Element: Register<DataType = PortCtrl::Register> + Read + Write>;
+        type gpio_pins<'s>:
+            RegisterArray<Element: Register<DataType = u32> + Read + Write> where Self: 's;
+        fn gpio_pins(&self) -> Self::gpio_pins<'_>;
+        type port_ctrl<'s>: RegisterArray<Element:
+            Register<DataType = PortCtrl::Register> + Read + Write> where Self: 's;
+        fn port_ctrl(&self) -> Self::port_ctrl<'_>;
     }
 
     // Trait representing the buses that this peripheral can be on.
