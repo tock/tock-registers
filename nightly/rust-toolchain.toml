@@ -6,3 +6,4 @@
 [toolchain]
 channel = "nightly-2026-01-27"
 components = ["miri", "rust-src"]
+targets = ["i686-unknown-linux-gnu", "x86_64-unknown-linux-gnu"]

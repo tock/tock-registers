@@ -99,6 +99,7 @@ mod map;
 mod mmio;
 #[cfg(feature = "register_types")]
 pub use mmio::{Mmio32, Mmio32Nullable, Mmio64, Mmio64Nullable};
+mod mmio_tests;
 
 mod read;
 #[cfg(feature = "register_types")]
