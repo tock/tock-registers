@@ -8,7 +8,7 @@ use core::ptr::{read_volatile, write_volatile, NonNull};
 
 /// Macro to declare the Mmio* structs and provide a few impls for each.
 macro_rules! mmio_structs {
-    [$($(#[$docs:meta])* $name:ident($storage:ty))*] => {$(
+    [$($(#[$docs:meta])* $name:ident($storage:ty)[$width:literal])*] => {$(
         $(#[$docs])*
         ///
         /// **Note: These cannot be used to start or stop DMA operations.** This bus implements the
@@ -23,13 +23,30 @@ macro_rules! mmio_structs {
 
         impl $name {
             /// Returns a new MMIO address containing the given pointer.
+            ///
+            /// # Panics
+            /// Panics if this system does not have a
+            #[doc = $width]
+            /// bit bus.
+            #[cfg_attr(not(target_pointer_width = $width), track_caller)]
             pub const fn new(ptr: $storage) -> Self {
+                Self::width_check();
                 Self(ptr)
             }
 
             /// Returns the inner address.
             pub const fn address(self) -> $storage {
                 self.0
+            }
+
+            /// # Panics
+            /// Panics if this system does not have a
+            #[doc = $width]
+            /// bit bus.
+            #[cfg_attr(not(target_pointer_width = $width), track_caller)]
+            const fn width_check() {
+                #[cfg(not(target_pointer_width = $width))]
+                panic!(concat!(stringify!($name), " requires a ", $width, "-bit system"));
             }
         }
 
@@ -53,16 +70,16 @@ macro_rules! mmio_structs {
 
 mmio_structs! {
     /// MMIO register bus for 32-bit systems.
-    Mmio32(NonNull<()>)
+    Mmio32(NonNull<()>)["32"]
 
     /// MMIO register bus for 64-bit systems.
-    Mmio64(NonNull<()>)
+    Mmio64(NonNull<()>)["64"]
 
     /// MMIO register bus for 32-bit systems that can point to a register at the 0 address.
-    Mmio32Nullable(*mut ())
+    Mmio32Nullable(*mut ())["32"]
 
     /// MMIO register bus for 64-bit systems that can point to a register at the 0 address.
-    Mmio64Nullable(*mut ())
+    Mmio64Nullable(*mut ())["64"]
 }
 
 /// Macro to provide the from_addr functions for the non-nullable Mmio* structs.
@@ -81,8 +98,11 @@ macro_rules! from_addr_nonnull {
         /// Panics if the provided address is null, and panics during const evaluation if the
         /// pointer cannot be determined to be null or not. If you want to access a register at
         /// address 0, use one of the nullable MMIO structs.
+        ///
+        /// Additionally, panics if this system's bus width does not match this bus type.
         #[track_caller]
         pub const fn from_addr(addr: usize) -> Self {
+            Self::width_check();
             // TODO: Once the MSRV reaches:
             // 1.84: replace the pointer cast with core::ptr::without_provenance_mut
             // 1.85: replace NonNull::new_unchecked with NonNull::new
@@ -112,6 +132,7 @@ macro_rules! from_addr_nullable {
         /// Rust memory (i.e. if this is pointing somewhere other than MMIO memory) then you must
         /// use [`new`](Self::new) to construct this bus instead.
         pub const fn from_addr(addr: usize) -> Self {
+            Self::width_check();
             // TODO: Once the MSRV reaches 1.84, replace this cast with
             // core::ptr::without_provenance_mut.
             Self(addr as *mut ())
@@ -134,6 +155,7 @@ macro_rules! bus_impls {
         }
         impl<$($generics)*> BusRead<$value> for $nonnull {
             unsafe fn read(self) -> $value {
+                Self::width_check();
                 // BusRead::read's preconditions guarantee that a readable register with value type
                 // $value exists at address self.0, and the caller is responsible for avoiding data
                 // races and satisfying any other unsafe invariants of the register.
@@ -142,6 +164,7 @@ macro_rules! bus_impls {
         }
         impl<$($generics)*> BusRead<$value> for $nullable {
             unsafe fn read(self) -> $value {
+                Self::width_check();
                 // BusRead::read's preconditions guarantee that a readable register with value type
                 // $value exists at address self.0, and the caller is responsible for avoiding data
                 // races and satisfying any other unsafe invariants of the register.
@@ -150,6 +173,7 @@ macro_rules! bus_impls {
         }
         impl<$($generics)*> BusWrite<$value> for $nonnull {
             unsafe fn write(self, value: $value) {
+                Self::width_check();
                 // BusRead::write's preconditions guarantee that a writable register with value
                 // type $value exists at address self.0, and the caller is responsible for avoiding
                 // data races and satisfying any other unsafe invariants of the register.
@@ -159,6 +183,7 @@ macro_rules! bus_impls {
         }
         impl<$($generics)*> BusWrite<$value> for $nullable {
             unsafe fn write(self, value: $value) {
+                Self::width_check();
                 // BusRead::write's preconditions guarantee that a writable register with value
                 // type $value exists at address self.0, and the caller is responsible for avoiding
                 // data races and satisfying any other unsafe invariants of the register.
