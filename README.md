@@ -67,16 +67,16 @@ mod peripheral {
 
     // Trait representing the peripheral's registers.
     pub trait Interface {
-        type cr<'s>: Register<DataType = Control::Register> + Read + Write where Self: 'a;
+        type cr<'s>: Register<DataType = Control::Register> + Read + Write where Self: 's;
         fn cr(&self) -> Self::cr<'_>;
-        type s<'s>: Register<DataType = Status::Register> + Read where Self: 'a;
+        type s<'s>: Register<DataType = Status::Register> + Read where Self: 's;
         fn s(&self) -> Self::s<'_>;
         /* byte0, byte1, short, and word are similar, omitted */
         type gpio_pins<'s>:
-            RegisterArray<Element: Register<DataType = u32> + Read + Write> where Self: 'a;
+            RegisterArray<Element: Register<DataType = u32> + Read + Write> where Self: 's;
         fn gpio_pins(&self) -> Self::gpio_pins<'_>;
         type port_ctrl<'s>: RegisterArray<Element:
-            Register<DataType = PortCtrl::Register> + Read + Write> where Self: 'a;
+            Register<DataType = PortCtrl::Register> + Read + Write> where Self: 's;
         fn port_ctrl(&self) -> Self::port_ctrl<'_>;
     }
 
