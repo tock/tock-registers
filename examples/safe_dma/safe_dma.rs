@@ -9,8 +9,9 @@ use core::cell::Cell;
 use tock_registers::{Bus, DataType, Register};
 
 pub trait UnsafeWrite: Register {
-    /// # Safety: The safety invariants are hardware-specific, and depend on which register this
-    /// is.
+    /// # Safety
+    ///
+    /// The safety invariants are hardware-specific, and depend on which register this is.
     unsafe fn set(self, value: <Self::DataType as DataType>::Value);
 }
 #[macro_export]
@@ -35,8 +36,10 @@ macro_rules! UnsafeWrite {
 pub trait DmaEnable: Register {
     /// Performs the fence necessary to let DMA access this buffer, then starts the DMA operation.
     ///
-    /// # Safety: The address and length registers must point to a buffer which the hardware may
-    /// read and write.
+    /// # Safety
+    ///
+    /// The address and length registers must point to a fully-initialized byte buffer which the
+    /// hardware may read and write.
     unsafe fn start(self);
 
     /// Checks if this DMA operation is ongoing.
@@ -143,7 +146,7 @@ macro_rules! dma_manager {
         $enable:ident $(,)?
     ) => {
         $visibility struct $struct_name<R> {
-            // The DMA buffer that is current in use, or None if no DMA operation is ongoing.
+            // The DMA buffer that is currently in use, or None if no DMA operation is ongoing.
             // Safety invariant: If Some(), this is identical to a `&'static mut [u8]` with one
             // exception: it may alias with an ongoing operation by this DMA channel.
             buffer: core::cell::Cell<Option<core::ptr::NonNull<[u8]>>>,
@@ -166,7 +169,6 @@ macro_rules! dma_manager {
                 }
             }
 
-            #[cfg_attr(not(test), allow(dead_code))]
             pub fn new_fake() -> (R, Self) where R: Clone + Default {
                 let registers = R::default();
                 (registers.clone(), Self {
@@ -201,10 +203,11 @@ macro_rules! dma_manager {
                     // Safety: The DMA operation is disabled.
                     len_reg.set(len);
                 }
-                // Safety: The address and len point to a static-lifetime mutable buffer. We know
-                // that when this function was called, `buffer` was the only live reference to the
-                // buffer (because it was a &mut reference), and we have converted it into a
-                // NonNull pointer, so there are no live references pointing at the buffer.
+                // Safety: The address and len point to a static-lifetime fully-initialized mutable
+                // byte buffer. We know that when this function was called, `buffer` was the only
+                // live reference to the buffer (because it was a &mut reference), and we have
+                // converted it into a NonNull pointer, so there are no live references pointing at
+                // the buffer.
                 unsafe {
                     enable_reg.start();
                 }
@@ -217,7 +220,7 @@ macro_rules! dma_manager {
                 if self.registers.$enable().is_running() {
                     return None;
                 }
-                // Safety: We already checked the DMA operation is ongoing, so by `self.buffer`'s
+                // Safety: We already verified the DMA operation is complete, so by `self.buffer`'s
                 // safety invariant nothing aliases with `b`. By `self.buffer`'s safety invariant,
                 // `b` meets all other requirements to be converted back to a `&'static mut [u8]`.
                 self.buffer.take().map(|mut b| unsafe { b.as_mut() })

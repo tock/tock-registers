@@ -35,8 +35,9 @@ impl<R: rng::Interface> Rng<R> {
         self.manager.start(buffer)
     }
 
-    /// Stops the getrandom operation, returning the filled buffer. If no getrandom operation was
-    /// started, or one is still ongoing, returns None.
+    /// Returns the filled buffer after the getrandom operation has finished.
+    ///
+    /// If no getrandom operation was started, or one is still ongoing, returns None.
     pub fn getrandom_finish(&self) -> Option<&'static mut [u8]> {
         self.manager.get_buffer()
     }

@@ -36,19 +36,19 @@ fn main() {
     use core::ptr::{null_mut, NonNull};
     use tock_registers::Mmio64;
 
-    // Fake version of the peripheral registers so we can demonstrate how chip_unsafe::RngDma will
-    // be used for real (in a board crate).
+    // Replica of the of the peripheral registers' MMIO interface; allows us to demonstrate how
+    // chip_unsafe::RngDma will be used for real (in a board crate).
     #[repr(C)]
-    struct Fake {
+    struct SimulatedMmio {
         address: *mut u8,
         len: usize,
         enable: u8,
     }
-    assert_eq!(offset_of!(Fake, address), 0);
-    assert_eq!(offset_of!(Fake, len), 8);
-    assert_eq!(offset_of!(Fake, enable), 16);
+    assert_eq!(offset_of!(SimulatedMmio, address), 0);
+    assert_eq!(offset_of!(SimulatedMmio, len), 8);
+    assert_eq!(offset_of!(SimulatedMmio, enable), 16);
 
-    let fake = UnsafeCell::new(Fake {
+    let fake = UnsafeCell::new(SimulatedMmio {
         address: null_mut(),
         len: 0,
         enable: 0,
@@ -67,7 +67,7 @@ fn main() {
     driver.getrandom_start(buffer);
 
     // Verify the peripheral was configured correctly, then simulate DMA operations.
-    let fake: &mut Fake = unsafe { &mut *fake.get() };
+    let fake: &mut SimulatedMmio = unsafe { &mut *fake.get() };
     assert_eq!(fake.enable, 1);
     assert_eq!(fake.len, 4);
     let buffer: &mut [u8; 4] = unsafe { &mut *fake.address.cast() };

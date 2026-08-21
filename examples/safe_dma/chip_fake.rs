@@ -61,6 +61,9 @@ impl DmaEnable for FakeEnable<'_> {
     }
 
     unsafe fn start(self) {
+        // Safety: The caller has guaranteed that `address` and `len` point to a fully-initialized
+        // buffer that the hardware (`self`, in this case) can read and write. `u8`'s alignment is
+        // 1.
         let buffer: &mut [u8] =
             unsafe { from_raw_parts_mut(self.0.address.get(), self.0.len.get()) };
         let mut state = self.0.state.get();
