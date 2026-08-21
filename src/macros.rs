@@ -4,6 +4,9 @@
 
 //! Macros for cleanly defining peripheral registers.
 
+/// DEPRECATED: This macro is internal to tock-registers, used by
+/// [`register_structs`](crate::register_structs). It will be removed in a
+/// future release.
 #[macro_export]
 macro_rules! register_fields {
     // Macro entry point.
@@ -90,6 +93,10 @@ macro_rules! register_fields {
 // test the desired assertion any longer. This should be switched to a
 // `should_panic`-akin attribute which works for const panics, once that is
 // available.
+/// DEPRECATED: This macro is internal to tock-registers, used by
+/// [`register_structs`](crate::register_structs). It will be removed in a
+/// future release.
+///
 /// Statically validate the size and offsets of the fields defined within the
 /// register struct through the `register_structs!()` macro.
 ///
@@ -356,6 +363,10 @@ macro_rules! test_fields {
     };
 }
 
+/// DEPRECATED: `register_structs!` is unsound, and will be removed in a future
+/// tock-registers release. Please migrate your code to
+/// [`register_map`](crate::register_map) instead.
+///
 /// Define a peripheral memory map containing registers.
 ///
 /// Implementations of memory-mapped registers can use this macro to define the
