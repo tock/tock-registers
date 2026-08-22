@@ -138,14 +138,14 @@ checksum = "222a222a5bfe1bba4a77b45ec488a741b3cb8872e5e499451fd7d0129c9c7c3d"
 
 [[package]]
 name = "tock-registers"
-version = "0.10.1"
+version = "0.11.0"
 dependencies = [
  "tock-registers-macros",
 ]
 
 [[package]]
 name = "tock-registers-codegen"
-version = "0.10.1"
+version = "0.11.0"
 dependencies = [
  "pretty_assertions",
  "prettyplease",
@@ -157,7 +157,7 @@ dependencies = [
 
 [[package]]
 name = "tock-registers-expand-macros"
-version = "0.10.1"
+version = "0.11.0"
 dependencies = [
  "clap",
  "prettyplease",
@@ -169,7 +169,7 @@ dependencies = [
 
 [[package]]
 name = "tock-registers-macros"
-version = "0.10.1"
+version = "0.11.0"
 dependencies = [
  "tock-registers-codegen",
 ]
