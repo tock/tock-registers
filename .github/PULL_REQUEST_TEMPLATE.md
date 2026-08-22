@@ -3,11 +3,6 @@
 This pull request adds/changes/fixes...
 
 
-### Testing Strategy
-
-This pull request was tested by...
-
-
 ### TODO or Help Wanted
 
 This pull request still needs...
@@ -15,14 +10,15 @@ This pull request still needs...
 
 ### Checklist
 
-- [ ] Ran `make prepush`.
-
+- [ ] Added unit and/or integration tests as appropriate.
+- [ ] Ran `make test` or `make full`.
+- [ ] All files that support comments have [license headers](https://book.tockos.org/trd/trd4-legal)
 
 ### PR Contents
 
 #### Documentation
 
-- [ ] Updated the relevant files in `/docs` and the [Book](https://github.com/tock/book).
+- [ ] Updated the relevant files in `/doc`.
 - [ ] No documentation updates are required.
 
 #### AI Use
