@@ -15,35 +15,27 @@ use quote::quote;
 fn doc_comments() {
     let input = quote! {
         ::tock_registers
-        //! Doc comment A
-        //! Doc comment B
         #![buses(Mmio32, Mmio64)]
-        //! Doc comment C
-        //! Doc comment D
-        /// Doc comment E
-        /// Doc comment F
+        /// Doc comment A
+        /// Doc comment B
         pub foo {
+            /// Doc comment C
+            /// Doc comment D
+            0 => scalar_definition: u8 { Read, Write },
+            /// Doc comment E
+            /// Doc comment F
+            1 => array_definition: [[u8; 2]; 3] { Read, Write },
             /// Doc comment G
             /// Doc comment H
-            0 => scalar_definition: u8 { Read, Write },
+            7 => scalar_reference: a,
             /// Doc comment I
             /// Doc comment J
-            1 => array_definition: [[u8; 2]; 3] { Read, Write },
-            /// Doc comment K
-            /// Doc comment L
-            7 => scalar_reference: a,
-            /// Doc comment M
-            /// Doc comment N
             8 => array_reference: [[b; 2]; 3],
         }
     };
     let expected = quote! {
         /// Doc comment A
         /// Doc comment B
-        /// Doc comment C
-        /// Doc comment D
-        /// Doc comment E
-        /// Doc comment F
         pub mod foo {
             #![allow(non_camel_case_types)]
             use super::*;
@@ -52,25 +44,25 @@ fn doc_comments() {
             pub trait Interface {
                 type scalar_definition<'s>:
                     ::tock_registers::Register<DataType = u8> + Read + Write where Self: 's;
-                /// Doc comment G
-                /// Doc comment H
+                /// Doc comment C
+                /// Doc comment D
                 fn scalar_definition(&self) -> Self::scalar_definition<'_>;
                 type array_definition<'s>: ::tock_registers::RegisterArray<lengths::array_definition
                     <1usize>, Element: ::tock_registers::RegisterArray<lengths::array_definition<
                     0usize>, Element: ::tock_registers::Register<DataType = u8> + Read + Write> >
                     where Self: 's;
-                /// Doc comment I
-                /// Doc comment J
+                /// Doc comment E
+                /// Doc comment F
                 fn array_definition(&self) -> Self::array_definition<'_>;
                 type scalar_reference<'s>: a::Interface where Self: 's;
-                /// Doc comment K
-                /// Doc comment L
+                /// Doc comment G
+                /// Doc comment H
                 fn scalar_reference(&self) -> Self::scalar_reference<'_>;
                 type array_reference<'s>: ::tock_registers::RegisterArray<
                     lengths::array_reference<1usize>, Element: ::tock_registers::RegisterArray<
                         lengths::array_reference<0usize>, Element: b::Interface> > where Self: 's;
-                /// Doc comment M
-                /// Doc comment N
+                /// Doc comment I
+                /// Doc comment J
                 fn array_reference(&self) -> Self::array_reference<'_>;
             }
             impl<T: ::tock_registers::internal::core::ops::Deref<Target: Interface>> Interface for T

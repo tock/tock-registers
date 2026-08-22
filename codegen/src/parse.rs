@@ -11,13 +11,19 @@ use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
 use syn::token::{Brace, Bracket};
-use syn::{braced, bracketed, AttrStyle, Attribute, Error, LitInt, Meta, Result, Token, Type};
+use syn::{braced, bracketed, Attribute, Error, LitInt, Meta, Result, Token, Type};
 
 impl Parse for Input {
     fn parse(input: ParseStream) -> Result<Input> {
         let tock_registers = input.parse()?;
         // Parse attributes that apply to all layouts.
         let (docs, bus) = layout_attributes(Attribute::parse_inner(input)?)?;
+        if let Some(doc) = docs.last() {
+            return Err(Error::new(
+                doc.span(),
+                "inner doc comments are not supported",
+            ));
+        }
         let punctuated = Punctuated::<Layout, Token![,]>::parse_terminated(input)?;
         let mut layouts = Vec::with_capacity(punctuated.len());
         for mut layout in punctuated {
@@ -84,13 +90,11 @@ impl Parse for Layout {
 }
 
 /// Parses attributes that belong on a Layout. If no `#[bus]` or `#[buses(...)]` is specified,
-/// returns an empty `BusAttr::Buses`. Doc comments are converted into outer attributes and the
-/// attributes are returned in order (docs, buses).
+/// returns an empty `BusAttr::Buses`. The attributes are returned in order (docs, buses).
 fn layout_attributes(attributes: Vec<Attribute>) -> Result<(Vec<Attribute>, BusAttr)> {
     let mut docs = Vec::new();
     let mut bus: Option<Attribute> = None;
-    for mut attr in attributes {
-        attr.style = AttrStyle::Outer;
+    for attr in attributes {
         match attr.path() {
             p if p.is_ident("doc") => docs.push(attr),
             p if p.is_ident("bus") || p.is_ident("buses") => {

@@ -15,22 +15,14 @@ use quote::quote;
 fn scalar_definition() {
     let input = quote! {
         ::tock_registers
-        //! Doc comment A
-        //! Doc comment B
         #![buses(Mmio32, Mmio64)]
-        //! Doc comment C
-        //! Doc comment D
-        /// Doc comment E
-        /// Doc comment F
+        /// Doc comment A
+        /// Doc comment B
         pub foo: u8 { Read, Write },
     };
     let expected = quote! {
         /// Doc comment A
         /// Doc comment B
-        /// Doc comment C
-        /// Doc comment D
-        /// Doc comment E
-        /// Doc comment F
         pub mod foo {
             use super::*;
             /// Trait representing this register's operations. Driver code can use this trait to work
@@ -89,22 +81,14 @@ fn scalar_definition() {
 fn array_definition() {
     let input = quote! {
         ::tock_registers
-        //! Doc comment A
-        //! Doc comment B
         #![buses(Mmio32, Mmio64)]
-        //! Doc comment C
-        //! Doc comment D
-        /// Doc comment E
-        /// Doc comment F
+        /// Doc comment A
+        /// Doc comment B
         pub foo: [u8; 2] { Read, Write }
     };
     let expected = quote! {
         /// Doc comment A
         /// Doc comment B
-        /// Doc comment C
-        /// Doc comment D
-        /// Doc comment E
-        /// Doc comment F
         pub mod foo {
             use super::*;
             /// Trait representing this register's operations. Driver code can use this trait to work
@@ -170,22 +154,14 @@ fn array_definition() {
 fn scalar_reference() {
     let input = quote! {
         ::tock_registers
-        //! Doc comment A
-        //! Doc comment B
         #![buses(Mmio32, Mmio64)]
-        //! Doc comment C
-        //! Doc comment D
-        /// Doc comment E
-        /// Doc comment F
+        /// Doc comment A
+        /// Doc comment B
         pub foo: status,
     };
     let expected = quote! {
         /// Doc comment A
         /// Doc comment B
-        /// Doc comment C
-        /// Doc comment D
-        /// Doc comment E
-        /// Doc comment F
         pub mod foo {
             use super::*;
             /// Trait representing this register's operations. Driver code can use this trait to work
@@ -212,22 +188,14 @@ fn scalar_reference() {
 fn array_reference() {
     let input = quote! {
         ::tock_registers
-        //! Doc comment A
-        //! Doc comment B
         #![buses(Mmio32, Mmio64)]
-        //! Doc comment C
-        //! Doc comment D
-        /// Doc comment E
-        /// Doc comment F
+        /// Doc comment A
+        /// Doc comment B
         pub foo: [[status; 2]; 3],
     };
     let expected = quote! {
         /// Doc comment A
         /// Doc comment B
-        /// Doc comment C
-        /// Doc comment D
-        /// Doc comment E
-        /// Doc comment F
         pub mod foo {
             use super::*;
             /// Trait representing this register's operations. Driver code can use this trait to work
