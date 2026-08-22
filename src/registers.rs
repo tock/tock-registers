@@ -4,6 +4,9 @@
 
 //! Implementation of included register types.
 //!
+//! DEPRECATED: These types will be removed when
+//! [`register_structs`](crate::register_structs) is removed.
+//!
 //! This module provides a standard set of register types, which can describe
 //! different access levels:
 //!
@@ -25,6 +28,9 @@ use core::marker::PhantomData;
 use crate::interfaces::{Readable, Writeable};
 use crate::{RegisterLongName, UIntLike};
 
+/// DEPRECATED: Will be removed when
+/// [`register_structs`](crate::register_structs) is removed.
+///
 /// Read/Write registers.
 ///
 /// For accessing and manipulating the register contents, the [`Readable`],
@@ -64,6 +70,9 @@ impl<T: UIntLike, R: RegisterLongName> Writeable for ReadWrite<T, R> {
     }
 }
 
+/// DEPRECATED: Will be removed when
+/// [`register_structs`](crate::register_structs) is removed.
+///
 /// Read-only registers.
 ///
 /// For accessing the register contents the [`Readable`] trait is implemented.
@@ -92,6 +101,9 @@ impl<T: UIntLike, R: RegisterLongName> Readable for ReadOnly<T, R> {
     }
 }
 
+/// DEPRECATED: Will be removed when
+/// [`register_structs`](crate::register_structs) is removed.
+///
 /// Write-only registers.
 ///
 /// For setting the register contents the [`Writeable`] trait is implemented.
@@ -120,6 +132,9 @@ impl<T: UIntLike, R: RegisterLongName> Writeable for WriteOnly<T, R> {
     }
 }
 
+/// DEPRECATED: Will be removed when
+/// [`register_structs`](crate::register_structs) is removed.
+///
 /// Read-only and write-only registers aliased to the same address.
 ///
 /// Unlike the [`ReadWrite`] register, this represents a register which has
@@ -165,6 +180,9 @@ impl<T: UIntLike, R: RegisterLongName, W: RegisterLongName> Writeable for Aliase
     }
 }
 
+/// DEPRECATED: Will be removed in a future tock-registers release because we
+/// don't have a sound use for it.
+///
 /// In memory volatile register.
 ///
 /// Like [`ReadWrite`], but can be safely constructed using the

@@ -4,6 +4,11 @@
 
 //! Interfaces (traits) to register types
 //!
+//! DEPRECATED: These traits have been replaced by the
+//! [`Read`](trait@crate::Read) and [`Write`](trait@crate::Write) operations,
+//! used with [`register_map`](crate::register_map). They will be removed when
+//! [`register_structs`](crate::register_structs) is removed.
+//!
 //! This module contains traits which reflect standardized interfaces to
 //! different types of registers. Examples of registers implementing these
 //! interfaces are [`ReadWrite`](crate::registers::ReadWrite) or
@@ -159,6 +164,10 @@
 use crate::fields::{Field, FieldValue, TryFromValue};
 use crate::{LocalRegisterCopy, RegisterLongName, UIntLike};
 
+/// DEPRECATED: Replaced by [`Read`](trait@crate::Read) as part of the
+/// [`register_map`](crate::register_map) interface. Will be removed in a future
+/// tock-registers version.
+///
 /// Readable register
 ///
 /// Register which at least supports reading the current value. Only
@@ -263,6 +272,10 @@ pub trait Readable {
     }
 }
 
+/// DEPRECATED: Replaced by [`Read::debug`](crate::Read::debug) as part of the
+/// [`register_map`](crate::register_map) interface. Will be removed in a future
+/// tock-registers version.
+///
 /// [`Debuggable`] is a trait for registers that support human-readable debug
 /// output with [`core::fmt::Debug`].  It extends the [`Readable`] trait and
 /// doesn't require manual implementation.
@@ -292,6 +305,10 @@ pub trait Debuggable: Readable {
 // pass Readable implementation to Debuggable
 impl<T: Readable> Debuggable for T {}
 
+/// DEPRECATED: Replaced by [`Write`](trait@crate::Write) as part of the
+/// [`register_map`](crate::register_map) interface. Will be removed in a future
+/// tock-registers version.
+///
 /// Writeable register
 ///
 /// Register which at least supports setting a value. Only [`Writeable::set`]
@@ -329,6 +346,10 @@ pub trait Writeable {
     }
 }
 
+/// DEPRECATED: Replaced by [`Write::modify`](crate::Write::modify) as part of
+/// the [`register_map`](crate::register_map) interface. Will be removed in a
+/// future tock-registers version.
+///
 /// [`Readable`] and [`Writeable`] register, over the same [`RegisterLongName`]
 ///
 /// Register which supports both reading and setting a value.

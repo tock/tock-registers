@@ -21,7 +21,6 @@ use syn::{Attribute, Ident, LitInt, Path, Type, TypePath, Visibility};
 /// # fn main() {}
 /// tock_registers::internal::register_map! {
 ///     ::tock_registers             // The prepended $crate
-///     //! Global doc comment       // This doc comment should attach to everything in the macro.
 ///     #![buses(Mmio32)]            // Global buses attribute
 ///     a: u8 { Read, Write },       // A register defined by primitive type and operation list
 ///     /// Doc comment              // Doc comment that should attach to `b`
@@ -72,7 +71,6 @@ pub struct Input {
 /// to `BusAttr::Buses(vec![])`. The Parse impl for `Input` will correct the `bus` entry.
 #[cfg_attr(test, derive(Debug))]
 pub struct Layout {
-    /// Doc comments, converted into outer attributes.
     pub docs: Vec<Attribute>,
     pub bus: BusAttr,
     pub visibility: Visibility,
