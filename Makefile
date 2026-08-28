@@ -104,7 +104,8 @@ clippy: toolchain
 # invalidation.
 .PHONY: doc
 doc: toolchain
-	RUSTDOCFLAGS="-D warnings" cargo doc --target-dir=target_doc --workspace
+	RUSTDOCFLAGS="-D warnings"
+		cargo doc --bins --examples --target-dir=target_doc --workspace
 
 # Tests the expand_macros binary.
 .PHONY: expand_macros_test
