@@ -10,7 +10,7 @@
 # The default action: a very quick test intended to catch *most* issues and
 # only take a few seconds.
 .PHONY: test
-test: miri_quick stable_checks
+test: miri_quick stable_checks miri_safedma
 	@printf '%s%s\n%s\n%s%s\n' "$$(tput bold)" \
 		'**********************' \
 		'* Quick test passed! *' \
@@ -60,7 +60,7 @@ ci_stable: stable_checks
 # ------------------------------------------------------------------------------
 
 .PHONY: miri_full
-miri_full: miri_32 miri_64
+miri_full: miri_32 miri_64 miri_safedma
 
 .PHONY: stable_checks
 stable_checks: test_doc doc test_all build_all no_default_features \
@@ -138,6 +138,11 @@ miri_64: nightly_toolchain
 miri_quick: nightly_toolchain
 	cd nightly && RUSTFLAGS="-D warnings" \
 		cargo miri test --manifest-path=../Cargo.toml --test=mmio
+
+.PHONY: miri_safedma
+miri_safedma: nightly_toolchain
+	cd nightly && RUSTFLAGS="-D warnings" \
+		cargo miri run --example=safe_dma --manifest-path=../Cargo.toml
 
 .PHONY: no_default_features
 no_default_features: toolchain
