@@ -8,6 +8,10 @@
 use core::cell::Cell;
 use tock_registers::{Bus, DataType, Register};
 
+// Simplification: this example uses a single UnsafeWrite trait with `unsafe` operations to prevent
+// non-DmaManager code from modifying the address and length registers. Instead, a real safe DMA
+// crate would probably define separate address and length operations, and might use a
+// sealed-caller pattern instead of `unsafe` to enforce that invariant.
 pub trait UnsafeWrite: Register {
     /// # Safety
     ///
