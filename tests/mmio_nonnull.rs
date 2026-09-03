@@ -58,6 +58,11 @@ struct OuterBlock {
     flat_array_reference: [u8; 2],
 }
 
+#[cfg(target_pointer_width = "32")]
+type Mmio = Mmio32;
+#[cfg(target_pointer_width = "64")]
+type Mmio = Mmio64;
+
 #[test]
 fn mmio() {
     let peripheral = UnsafeCell::new(OuterBlock {
@@ -91,10 +96,7 @@ fn mmio() {
         flat_array: [44, 45],
         flat_array_reference: [46, 47],
     });
-    #[cfg(target_pointer_width = "32")]
-    let mmio = Mmio32::new(NonNull::new(peripheral.get()).unwrap().cast());
-    #[cfg(target_pointer_width = "64")]
-    let mmio = Mmio64::new(NonNull::new(peripheral.get()).unwrap().cast());
+    let mmio = Mmio::new(NonNull::new(peripheral.get()).unwrap().cast());
     let registers = unsafe { outer_block::Real::new(mmio) };
     // Pointer offset validation: verifies that pointer offsets are correctly calculated through
     // the various field types.
@@ -161,4 +163,45 @@ fn mmio() {
     registers.scalar().set(u64::MAX);
     assert_eq!(unsafe { (*peripheral.get()).scalar }, u64::MAX);
     assert_eq!(registers.overlapped().get(), 0xff);
+}
+
+/// This performs offsetting operations using a base pointer without provenance.
+/// This is an accurate model for real registers (it differs from [mmio] which
+/// uses pointers with provenance to access a stack variable). In Miri, this can
+/// catch UB caused by using offset functions that require the pointers to point
+/// at allocations.
+#[test]
+fn offset() {
+    let mmio = Mmio::new(NonNull::dangling());
+    // Safety: This is not sound, there is not actually an outer_block at this
+    // address. But this test never accesses the values, only computes offsets,
+    // so it should not trigger UB.
+    let registers = unsafe { outer_block::Real::new(mmio) };
+
+    // Calculate the offsets for each register in outer_block.
+    registers.scalar();
+    registers.overlapped();
+    fn check_inner(inner: inner_block::Real<Mmio>) {
+        inner.scalar_definition();
+        inner.array_definition().get(0).unwrap().get(0).unwrap();
+        inner.array_definition().get(0).unwrap().get(1).unwrap();
+        inner.array_definition().get(1).unwrap().get(0).unwrap();
+        inner.array_definition().get(1).unwrap().get(1).unwrap();
+        inner.array_definition().get(2).unwrap().get(0).unwrap();
+        inner.array_definition().get(2).unwrap().get(1).unwrap();
+        inner.scalar_reference();
+        inner.array_reference().get(0).unwrap().get(0).unwrap();
+        inner.array_reference().get(0).unwrap().get(1).unwrap();
+        inner.array_reference().get(1).unwrap().get(0).unwrap();
+        inner.array_reference().get(1).unwrap().get(1).unwrap();
+        inner.array_reference().get(2).unwrap().get(0).unwrap();
+        inner.array_reference().get(2).unwrap().get(1).unwrap();
+    }
+    check_inner(registers.nested());
+    check_inner(registers.nested_array().get(0).unwrap());
+    check_inner(registers.nested_array().get(1).unwrap());
+    registers.flat_array().get(0).unwrap();
+    registers.flat_array().get(1).unwrap();
+    registers.flat_array_reference().get(0).unwrap();
+    registers.flat_array_reference().get(1).unwrap();
 }
