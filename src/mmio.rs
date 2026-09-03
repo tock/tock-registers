@@ -45,14 +45,6 @@ macro_rules! mmio_structs {
             }
         }
 
-        impl Address for $name {
-            unsafe fn byte_add(self, offset: usize) -> Self {
-                // Safety: The safety requirements of Address::byte_add require self + offset to
-                // remain within this register span and not wrap.
-                Self(unsafe { self.0.byte_add(offset) })
-            }
-        }
-
         // Safety: Mmio* does not expose safe operations to access registers on its own. Instead,
         // it is used through two types:
         // 1. The register accessor structs, which are always !Send + !Sync
@@ -77,65 +69,94 @@ mmio_structs! {
     Mmio64Nullable(*mut ())["64"]
 }
 
-/// Macro to provide the from_addr functions for the non-nullable Mmio* structs.
-macro_rules! from_addr_nonnull {
-    [$($name:ident)*] => {$(impl $name {
-        /// Constructs a new MMIO register bus pointing to the given address. If you have an
-        /// address from a datasheet and want to access it as a register struct, this is probably
-        /// the method you want.
-        ///
-        /// The MMIO register bus is created without provenance. That is fine for accessing MMIO
-        /// memory, but it means it cannot be used to access Rust memory. If you want to access
-        /// Rust memory (i.e. if this is pointing somewhere other than MMIO memory) then you must
-        /// use [`new`](Self::new) to construct this bus instead.
-        ///
-        /// # Panics
-        /// Panics if the provided address is null, and panics during const evaluation if the
-        /// pointer cannot be determined to be null or not. If you want to access a register at
-        /// address 0, use one of the nullable MMIO structs.
-        ///
-        /// Additionally, panics if this system's bus width does not match this bus type.
-        #[track_caller]
-        pub const fn from_addr(addr: usize) -> Self {
-            Self::width_check();
-            // TODO: Once the MSRV reaches:
-            // 1.84: replace the pointer cast with core::ptr::without_provenance_mut
-            // 1.85: replace NonNull::new_unchecked with NonNull::new
-            // 1.89: replace NonNull::new/new_unchecked with NonNull::without_provenance (this
-            //       obsoletes the above two steps).
-            assert!(addr != 0);
-            let ptr = addr as *mut ();
-            // Safety: We've already confirmed that the address is not null (ptr::null() documents
-            // that null pointers have address 0), and we have not changed the address, so ptr is
-            // not null.
-            Self(unsafe { NonNull::new_unchecked(ptr) })
+/// Macro to provide impls specific to the non-nullable Mmio* structs.
+macro_rules! impl_nonnull {
+    [$($name:ident)*] => {$(
+        impl $name {
+            /// Constructs a new MMIO register bus pointing to the given
+            /// address. If you have an address from a datasheet and want to
+            /// access it as a register struct, this is probably the method you
+            /// want.
+            ///
+            /// The MMIO register bus is created without provenance. That is
+            /// fine for accessing MMIO memory, but it means it cannot be used
+            /// to access Rust memory. If you want to access Rust memory (i.e.
+            /// if this is pointing somewhere other than MMIO memory) then you
+            /// must use [`new`](Self::new) to construct this bus instead.
+            ///
+            /// # Panics
+            /// Panics if the provided address is null, and panics during const
+            /// evaluation if the pointer cannot be determined to be null or
+            /// not. If you want to access a register at address 0, use one of
+            /// the nullable MMIO structs.
+            ///
+            /// Additionally, panics if this system's bus width does not match
+            /// this bus type.
+            #[track_caller]
+            pub const fn from_addr(addr: usize) -> Self {
+                Self::width_check();
+                // TODO: Once the MSRV reaches:
+                // 1.84: replace the pointer cast with
+                //       core::ptr::without_provenance_mut
+                // 1.85: replace NonNull::new_unchecked with NonNull::new
+                // 1.89: replace NonNull::new/new_unchecked with
+                //       NonNull::without_provenance (this obsoletes the above
+                //       two steps).
+                assert!(addr != 0);
+                let ptr = addr as *mut ();
+                // Safety: We've already confirmed that the address is not null
+                // (ptr::null() documents that null pointers have address 0),
+                // and we have not changed the address, so ptr is not null.
+                Self(unsafe { NonNull::new_unchecked(ptr) })
+            }
         }
-    })*}
+
+        impl Address for $name {
+            unsafe fn byte_add(self, offset: usize) -> Self {
+                let new_ptr = self.0.as_ptr().wrapping_byte_add(offset);
+                // Safety: `self.0` is a NonNull<()> so we know it isn't null.
+                // Address::byte_add's safety invariant requires this offset to
+                // remain within this register span and not wrap. Therefore the
+                // new address is not null.
+                Self(unsafe { NonNull::new_unchecked(new_ptr) })
+            }
+        }
+    )*}
 }
 
-from_addr_nonnull![Mmio32 Mmio64];
+impl_nonnull![Mmio32 Mmio64];
 
-/// Macro to provide the from_addr functions for the Mmio*Nullable structs.
-macro_rules! from_addr_nullable {
-    [$($name:ident)*] => {$(impl $name {
-        /// Constructs a new MMIO register bus pointing to the given address. If you have an
-        /// address from a datasheet and want to access it as a register struct, this is probably
-        /// the method you want.
-        ///
-        /// The MMIO register bus is created without provenance. That is fine for accessing MMIO
-        /// memory, but it means it cannot be used to access Rust memory. If you want to access
-        /// Rust memory (i.e. if this is pointing somewhere other than MMIO memory) then you must
-        /// use [`new`](Self::new) to construct this bus instead.
-        pub const fn from_addr(addr: usize) -> Self {
-            Self::width_check();
-            // TODO: Once the MSRV reaches 1.84, replace this cast with
-            // core::ptr::without_provenance_mut.
-            Self(addr as *mut ())
+/// Macro to provide impls specific to the Mmio*Nullable structs.
+macro_rules! impl_nullable {
+    [$($name:ident)*] => {$(
+        impl $name {
+            /// Constructs a new MMIO register bus pointing to the given
+            /// address. If you have an address from a datasheet and want to
+            /// access it as a register struct, this is probably the method you
+            /// want.
+            ///
+            /// The MMIO register bus is created without provenance. That is
+            /// fine for accessing MMIO memory, but it means it cannot be used
+            /// to access Rust memory. If you want to access Rust memory (i.e.
+            /// if this is pointing somewhere other than MMIO memory) then you
+            /// must use [`new`](Self::new) to construct this bus instead.
+            pub const fn from_addr(addr: usize) -> Self {
+                Self::width_check();
+                // TODO: Once the MSRV reaches 1.84, replace this cast with
+                // core::ptr::without_provenance_mut.
+                Self(addr as *mut ())
+            }
         }
-    })*}
+
+        impl Address for $name {
+            unsafe fn byte_add(self, offset: usize) -> Self {
+                Self(self.0.wrapping_byte_add(offset))
+            }
+        }
+    )*}
 }
 
-from_addr_nullable![Mmio32Nullable Mmio64Nullable];
+impl_nullable![Mmio32Nullable Mmio64Nullable];
 
 /// Macro to implement the Bus traits for the Mmio* structs.
 macro_rules! bus_impls {
