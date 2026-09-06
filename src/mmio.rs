@@ -34,6 +34,14 @@ macro_rules! mmio_structs {
                 Self(ptr)
             }
 
+            /// Returns the inner address.
+            ///
+            /// Operations defined outside this module should use `address` to access the address
+            /// they are operating on.
+            pub const fn address(self) -> $storage {
+                self.0
+            }
+
             /// # Panics
             /// Panics if this system does not have a
             #[doc = $width]
