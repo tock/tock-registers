@@ -137,7 +137,7 @@ miri_64: nightly_toolchain
 .PHONY: miri_quick
 miri_quick: nightly_toolchain
 	cd nightly && RUSTFLAGS="-D warnings" \
-		cargo miri test --manifest-path=../Cargo.toml --test=mmio
+		cargo miri test --manifest-path=../Cargo.toml --test=mmio_nonnull
 
 .PHONY: no_default_features
 no_default_features: toolchain
