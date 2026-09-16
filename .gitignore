@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: Apache-2.0 OR MIT
 # Copyright Tock Contributors 2026.
 
-/Cargo.lock
 /expand_macros/test/Cargo.lock
 /expand_macros/test/target/
 /target/
