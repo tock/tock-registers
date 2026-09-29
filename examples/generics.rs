@@ -20,12 +20,12 @@ pub struct LiteX<const C: u8, const B: u8>(NonNull<()>);
 
 impl Address for LiteX<8, 32> {
     unsafe fn byte_add(self, offset: usize) -> Self {
-        Self(unsafe { self.0.byte_add(offset) })
+        Self(unsafe { NonNull::new_unchecked(self.0.as_ptr().wrapping_byte_add(offset)) })
     }
 }
 impl Address for LiteX<32, 32> {
     unsafe fn byte_add(self, offset: usize) -> Self {
-        Self(unsafe { self.0.byte_add(offset) })
+        Self(unsafe { NonNull::new_unchecked(self.0.as_ptr().wrapping_byte_add(offset)) })
     }
 }
 unsafe impl Bus<u8> for LiteX<8, 32> {
