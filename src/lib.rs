@@ -10,16 +10,16 @@
 //! ```rust
 //! # fn main() {}
 //!
-//! use tock_registers::registers::{ReadOnly, ReadWrite};
-//! use tock_registers::register_bitfields;
+//! use tock_registers::{mmio32_register_map, register_bitfields, Read, Write};
 //!
 //! // Register maps are specified like this:
-//! #[repr(C)]
-//! struct Registers {
-//!     // Control register: read-write
-//!     cr: ReadWrite<u32, Control::Register>,
-//!     // Status register: read-only
-//!     s: ReadOnly<u32, Status::Register>,
+//! mmio32_register_map! {
+//!     registers {
+//!         /// Control register: read-write
+//!         0 => cr: Control::Register { Read, Write },
+//!         /// Status register: read-only
+//!         4 => s: Status::Register { Read },
+//!     }
 //! }
 //!
 //! // Register fields and definitions look like this:
@@ -53,9 +53,12 @@
 //! ];
 //! ```
 //!
-//! Author
-//! ------
-//! - Shane Leonard <shanel@stanford.edu>
+//! See `README.md` for a more complete introduction to tock-registers.
+//!
+//! Authors
+//! -------
+//! Originally written by Shane Leonard <shanel@stanford.edu>. Maintained and
+//! expanded by many contributors.
 
 #![no_std]
 // If we don't build any actual register types, we don't need unsafe code in
