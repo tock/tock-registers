@@ -9,7 +9,7 @@ use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 use std::{fs::read_to_string, process::exit};
 use syn::parse::{ParseStream, Parser};
-use syn::{parse_file, Attribute, File, Item, Item::Macro, Result};
+use syn::{parse_file, Attribute, File, Frontmatter, Item, Item::Macro, Result};
 use tock_registers_codegen::{register_map, Env::External};
 
 fn main() {
@@ -31,7 +31,7 @@ fn main() {
     });
 
     let mut errored = false;
-    let mut printer = Printer::new(file.shebang, file.attrs);
+    let mut printer = Printer::new(file.shebang, file.frontmatter, file.attrs);
     for item in file.items {
         let Macro(ref mac) = item else {
             printer.push_item(item);
@@ -103,10 +103,15 @@ struct Printer {
 }
 
 impl Printer {
-    fn new(shebang: Option<String>, attrs: Vec<Attribute>) -> Printer {
+    fn new(
+        shebang: Option<String>,
+        frontmatter: Option<Frontmatter>,
+        attrs: Vec<Attribute>,
+    ) -> Printer {
         Printer {
             file: Some(File {
                 shebang,
+                frontmatter,
                 attrs,
                 items: Vec::new(),
             }),
