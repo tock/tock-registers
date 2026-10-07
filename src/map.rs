@@ -277,10 +277,9 @@
 ///     // This inner buses attribute sets the default buses for all declarations in this
 ///     // register_map! call.
 ///     #![buses(Mmio32, Mmio64)]
-///     //! Inner doc comments are copied onto every declaration.
 ///     // Both `button` and `led` support both 32-bit and 64-bit MMIO.
 ///     button: u8 { Read },
-///     /// You can still have outer doc comments per-declaration.
+///     /// You can have outer doc comments per-declaration.
 ///     led: u8 { Read, Write },
 ///     // But `touch` only supports 32-bit MMIO.
 ///     #[bus(Mmio32)]

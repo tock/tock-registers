@@ -91,6 +91,14 @@ fn bus_count_mismatches() {
 }
 
 #[test]
+fn docs() {
+    let error = parse2::<Input>(quote![::tock_registers #![bus(Port)] /*! A */])
+        .unwrap_err()
+        .to_string();
+    assert!(error.contains("inner doc comments are not supported"));
+}
+
+#[test]
 fn field() {
     let field: Field = parse_quote! {
         ///A
