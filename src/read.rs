@@ -188,6 +188,7 @@ impl<'b, T, A: Address + BusRead<T>> BusRead<T> for BorrowedBus<'b, A> {
 /// The macro that goes along with the Read trait. We don't expect this macro to be used by
 /// tock_register's users, instead it is invoked by the generated code.
 #[cfg(feature = "register_types")]
+#[doc(hidden)]
 #[macro_export]
 macro_rules! Read {
     // Provides a real implementation of the trait. The trailing $rest argument is for future
