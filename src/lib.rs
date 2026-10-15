@@ -42,7 +42,7 @@
 //!         TXINTERRUPT OFFSET(1) NUMBITS(1) [],
 //!         RXCOMPLETE  OFFSET(2) NUMBITS(1) [],
 //!         RXINTERRUPT OFFSET(3) NUMBITS(1) [],
-//!         MODE        OFFSET(4) NUMBITS(3) [
+//!         MODE        OFFSET(4) NUMBITS(2) [
 //!             FullDuplex = 0,
 //!             HalfDuplex = 1,
 //!             Loopback = 2,
