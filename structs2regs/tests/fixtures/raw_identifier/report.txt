@@ -1,0 +1,3 @@
+converted  LpuartRegisters          0x000..0x008
+
+1 converted, 0 skipped

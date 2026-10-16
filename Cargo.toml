@@ -7,6 +7,7 @@ members = [
     "expand_macros",
     "tests/multi_crate/child",
     "tests/multi_crate/parent",
+    "structs2regs",
 ]
 
 [workspace.package]
@@ -16,10 +17,10 @@ homepage = "https://www.tockos.org/"
 repository = "https://github.com/tock/tock-registers"
 readme = "README.md"
 license = "MIT/Apache-2.0"
-edition = "2021"
+edition = "2024"
 # This must be kept in sync with rust-toolchain.toml; please see that file for
 # more information.
-rust-version = "1.82"
+rust-version = "1.88"
 
 [workspace.dependencies]
 prettyplease = "0.3.0"

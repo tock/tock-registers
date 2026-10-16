@@ -1,0 +1,4 @@
+converted  DmaRegisters             0x000..0x00C
+           padding: _reserved0
+
+1 converted, 0 skipped
