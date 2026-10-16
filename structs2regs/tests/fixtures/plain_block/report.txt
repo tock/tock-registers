@@ -1,0 +1,4 @@
+converted  SyscfgRegisters          0x000..0x014
+           padding: _reserved0
+
+1 converted, 0 skipped

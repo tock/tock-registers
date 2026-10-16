@@ -1,0 +1,5 @@
+skipped    RegisterSCT              input.rs:8
+    struct is generic; `register_structs!` accepts at most a lifetime
+    parameter
+
+0 converted, 1 skipped
