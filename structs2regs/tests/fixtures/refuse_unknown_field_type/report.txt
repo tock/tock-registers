@@ -1,0 +1,5 @@
+skipped    Mixed                    input.rs:7
+    field `unknown`: type `SomeTypeFromAnotherModule` is not defined in
+    this module
+
+0 converted, 1 skipped

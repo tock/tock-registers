@@ -1,0 +1,5 @@
+skipped    StoredState              input.rs:8
+    struct has a `#[derive]`; derived code reads fields without naming
+    them, and macro padding is `[u8; N]`
+
+0 converted, 1 skipped

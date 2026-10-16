@@ -1,0 +1,5 @@
+converted  Register                 0x000..0x010
+converted  GpioRegisters            0x000..0x030
+           padding: _reserved0
+
+2 converted, 0 skipped
