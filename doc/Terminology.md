@@ -34,7 +34,7 @@ invocation. Each layout is further categorized as a:
 Examples:
 
 ```rust
-mmio32_register_map! {
+register_map_mmio32! {
     // A single register layout
     a: u8 { Read },
 
@@ -55,7 +55,7 @@ mmio32_register_map! {
 Each field in a register block can be either a register or padding:
 
 ```rust
-mmio32_register_map! {
+register_map_mmio32! {
     uart {
         0 => status: u8 { Read },       // `status` is a field.
         1 => _,                         // padding is a field.
@@ -73,7 +73,7 @@ A single register is categorized as a:
 Examples:
 
 ```rust
-mmio32_register_map! {
+register_map_mmio32! {
     a: u8 { Read },  // definition
     b: a,            // reference (refers to `a`)
     c {
@@ -87,7 +87,7 @@ A single register is categorized as a *scalar* register or an *array* register
 based on whether its type specification contains an array:
 
 ```rust
-mmio32_register_map! {
+register_map_mmio32! {
     a: u8 { Read },                // A scalar register
     b: [u8; 2] { Read },           // An array register
     c {
@@ -112,7 +112,7 @@ mmio32_register_map! {
 To sum it all up:
 
 ```rust
-mmio32_register_map! {
+register_map_mmio32! {
     a: u8 { Read },       // A single scalar register definition layout
     b: a,                 // A single scalar register reference layout
     c: [u8; 2] { Read },  // A single array register definition layout

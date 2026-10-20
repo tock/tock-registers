@@ -10,7 +10,7 @@ use multi_crate_parent::block_reference;
 use multi_crate_parent::scalar_definition;
 use multi_crate_parent::scalar_reference;
 
-tock_registers::mmio32_register_map! {
+tock_registers::register_map_mmio32! {
     scalar_definition_reference: scalar_definition,
     array_definition_reference: array_definition,
     block_definition_reference: block_definition,

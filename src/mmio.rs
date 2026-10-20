@@ -242,8 +242,8 @@ bus_impls!(Mmio64, Mmio64Nullable, [T: Sized], *mut T, 8);
 /// An alias for [`register_map!`](crate::register_map) with `#![bus(Mmio32)]` at the top.
 /// In other words:
 /// ```
-/// use tock_registers::{mmio32_register_map, Mmio32};
-/// mmio32_register_map! {
+/// use tock_registers::{register_map_mmio32, Mmio32};
+/// register_map_mmio32! {
 ///     // Register definitions here
 /// }
 /// ```
@@ -259,7 +259,7 @@ bus_impls!(Mmio64, Mmio64Nullable, [T: Sized], *mut T, 8);
 // this definition!
 #[cfg(feature = "proc_macros")]
 #[macro_export]
-macro_rules! mmio32_register_map {
+macro_rules! register_map_mmio32 {
     {$($arguments:tt)*} => {
         $crate::internal::register_map!($crate #![bus($crate::Mmio32)] $($arguments)*);
     }
@@ -268,8 +268,8 @@ macro_rules! mmio32_register_map {
 /// An alias for [`register_map!`](crate::register_map) with `#![bus(Mmio64)]` at the top.
 /// In other words:
 /// ```
-/// use tock_registers::{mmio64_register_map, Mmio64};
-/// mmio64_register_map! {
+/// use tock_registers::{register_map_mmio64, Mmio64};
+/// register_map_mmio64! {
 ///     // Register definitions here
 /// }
 /// ```
@@ -285,7 +285,7 @@ macro_rules! mmio32_register_map {
 // this definition!
 #[cfg(feature = "proc_macros")]
 #[macro_export]
-macro_rules! mmio64_register_map {
+macro_rules! register_map_mmio64 {
     {$($arguments:tt)*} => {
         $crate::internal::register_map!($crate #![bus($crate::Mmio64)] $($arguments)*);
     }

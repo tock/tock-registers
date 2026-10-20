@@ -46,8 +46,8 @@ pub trait RegisterArray<L: Len>: Copy {
 /// However, when you have a nested array in a register block:
 /// ```
 /// # fn main() {}
-/// # use tock_registers::{mmio32_register_map, Read, Write};
-/// mmio32_register_map! {
+/// # use tock_registers::{register_map_mmio32, Read, Write};
+/// register_map_mmio32! {
 ///     foo {
 ///         0 => a: [[[u8; 2]; 2]; 2] { Read, Write },
 ///     }
@@ -78,8 +78,8 @@ pub trait RegisterArray<L: Len>: Copy {
 /// not solve the issue:
 /// ```
 /// # fn main() {}
-/// # use tock_registers::{mmio32_register_map, Read, Write};
-/// mmio32_register_map! {
+/// # use tock_registers::{register_map_mmio32, Read, Write};
+/// register_map_mmio32! {
 ///     a: [u8; 2] { Read, Write },
 ///     b: [a; 2],
 ///     foo {

@@ -48,7 +48,7 @@ pub struct Input {
 /// ```
 /// # use tock_registers::{Read, Write};
 /// # fn main() {}
-/// tock_registers::mmio32_register_map! {
+/// tock_registers::register_map_mmio32! {
 ///     // `a` is a Layout
 ///     a: u8 { Read, Write },
 ///
@@ -120,7 +120,7 @@ impl BusAttr {
 /// ```
 /// # use tock_registers::{Read, Write};
 /// # fn main() {}
-/// tock_registers::mmio32_register_map! {
+/// tock_registers::register_map_mmio32! {
 ///     aa: u8 { Read, Write },
 ///     //^^^^^^^^^^^^^^^^^^^^ Value::Single
 ///
@@ -149,7 +149,7 @@ pub enum Value {
 /// ```
 /// # use tock_registers::{Read, Write};
 /// # fn main() {}
-/// tock_registers::mmio32_register_map! {
+/// tock_registers::register_map_mmio32! {
 ///     a: u8 { Read, Write },
 ///
 ///     pub foo {
@@ -182,7 +182,7 @@ pub struct Field {
 /// ```
 /// # use tock_registers::Read;
 /// # fn main() {}
-/// tock_registers::mmio32_register_map! {
+/// tock_registers::register_map_mmio32! {
 ///     status: u8 { Read },
 ///
 ///     foo {
@@ -266,7 +266,7 @@ impl Index<usize> for PerBusInt {
 /// ```
 /// # use tock_registers::{Read, Write};
 /// # fn main() {}
-/// tock_registers::mmio32_register_map! {
+/// tock_registers::register_map_mmio32! {
 ///     pub pin: u8 { Read, Write },
 ///     //     ^^^^^^^^^^^^^^^^^^^^ Top-level RegisterSpec defining a new register
 ///     pub pin_pair: [pin; 2],

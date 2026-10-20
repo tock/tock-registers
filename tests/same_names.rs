@@ -9,9 +9,9 @@
 
 #![no_std]
 
-use tock_registers::{mmio32_register_map, Read, Write};
+use tock_registers::{register_map_mmio32, Read, Write};
 
-mmio32_register_map! {
+register_map_mmio32! {
     pub inner {
         // We use an offset array to make the #name_offset entries exist in both the Bus
         // declaration and impls, as the name collision error tends to show up in the impls.

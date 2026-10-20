@@ -43,31 +43,31 @@
 /// in a [`FakeRegister`](crate::FakeRegister) with whatever behavior the test case needs. See
 /// `doc/UnitTesting.md` in the tock-registers repository for more information.
 ///
-/// # mmio32_register_map and mmio64_register_map
+/// # register_map_mmio32 and register_map_mmio64
 /// Instead of writing `#[bus(Mmio32)]` or `#[bus(Mmio64)]` every time you call `register_map!`,
-/// you can use [`mmio32_register_map!`](crate::mmio32_register_map) or
-/// [`mmio64_register_map!`](crate::mmio64_register_map). The rest of the examples on this page
-/// will use `mmio32_register_map` for brevity.
+/// you can use [`register_map_mmio32!`](crate::register_map_mmio32) or
+/// [`register_map_mmio64!`](crate::register_map_mmio64). The rest of the examples on this page
+/// will use `register_map_mmio32` for brevity.
 ///
 /// # Bitfield registers
 /// A register's type can be a bitfield:
 /// ```
 /// # fn main() {}
-/// use tock_registers::{mmio32_register_map, register_bitfields, Read, Write};
+/// use tock_registers::{register_bitfields, register_map_mmio32, Read, Write};
 /// register_bitfields! [u8,
 ///     Control [OFF 0, ON 1],
 /// ];
-/// mmio32_register_map![ctrl: Control::Register { Read, Write }];
+/// register_map_mmio32![ctrl: Control::Register { Read, Write }];
 /// ```
 ///
 /// # Register arrays
 /// You can define register arrays as well:
 /// ```
 /// # fn main() {}
-/// use tock_registers::{mmio32_register_map, Read, Write};
-/// mmio32_register_map![buttons: [u8; 8] { Read }];
+/// use tock_registers::{register_map_mmio32, Read, Write};
+/// register_map_mmio32![buttons: [u8; 8] { Read }];
 /// // You can nest array types as well.
-/// mmio32_register_map![led_grid: [[u8; 8]; 8] { Read, Write }];
+/// register_map_mmio32![led_grid: [[u8; 8]; 8] { Read, Write }];
 /// ```
 /// In the generated module, the `Interface` trait will depend on
 /// [`RegisterArray`](crate::RegisterArray) instead of `Register`, and the `RegisterArray::Element`
@@ -77,13 +77,13 @@
 /// Registers can be references to other registers:
 /// ```
 /// # fn main() {}
-/// use tock_registers::{mmio32_register_map, Read};
+/// use tock_registers::{register_map_mmio32, Read};
 /// // The original register definition.
-/// mmio32_register_map![button: u8 { Read }];
+/// register_map_mmio32![button: u8 { Read }];
 /// // A clone of the register.
-/// mmio32_register_map![button2: button];
+/// register_map_mmio32![button2: button];
 /// // An array of buttons:
-/// mmio32_register_map![button_array: [button; 8]];
+/// register_map_mmio32![button_array: [button; 8]];
 /// ```
 /// The data type and operations that a register has are inherited from the register it refers to
 /// (so `button2` implements `Read`, and `button_array` is an array of readable registers). These
@@ -94,8 +94,8 @@
 /// You can declare a block of registers:
 /// ```
 /// # fn main() {}
-/// use tock_registers::{mmio32_register_map, Read, Write};
-/// mmio32_register_map! {
+/// use tock_registers::{register_map_mmio32, Read, Write};
+/// register_map_mmio32! {
 ///     uart {
 ///         0 => status: u8 { Read },
 ///         1 => ctrl: u16 { Read, Write },
@@ -131,17 +131,17 @@
 /// The fields of register blocks can be arrays, references, and arrays of references:
 /// ```
 /// # fn main() {}
-/// use tock_registers::{mmio32_register_map, register_bitfields, Read, Write};
+/// use tock_registers::{register_bitfields, register_map_mmio32, Read, Write};
 /// register_bitfields! [u8,
 ///     Control [OFF 0, INPUT 1, OUTPUT 2],
 /// ];
-/// mmio32_register_map! {
+/// register_map_mmio32! {
 ///     gpio_pin {
 ///         0 => control: Control::Register { Read, Write },
 ///         1 => value: u8 { Read, Write },
 ///     }
 /// }
-/// mmio32_register_map! {
+/// register_map_mmio32! {
 ///     pinmux {
 ///         0 => status: u8 { Read },
 ///         // `pins` is an array of references to gpio_pin register blocks. This results in
@@ -156,8 +156,8 @@
 /// insert a padding field where the gap is:
 /// ```
 /// # fn main() {}
-/// use tock_registers::{mmio32_register_map, Read, Write};
-/// mmio32_register_map! {
+/// use tock_registers::{register_map_mmio32, Read, Write};
+/// register_map_mmio32! {
 ///     uart {
 ///         0 => status: u8 { Read },
 ///         // Padding is specified by replacing the field definition with a _
@@ -178,11 +178,11 @@
 /// overlap registers:
 /// ```
 /// # fn main() {}
-/// use tock_registers::{mmio32_register_map, register_bitfields, Read, Write};
+/// use tock_registers::{register_bitfields, register_map_mmio32, Read, Write};
 /// register_bitfields! [u8,
 ///     Control [OFF 0, ON 1],
 /// ];
-/// mmio32_register_map! {
+/// register_map_mmio32! {
 ///     /// Uart with an unusual property: the "control" register and "status" register are located
 ///     /// at the same offset. Writes go to the control register, while reads go to the status
 ///     /// register.
@@ -205,10 +205,10 @@
 /// You can specify the visibility of the generated modules:
 /// ```
 /// # fn main() {}
-/// use tock_registers::{mmio32_register_map, Read};
-/// mmio32_register_map![pub button: u8 { Read }];     // pub mod button { ... }
-/// mmio32_register_map![pub(crate) button2: button];  // pub(crate) mod button2 { ... }
-/// mmio32_register_map![button_array: [button; 8]];   // mod button2 { ... }
+/// use tock_registers::{register_map_mmio32, Read};
+/// register_map_mmio32![pub button: u8 { Read }];     // pub mod button { ... }
+/// register_map_mmio32![pub(crate) button2: button];  // pub(crate) mod button2 { ... }
+/// register_map_mmio32![button_array: [button; 8]];   // mod button2 { ... }
 /// ```
 ///
 /// # Specifying multiple buses
@@ -253,8 +253,8 @@
 /// `register_map!` supports doc comments:
 /// ```
 /// # fn main() {}
-/// use tock_registers::{mmio32_register_map, Read, Write};
-/// mmio32_register_map! {
+/// use tock_registers::{register_map_mmio32, Read, Write};
+/// register_map_mmio32! {
 ///     /// This is an outer doc comment, which will be copied to the generated `uart` module.
 ///     uart {
 ///         /// This doc comment will be copied onto `Interface::status()`.

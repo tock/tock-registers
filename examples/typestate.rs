@@ -47,10 +47,10 @@ mod typestate {
 // -------------------------------------------------------------------------------------------------
 
 use core::{cell::UnsafeCell, ptr::NonNull};
-use tock_registers::{mmio64_register_map, Mmio64};
+use tock_registers::{register_map_mmio64, Mmio64};
 use typestate::TypestateWrite;
 
-mmio64_register_map! {
+register_map_mmio64! {
     temperature {
         // Declare that task_start and task_stop may only be written by the typestate module.
         0 => task_start: u32 { TypestateWrite<Token = wrapper::Token> },

@@ -11,9 +11,9 @@ associated test harness one might expect to see in a typical codebase.
 
 Suppose you have hardware RNG peripheral with the following register interface:
 ```rust
-use tock_registers::{mmio32_register_map, Mmio32, Read};
+use tock_registers::{register_map_mmio32, Mmio32, Read};
 
-mmio32_register_map! {
+register_map_mmio32! {
     /// Registers for a hardware device that generates random numbers.
     pub rng {
         /// This register returns a new random value on every read. It can be read concurrently by
