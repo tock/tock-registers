@@ -16,14 +16,14 @@ registers](doc/AddingRegisterTypes.md). See the Rustdoc for
 [`register_map!`](src/map.rs) for complete documentation.
 
 A register block is defined using the
-`mmio32_register_map!`/`mmio64_register_map!` macros:
+`register_map_mmio32!`/`register_map_mmio64!` macros:
 
 ```rust
-use tock_registers::{mmio32_register_map, Mmio32, Read, Write};
+use tock_registers::{register_map_mmio32, Mmio32, Read, Write};
 
 // Specifies that these registers are memory-mapped IO registers with 32-bit
 // addresses.
-mmio32_register_map! {
+register_map_mmio32! {
     /// Documentation for `peripheral`.
     peripheral {
         // Control register: read-write. `Control` is defined using the
@@ -101,9 +101,9 @@ in the macro invocation. In other words, you can make the module public using
 the `pub` keyword just before the module name:
 
 ```rust
-use tock_registers::{mmio32_register_map, Read};
+use tock_registers::{register_map_mmio32, Read};
 
-mmio32_register_map! {
+register_map_mmio32! {
     pub peripheral {
         0 => status: u8 { Read },
     }
@@ -467,9 +467,9 @@ There are several related names in the register definitions. Below is a
 description of the naming convention for each:
 
 ```rust
-use tock_registers::{mmio32_register_map, register_bitfields, Read, Write};
+use tock_registers::{register_bitfields, register_map_mmio32, Read, Write};
 
-mmio32_register_map! {
+register_map_mmio32! {
     registers {
         // The register name in the struct should be a lowercase version of the
         // register abbreviation, as written in the datasheet:

@@ -10,9 +10,9 @@
 #![no_implicit_prelude]
 #![no_std]
 
-use ::tock_registers::{mmio32_register_map, Read, Write};
+use ::tock_registers::{register_map_mmio32, Read, Write};
 
-mmio32_register_map! {
+register_map_mmio32! {
     a: u8 { Read, Write },
     b: u8 { Write },
     c {
@@ -24,7 +24,7 @@ mmio32_register_map! {
     }
 }
 
-mmio32_register_map! {
+register_map_mmio32! {
     pub inner {
         [0] => ctrl: u8 { Read, Write },
     },

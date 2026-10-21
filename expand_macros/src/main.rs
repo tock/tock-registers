@@ -54,12 +54,12 @@ fn main() {
         let tokens = &mac.mac.tokens;
         let result = if name.ident == "register_map" {
             register_map(quote![::tock_registers #tokens], External)
-        } else if name.ident == "mmio32_register_map" {
+        } else if name.ident == "register_map_mmio32" {
             register_map(
                 quote![::tock_registers #![bus(::tock_registers::Mmio32)] #tokens],
                 External,
             )
-        } else if name.ident == "mmio64_register_map" {
+        } else if name.ident == "register_map_mmio64" {
             register_map(
                 quote![::tock_registers #![bus(::tock_registers::Mmio64)] #tokens],
                 External,

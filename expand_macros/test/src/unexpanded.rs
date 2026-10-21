@@ -16,7 +16,7 @@ register_map! {
     b: u8 { Read, Write },
 }
 
-::tock_registers::mmio32_register_map! {
+::tock_registers::register_map_mmio32! {
     c {
         0 => scalar_definition: u8 { Read, Write },
         1 => array_definition: [[u8; 2]; 3] { Read, Write },
@@ -26,7 +26,7 @@ register_map! {
     }
 }
 
-tock_registers::mmio64_register_map! {
+tock_registers::register_map_mmio64! {
     d: a,
 }
 
