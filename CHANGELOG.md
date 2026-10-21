@@ -2,6 +2,13 @@
 
 ## main
 
+## v0.12.0
+
+This change applies the `#[deprecated]` attribute to items that were deprecated
+in version 0.11. Use 0.12 if you want to receive compiler warnings for using
+deprecated tock-registers items, and 0.11 if you do not. This allows for a
+gradual migration of projects that deny warnings in CI.
+
 ## v0.11.0
 
 This change introduces `register_map!`, the successor to `register_structs!`. It
