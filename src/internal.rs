@@ -17,6 +17,14 @@ pub use core;
 #[cfg(feature = "proc_macros")]
 pub use tock_registers_macros::register_map;
 
+/// Helper macro for computing the bitmask of a variable number of bits
+#[macro_export]
+macro_rules! bitmask {
+    ($numbits:expr) => {
+        (1 << ($numbits - 1)) + ((1 << ($numbits - 1)) - 1)
+    };
+}
+
 /// Phantom type to make register accessor structs !Send and !Sync.
 #[derive(Clone, Copy, Default)]
 pub struct RealPhantom(PhantomData<*mut ()>);

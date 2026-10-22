@@ -302,14 +302,6 @@ pub trait TryFromValue<V> {
     fn try_from_value(v: V) -> Option<Self::EnumType>;
 }
 
-/// Helper macro for computing bitmask of variable number of bits
-#[macro_export]
-macro_rules! bitmask {
-    ($numbits:expr) => {
-        (1 << ($numbits - 1)) + ((1 << ($numbits - 1)) - 1)
-    };
-}
-
 /// Helper macro for defining register fields.
 #[macro_export]
 macro_rules! register_bitmasks {
