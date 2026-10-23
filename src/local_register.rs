@@ -23,13 +23,11 @@ use crate::{RegisterLongName, UIntLike};
 /// a local register, which will modify the stored value, but will not modify
 /// any hardware because it operates only on local copy.
 ///
-/// This type does not implement the [`Readable`](crate::interfaces::Readable)
-/// and [`Writeable`](crate::interfaces::Writeable) traits because it requires a
-/// mutable reference to modify the contained value. It still mirrors the
-/// interface which would be exposed by a type implementing
-/// [`Readable`](crate::interfaces::Readable),
-/// [`Writeable`](crate::interfaces::Writeable) and
-/// [`ReadWriteable`](crate::interfaces::ReadWriteable).
+/// This type does not implement the [`Read`](trait@crate::Read) and
+/// [`Write`](trait@crate::Write) traits because it requires a mutable reference
+/// to modify the contained value. It still mirrors the interface which would be
+/// exposed by a type implementing [`Read`](trait@crate::Read) and
+/// [`Write`](trait@crate::Write).
 #[derive(Copy, Clone)]
 pub struct LocalRegisterCopy<T: Copy, R: RegisterLongName = ()> {
     value: T,

@@ -6,9 +6,10 @@
 //!
 //! To conveniently access and manipulate fields of a register, this library
 //! provides types and macros to describe and access bitfields of a
-//! register. This can be especially useful in conjunction with the APIs defined
-//! in [`interfaces`](crate::interfaces), which make use of these types and
-//! hence allow to access and manipulate bitfields of proper registers directly.
+//! register. This can be especially useful in conjunction with
+//! [Read](trait@crate::Read) and [Write](trait@crate::Write) traits, which make
+//! use of these types and hence allow to access and manipulate bitfields of
+//! proper registers directly.
 //!
 //! A specific section (bitfield) in a register is described by the [`Field`]
 //! type, consisting of an unshifted bitmask over the base register [`UIntLike`]
@@ -30,9 +31,9 @@
 //! `u32` base type:
 //!
 //! ```rust
-//! # use tock_registers::register_bitfields;
-//! # use tock_registers::registers::InMemoryRegister;
-//! # use tock_registers::interfaces::{Readable, ReadWriteable};
+//! # use core::ptr::NonNull;
+//! # use tock_registers::{register_bitfields, register_map_mmio64};
+//! # use tock_registers::{Mmio64, Read, Write};
 //! register_bitfields![u32,
 //!     Uart [
 //!         ENABLE OFFSET(0) NUMBITS(4) [
@@ -51,16 +52,21 @@
 //! // register. `Uart::ENABLE` is a field covering the first 4 bits of this
 //! // register. `Uart::ENABLE::ON` is a `FieldValue` over that field, with the
 //! // associated value 8. We can now use the types like so:
-//! let reg: InMemoryRegister<u32, Uart::Register> = InMemoryRegister::new(0);
+//! register_map_mmio64![uart: Uart::Register { Read, Write }];
+//!
+//! # fn main() {
+//! let mut reg: u32 = 0;
+//! let mmio = Mmio64::new(NonNull::from(&mut reg).cast());
+//! let reg = unsafe { uart::Real::new(mmio) };
 //! assert!(reg.read(Uart::ENABLE) == 0x00000000);
 //! reg.modify(Uart::ENABLE::ON);
 //! assert!(reg.get() == 0x00000008);
 //!
-//! use tock_registers::interfaces::Debuggable;
 //! assert!(
 //!     &format!("{:?}", reg.debug())
 //!     == "Uart { ENABLE: ON }"
 //! );
+//! # }
 //! ```
 
 // The register interface uses `+` in a way that is fine for bitfields, but
@@ -123,9 +129,7 @@ impl<T: UIntLike, R: RegisterLongName> Field<T, R> {
     /// ## Usage Example
     ///
     /// ```rust
-    /// # use tock_registers::interfaces::Readable;
-    /// # use tock_registers::registers::InMemoryRegister;
-    /// # use tock_registers::register_bitfields;
+    /// # use tock_registers::{register_bitfields, Read};
     /// register_bitfields![u8,
     ///     EXAMPLEREG [
     ///         TESTFIELD OFFSET(3) NUMBITS(3) [
