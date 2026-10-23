@@ -40,9 +40,9 @@ pub trait Read: Register {
     /// ## Usage Example
     ///
     /// ```rust
-    /// # use tock_registers::interfaces::Readable;
-    /// # use tock_registers::registers::InMemoryRegister;
-    /// # use tock_registers::register_bitfields;
+    /// # use core::ptr::NonNull;
+    /// # use tock_registers::{register_bitfields, register_map_mmio64};
+    /// # use tock_registers::{Mmio64, Read};
     /// register_bitfields![u8,
     ///     EXAMPLEREG [
     ///         TESTFIELD OFFSET(0) NUMBITS(2) [
@@ -53,8 +53,11 @@ pub trait Read: Register {
     ///     ],
     /// ];
     ///
-    /// let reg: InMemoryRegister<u8, EXAMPLEREG::Register> =
-    ///     InMemoryRegister::new(2);
+    /// register_map_mmio64![example: EXAMPLEREG::Register { Read }];
+    /// # fn main() {
+    /// let mut reg: u8 = 2;
+    /// let mmio = Mmio64::new(NonNull::from(&mut reg).cast());
+    /// let reg = unsafe { example::Real::new(mmio) };
     ///
     /// match reg.read_as_enum(EXAMPLEREG::TESTFIELD) {
     ///     Some(EXAMPLEREG::TESTFIELD::Value::Foo) => "Tock",
@@ -62,6 +65,7 @@ pub trait Read: Register {
     ///     Some(EXAMPLEREG::TESTFIELD::Value::Baz) => "awesome!",
     ///     None => panic!("boo!"),
     /// };
+    /// # }
     /// ```
     fn read_as_enum<E: TryFromValue<<Self::DataType as DataType>::Value, EnumType = E>>(
         self,
