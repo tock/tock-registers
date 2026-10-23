@@ -22,14 +22,6 @@ use crate::{RegisterLongName, UIntLike};
 /// register in hardware yet still be able to check the bits.  You can write to
 /// a local register, which will modify the stored value, but will not modify
 /// any hardware because it operates only on local copy.
-///
-/// This type does not implement the [`Readable`](crate::interfaces::Readable)
-/// and [`Writeable`](crate::interfaces::Writeable) traits because it requires a
-/// mutable reference to modify the contained value. It still mirrors the
-/// interface which would be exposed by a type implementing
-/// [`Readable`](crate::interfaces::Readable),
-/// [`Writeable`](crate::interfaces::Writeable) and
-/// [`ReadWriteable`](crate::interfaces::ReadWriteable).
 #[derive(Copy, Clone)]
 pub struct LocalRegisterCopy<T: Copy, R: RegisterLongName = ()> {
     value: T,
