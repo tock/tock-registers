@@ -86,13 +86,10 @@ pub use fake_register::FakeRegisterArray;
 pub use fake_register::{FakeRegister, NoAccess, Safe};
 
 pub mod fields;
-pub mod interfaces;
 pub mod internal;
 
 mod local_register;
 pub use local_register::LocalRegisterCopy;
-
-pub mod macros;
 
 #[cfg(all(feature = "proc_macros", feature = "register_types"))]
 mod map;
@@ -107,9 +104,6 @@ mod read;
 #[cfg(feature = "register_types")]
 pub use read::BusRead;
 pub use read::Read;
-
-#[cfg(feature = "register_types")]
-pub mod registers;
 
 mod write;
 #[cfg(feature = "register_types")]
