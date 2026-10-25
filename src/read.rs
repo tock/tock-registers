@@ -78,12 +78,7 @@ pub trait Read: Register {
     }
 
     /// Make a local copy of the register
-    fn extract(
-        self,
-    ) -> LocalRegisterCopy<
-        <Self::DataType as DataType>::Value,
-        <Self::DataType as DataType>::LongName,
-    > {
+    fn extract(self) -> LocalRegisterCopy<Self::DataType> {
         LocalRegisterCopy::new(self.get())
     }
 
