@@ -7,12 +7,15 @@
 name = "tock-registers-macros"
 version.workspace = true
 authors.workspace = true
+categories = ["embedded", "hardware-support"]
 description = "Proc macros for tock-registers"
 edition.workspace = true
 homepage.workspace = true
+keywords = ["tock", "embedded", "registers", "mmio"]
 license.workspace = true
 readme.workspace = true
 repository.workspace = true
+rust-version.workspace = true
 
 [lib]
 proc-macro = true
