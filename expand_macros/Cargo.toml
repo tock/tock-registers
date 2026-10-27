@@ -4,7 +4,7 @@
 # Copyright Better Bytes 2026.
 
 [package]
-name = "tock-registers-expand-macros"
+name = "expand-macros"
 version.workspace = true
 authors.workspace = true
 description = "Tool to expand tock-registers' procedural macros."

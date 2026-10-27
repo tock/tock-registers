@@ -4,7 +4,7 @@
 # Copyright Better Bytes 2026.
 
 [package]
-name = "multi_crate_parent"
+name = "multi-crate-parent"
 authors.workspace = true
 homepage.workspace = true
 publish = false
