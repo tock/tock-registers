@@ -116,6 +116,7 @@ impl<T: UIntLike, R: RegisterLongName> LocalRegisterCopy<T, R> {
     /// Do a bitwise AND operation of the stored value and the passed in value
     /// and return a new LocalRegisterCopy.
     #[inline]
+    #[must_use]
     pub fn bitand(&self, rhs: T) -> LocalRegisterCopy<T, R> {
         LocalRegisterCopy::new(self.value & rhs)
     }

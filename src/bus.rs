@@ -35,6 +35,7 @@ pub trait Address: Copy {
     /// `self` must point into a register span on the correct bus (based on `Self`). The entire
     /// range from `self` to the result (inclusive) must be in bounds of that register span. In
     /// particular, this must not "wrap around" the address space.
+    #[must_use]
     unsafe fn byte_add(self, offset: usize) -> Self;
 }
 

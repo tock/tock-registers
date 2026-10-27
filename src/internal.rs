@@ -30,6 +30,7 @@ macro_rules! bitmask {
 pub struct RealPhantom(PhantomData<*mut ()>);
 
 impl RealPhantom {
+    #[must_use]
     pub const fn new() -> Self {
         Self(PhantomData)
     }
