@@ -4,7 +4,7 @@
 # Copyright Better Bytes 2026.
 
 [package]
-name = "multi_crate_child"
+name = "multi-crate-child"
 authors.workspace = true
 homepage.workspace = true
 publish = false
@@ -14,5 +14,5 @@ edition.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-multi_crate_parent.path = "../parent"
+multi-crate-parent.path = "../parent"
 tock-registers.path = "../../.."

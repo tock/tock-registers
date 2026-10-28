@@ -42,6 +42,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0e25ea47919b1560c4e3b7fe0aaab9becf5b84a10325ddf7db0f0ba5e1026499"
 
 [[package]]
+name = "expand-macros"
+version = "0.10.1"
+dependencies = [
+ "clap",
+ "prettyplease",
+ "proc-macro2",
+ "quote",
+ "syn",
+ "tock-registers-codegen",
+]
+
+[[package]]
 name = "hashbrown"
 version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -61,15 +73,15 @@ dependencies = [
 ]
 
 [[package]]
-name = "multi_crate_child"
+name = "multi-crate-child"
 version = "0.0.0"
 dependencies = [
- "multi_crate_parent",
+ "multi-crate-parent",
  "tock-registers",
 ]
 
 [[package]]
-name = "multi_crate_parent"
+name = "multi-crate-parent"
 version = "0.0.0"
 dependencies = [
  "tock-registers",
@@ -153,18 +165,6 @@ dependencies = [
  "quote",
  "syn",
  "tock-registers",
-]
-
-[[package]]
-name = "tock-registers-expand-macros"
-version = "0.10.1"
-dependencies = [
- "clap",
- "prettyplease",
- "proc-macro2",
- "quote",
- "syn",
- "tock-registers-codegen",
 ]
 
 [[package]]

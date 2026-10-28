@@ -1,8 +1,8 @@
-# `tock-registers-expand-macros` test
+# `expand-macros` test
 
 We want to test that you can:
 
-1. Run tock-registers-expand-macros to expand a source code file.
+1. Run expand-macros to expand a source code file.
 1. Build the resulting source code with tock-registers' proc_macros feature
    disabled.
 

@@ -47,29 +47,31 @@ write the output to a file.
 
 ```
 $ cargo tree
-tock-registers-expand-macros v0.10.1 (/home/ryan/tock/registers/expand_macros)
-├── clap v3.2.25
-│   ├── bitflags v1.3.2
-│   ├── clap_lex v0.2.4
-│   │   └── os_str_bytes v6.6.1
-│   ├── indexmap v1.9.3
-│   │   └── hashbrown v0.12.3
+expand-macros v0.10.1 (/home/user/tock/registers/expand_macros)
+├── clap v3.2.23
+│   ├── bitflags v1.2.0
+│   ├── clap_lex v0.2.2
+│   │   └── os_str_bytes v6.0.0
+│   ├── indexmap v1.5.2
+│   │   └── hashbrown v0.8.1
+│   │       [build-dependencies]
+│   │       └── autocfg v1.0.0
 │   │   [build-dependencies]
-│   │   └── autocfg v1.5.1
-│   └── textwrap v0.16.2
-├── prettyplease v0.2.37
+│   │   └── autocfg v1.0.0
+│   └── textwrap v0.16.0
+├── prettyplease v0.3.0
 │   ├── proc-macro2 v1.0.106
-│   │   └── unicode-ident v1.0.24
-│   └── syn v2.0.117
+│   │   └── unicode-ident v1.0.0
+│   └── syn v3.0.0
 │       ├── proc-macro2 v1.0.106 (*)
 │       ├── quote v1.0.45
 │       │   └── proc-macro2 v1.0.106 (*)
-│       └── unicode-ident v1.0.24
+│       └── unicode-ident v1.0.0
 ├── proc-macro2 v1.0.106 (*)
 ├── quote v1.0.45 (*)
-├── syn v2.0.117 (*)
-└── tock-registers-codegen v0.10.1 (/home/ryan/tock/registers/codegen)
+├── syn v3.0.0 (*)
+└── tock-registers-codegen v0.10.1 (/home/user/tock/registers/codegen)
     ├── proc-macro2 v1.0.106 (*)
     ├── quote v1.0.45 (*)
-    └── syn v2.0.117 (*)
+    └── syn v3.0.0 (*)
 ```

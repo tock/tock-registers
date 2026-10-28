@@ -110,9 +110,8 @@ doc: toolchain
 # Tests the expand_macros binary.
 .PHONY: expand_macros_test
 expand_macros_test: toolchain
-	RUSTFLAGS="-D warnings" cargo run -p tock-registers-expand-macros \
-		--release -- expand_macros/test/src/unexpanded.rs \
-		> expand_macros/test/src/lib.rs
+	RUSTFLAGS="-D warnings" cargo run -p expand-macros --release -- \
+		expand_macros/test/src/unexpanded.rs > expand_macros/test/src/lib.rs
 	RUSTFLAGS="-D warnings" cargo test \
 		--manifest-path=expand_macros/test/Cargo.toml
 
