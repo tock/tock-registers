@@ -181,6 +181,7 @@ macro_rules! dma_manager {
                 }
             }
 
+            #[must_use]
             pub fn new_fake() -> (R, Self) where R: Clone + Default {
                 let registers = R::default();
                 (registers.clone(), Self {

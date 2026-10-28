@@ -26,6 +26,7 @@ impl PortIo {
     // register_map allows the constructor to be #[cfg(target_arch = ...)] as well. However, this
     // example calls PortIo::new from main() regardless of the target architecture, so we don't
     // demonstrate that cfg in this example.
+    #[must_use]
     pub fn new(number: u16) -> Self {
         Self {
             number,

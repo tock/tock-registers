@@ -176,6 +176,7 @@ impl<T: UIntLike, R: RegisterLongName> Copy for Field<T, R> {}
 macro_rules! Field_impl_for {
     ($type:ty) => {
         impl<R: RegisterLongName> Field<$type, R> {
+            #[must_use]
             pub const fn val(&self, value: $type) -> FieldValue<$type, R> {
                 FieldValue::<$type, R>::new(self.mask, self.shift, value)
             }
@@ -207,6 +208,7 @@ macro_rules! FieldValue_impl_for {
         // bitwise math isn't treated as const when the type is generic.
         // Tracking issue: https://github.com/rust-lang/rfcs/pull/2632
         impl<R: RegisterLongName> FieldValue<$type, R> {
+            #[must_use]
             pub const fn new(mask: $type, shift: usize, value: $type) -> Self {
                 FieldValue {
                     mask: mask << shift,
@@ -236,6 +238,7 @@ FieldValue_impl_for!(usize);
 
 impl<T: UIntLike, R: RegisterLongName> FieldValue<T, R> {
     #[inline]
+    #[must_use]
     pub fn none() -> Self {
         Self {
             mask: T::zero(),

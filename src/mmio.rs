@@ -29,6 +29,7 @@ macro_rules! mmio_structs {
             #[doc = $width]
             /// bit bus.
             #[cfg_attr(not(target_pointer_width = $width), track_caller)]
+            #[must_use]
             pub const fn new(ptr: $storage) -> Self {
                 Self::width_check();
                 Self(ptr)
@@ -38,6 +39,7 @@ macro_rules! mmio_structs {
             ///
             /// Operations defined outside this module should use `address` to access the address
             /// they are operating on.
+            #[must_use]
             pub const fn address(self) -> $storage {
                 self.0
             }
@@ -100,6 +102,7 @@ macro_rules! impl_nonnull {
             ///
             /// Additionally, panics if this system's bus width does not match
             /// this bus type.
+            #[must_use]
             #[track_caller]
             pub const fn from_addr(addr: usize) -> Self {
                 Self::width_check();
@@ -154,6 +157,7 @@ macro_rules! impl_nullable {
             /// to access Rust memory. If you want to access Rust memory (i.e.
             /// if this is pointing somewhere other than MMIO memory) then you
             /// must use [`new`](Self::new) to construct this bus instead.
+            #[must_use]
             pub const fn from_addr(addr: usize) -> Self {
                 Self::width_check();
                 // TODO: Once the MSRV reaches 1.84, replace this cast with
