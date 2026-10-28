@@ -8,10 +8,11 @@ name = "tock-registers-expand-macros"
 version.workspace = true
 authors.workspace = true
 description = "Tool to expand tock-registers' procedural macros."
-homepage.workspace = true
-repository.workspace = true
-license.workspace = true
 edition.workspace = true
+homepage.workspace = true
+license.workspace = true
+publish = false
+repository.workspace = true
 rust-version.workspace = true
 
 [dependencies]
