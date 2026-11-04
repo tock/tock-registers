@@ -4,6 +4,9 @@
 
 //! Macros for cleanly defining peripheral registers.
 
+#![allow(deprecated, reason = "This entire module is deprecated")]
+#![deprecated(note = "Use register_map instead")]
+
 /// DEPRECATED: This macro is internal to tock-registers, used by
 /// [`register_structs`](crate::register_structs). It will be removed in a
 /// future release.

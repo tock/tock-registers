@@ -22,6 +22,9 @@
 //! (part of the default features). This is useful if this crate should be used
 //! only as an interface library, or if all unsafe code should be disabled.
 
+#![allow(deprecated, reason = "This entire module is deprecated")]
+#![deprecated(note = "Use register_map instead")]
+
 use core::cell::UnsafeCell;
 use core::marker::PhantomData;
 
@@ -192,6 +195,7 @@ impl<T: UIntLike, R: RegisterLongName, W: RegisterLongName> Writeable for Aliase
 /// For accessing and manipulating the register contents, the [`Readable`],
 /// [`Writeable`] and [`ReadWriteable`](crate::interfaces::ReadWriteable) traits
 /// are implemented.
+#[deprecated(note = "We haven't found a sound use for this. Consider LocalRegisterCopy instead.")]
 // To successfully alias this structure onto hardware registers in memory, this
 // struct must be exactly the size of the `T`.
 #[repr(transparent)]

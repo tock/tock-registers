@@ -161,6 +161,9 @@
 //! assert!(dummy.read(DummyReg::HIGH) == 0xb);
 //! ```
 
+#![allow(deprecated, reason = "This entire module is deprecated")]
+#![deprecated(note = "Use Read and Write instead")]
+
 use crate::fields::{Field, FieldValue, TryFromValue};
 use crate::{LocalRegisterCopy, RegisterLongName, UIntLike};
 
@@ -178,6 +181,7 @@ use crate::{LocalRegisterCopy, RegisterLongName, UIntLike};
 /// automatically be [`ReadWriteable`], if the [`RegisterLongName`] of
 /// [`Readable`] is the same as that of [`Writeable`] (i.e. not for
 /// [`Aliased`](crate::registers::Aliased) registers).
+#[deprecated(note = "Use Read instead")]
 pub trait Readable {
     type T: UIntLike;
     type R: RegisterLongName;
@@ -286,6 +290,7 @@ pub trait Readable {
 /// The `debug` method returns a value that implements [`core::fmt::Debug`].
 ///
 /// [`register_bitfields`]: crate::register_bitfields
+#[deprecated(note = "Use Read instead")]
 pub trait Debuggable: Readable {
     /// Returns a [`RegisterDebugValue`](crate::debug::RegisterDebugValue) that
     /// implements [`core::fmt::Debug`], the debug information is extracted from
@@ -319,6 +324,7 @@ impl<T: Readable> Debuggable for T {}
 /// automatically be [`ReadWriteable`], if the [`RegisterLongName`] of
 /// [`Readable`] is the same as that of [`Writeable`] (i.e. not for
 /// [`Aliased`](crate::registers::Aliased) registers).
+#[deprecated(note = "Use Write instead")]
 pub trait Writeable {
     type T: UIntLike;
     type R: RegisterLongName;
@@ -358,6 +364,7 @@ pub trait Writeable {
 /// implemented for every type that is both [`Readable`] and [`Writeable`], as
 /// long as [`Readable::R`] == [`Writeable::R`] (i.e. not for
 /// [`Aliased`](crate::registers::Aliased) registers).
+#[deprecated(note = "Use Write instead")]
 pub trait ReadWriteable {
     type T: UIntLike;
     type R: RegisterLongName;
