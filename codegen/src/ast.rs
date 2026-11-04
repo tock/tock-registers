@@ -288,7 +288,9 @@ pub struct RegisterSpec {
     /// path to another register definition (for register references). If the register type
     /// specification is an array, this is the innermost type (i.e. element_type does not mention
     /// that it is an array).
-    pub element_type: Type,
+    // Boxed because Type is hundreds of bytes, so leaving this unboxed causes
+    // clippy::large_enum_variant to trigger on FieldDef and Value.
+    pub element_type: Box<Type>,
     /// The array sizes. If this register specification is a nested array, the sizes are listed
     /// from the innermost array to the outermost. For example, `[[[u8; 2]; 3]; 4]` would have
     /// sizes list `[2, 3, 4]`.

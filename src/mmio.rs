@@ -4,7 +4,8 @@
 // Copyright Better Bytes 2026.
 
 use crate::{Address, Bus, BusRead, BusWrite};
-use core::ptr::{read_volatile, write_volatile, NonNull};
+use core::num::NonZero;
+use core::ptr::{read_volatile, without_provenance_mut, write_volatile, NonNull};
 
 /// Macro to declare the Mmio* structs and provide a few impls for each.
 macro_rules! mmio_structs {
@@ -106,19 +107,7 @@ macro_rules! impl_nonnull {
             #[track_caller]
             pub const fn from_addr(addr: usize) -> Self {
                 Self::width_check();
-                // TODO: Once the MSRV reaches:
-                // 1.84: replace the pointer cast with
-                //       core::ptr::without_provenance_mut
-                // 1.85: replace NonNull::new_unchecked with NonNull::new
-                // 1.89: replace NonNull::new/new_unchecked with
-                //       NonNull::without_provenance (this obsoletes the above
-                //       two steps).
-                assert!(addr != 0);
-                let ptr = addr as *mut ();
-                // Safety: We've already confirmed that the address is not null
-                // (ptr::null() documents that null pointers have address 0),
-                // and we have not changed the address, so ptr is not null.
-                Self(unsafe { NonNull::new_unchecked(ptr) })
+                Self(NonNull::without_provenance(NonZero::new(addr).expect("null addr")))
             }
         }
 
@@ -160,9 +149,7 @@ macro_rules! impl_nullable {
             #[must_use]
             pub const fn from_addr(addr: usize) -> Self {
                 Self::width_check();
-                // TODO: Once the MSRV reaches 1.84, replace this cast with
-                // core::ptr::without_provenance_mut.
-                Self(addr as *mut ())
+                Self(without_provenance_mut(addr))
             }
         }
 

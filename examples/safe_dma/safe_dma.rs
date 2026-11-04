@@ -257,18 +257,18 @@ impl<'c, T: DataType> FakeUnsafeWrite<'c, T> {
     }
 }
 
-impl<'c, T: DataType> Clone for FakeUnsafeWrite<'c, T> {
+impl<T: DataType> Clone for FakeUnsafeWrite<'_, T> {
     fn clone(&self) -> Self {
         *self
     }
 }
-impl<'c, T: DataType> Copy for FakeUnsafeWrite<'c, T> {}
+impl<T: DataType> Copy for FakeUnsafeWrite<'_, T> {}
 
-impl<'c, T: DataType> Register for FakeUnsafeWrite<'c, T> {
+impl<T: DataType> Register for FakeUnsafeWrite<'_, T> {
     type DataType = T;
 }
 
-impl<'c, T: DataType> UnsafeWrite for FakeUnsafeWrite<'c, T> {
+impl<T: DataType> UnsafeWrite for FakeUnsafeWrite<'_, T> {
     unsafe fn set(self, value: T::Value) {
         self.0.set(value)
     }

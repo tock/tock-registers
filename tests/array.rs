@@ -55,7 +55,7 @@ impl array_demo::Interface for Fake {
         FakeRegisterArray::new(self, |s, index| {
             if index >= 3 {
                 return None;
-            };
+            }
             Some(
                 FakeRegister::new((s, index as u8 + 1)).on_read(|(s, increment)| {
                     let out = s.single_counter.get();
@@ -87,14 +87,20 @@ struct FakeIncrement<'f> {
 }
 
 impl<'f> variable_increment::Interface for FakeIncrement<'f> {
-    type increment<'s> = FakeRegister<&'f Cell<u8>, u8, Safe, Safe> where Self: 's;
+    type increment<'s>
+        = FakeRegister<&'f Cell<u8>, u8, Safe, Safe>
+    where
+        Self: 's;
     fn increment(&self) -> Self::increment<'_> {
         FakeRegister::new(self.increment)
             .on_read(|i| i.get())
             .on_write(|i, v| i.set(v))
     }
 
-    type counter<'s> = FakeRegister<Self, u8, Safe, NoAccess> where Self: 's;
+    type counter<'s>
+        = FakeRegister<Self, u8, Safe, NoAccess>
+    where
+        Self: 's;
     fn counter(&self) -> Self::counter<'_> {
         FakeRegister::new(*self).on_read(|s| {
             let out = s.counter.get();
