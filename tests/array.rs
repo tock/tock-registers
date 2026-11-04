@@ -7,8 +7,8 @@
 
 use core::cell::Cell;
 use tock_registers::{
-    register_map_mmio32, FakeRegister, FakeRegisterArray, NoAccess, Read, RegisterArray, Safe,
-    Write,
+    FakeRegister, FakeRegisterArray, NoAccess, Read, RegisterArray, Safe, Write,
+    register_map_mmio32,
 };
 use {array_demo::Interface as _, variable_increment::Interface as _};
 

@@ -13,8 +13,8 @@ use core::fmt;
 use core::marker::PhantomData;
 
 use crate::{
-    fields::{Field, TryFromValue},
     RegisterLongName, UIntLike,
+    fields::{Field, TryFromValue},
 };
 
 /// `FieldValueEnumSeq` is a debug helper trait representing a sequence of

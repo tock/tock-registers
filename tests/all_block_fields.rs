@@ -7,7 +7,7 @@
 
 #![no_std]
 
-use tock_registers::{register_map_mmio32, Read, Write};
+use tock_registers::{Read, Write, register_map_mmio32};
 
 register_map_mmio32! {
     // External registers to reference.

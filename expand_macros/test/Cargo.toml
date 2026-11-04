@@ -7,7 +7,7 @@
 
 [package]
 name = "expand-macros-test"
-edition = "2021"
+edition = "2024"
 publish = false
 version = "0.1.0"
 

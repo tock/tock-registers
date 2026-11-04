@@ -3,7 +3,7 @@
 // Copyright Tock Contributors 2026.
 // Copyright Better Bytes 2026.
 
-use tock_registers::{register_map_mmio32, Read};
+use tock_registers::{Read, register_map_mmio32};
 
 register_map_mmio32! {
     pub scalar_definition: u8 { Read },

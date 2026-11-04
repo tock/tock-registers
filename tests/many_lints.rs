@@ -104,7 +104,7 @@
 #![forbid(non_upper_case_globals)]
 #![forbid(unused)]
 
-use tock_registers::{register_map, Mmio32, Mmio64, Read, Write};
+use tock_registers::{Mmio32, Mmio64, Read, Write, register_map};
 
 register_map! {
     #![buses(Mmio32, Mmio64)]

@@ -6,7 +6,7 @@
 //! Tests passing a RegisterSender between threads and using it to access a single peripheral.
 
 use std::{ptr::NonNull, sync::mpsc::channel, thread::spawn};
-use tock_registers::{register_map, Mmio32, Mmio64, Read, RegisterSender, Write};
+use tock_registers::{Mmio32, Mmio64, Read, RegisterSender, Write, register_map};
 
 register_map! {
     #[buses(Mmio32, Mmio64)]

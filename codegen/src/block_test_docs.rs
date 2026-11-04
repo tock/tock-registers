@@ -8,7 +8,7 @@
 //! 1. Doc comments that should be copied from the input are copied correctly.
 //! 2. Generated doc comments are correct.
 
-use crate::{register_map, test_util::assert_tokens_eq, Env::ProcMacro};
+use crate::{Env::ProcMacro, register_map, test_util::assert_tokens_eq};
 use quote::quote;
 
 #[test]
