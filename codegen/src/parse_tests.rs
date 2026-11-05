@@ -117,7 +117,8 @@ fn field() {
                     element_type: parse_quote![b],
                     array_sizes: vec![],
                     operations: None,
-                },
+                }
+                .into(),
             },
         },
     );
@@ -147,7 +148,8 @@ fn field() {
                     element_type: parse_quote![u8],
                     array_sizes: vec![],
                     operations: Some(vec![parse_quote![Read]]),
-                },
+                }
+                .into(),
             },
         },
     );
@@ -182,6 +184,7 @@ fn field_def() {
                 array_sizes: vec![],
                 operations: None,
             }
+            .into()
         }
     );
 }
