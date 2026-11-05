@@ -55,7 +55,7 @@ impl array_demo::Interface for Fake {
         FakeRegisterArray::new(self, |s, index| {
             if index >= 3 {
                 return None;
-            };
+            }
             Some(
                 FakeRegister::new((s, index as u8 + 1)).on_read(|(s, increment)| {
                     let out = s.single_counter.get();

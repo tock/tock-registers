@@ -181,7 +181,7 @@ pub trait BusRead<T>: Bus<T> {
 }
 
 #[cfg(feature = "register_types")]
-impl<'b, T, A: Address + BusRead<T>> BusRead<T> for BorrowedBus<'b, A> {
+impl<T, A: Address + BusRead<T>> BusRead<T> for BorrowedBus<'_, A> {
     unsafe fn read(self) -> T {
         // Safety: We are the same Bus as A, so the caller has already satisfied all the
         // requirements of read.

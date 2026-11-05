@@ -102,7 +102,7 @@ pub struct BorrowedBus<'b, A: Address> {
     _phantom: PhantomData<&'b *mut ()>,
 }
 
-impl<'b, A: Address> BorrowedBus<'b, A> {
+impl<A: Address> BorrowedBus<'_, A> {
     /// Constructs a new BorrowedBus. Note that in general, BorrowedBus should be constructed by
     /// using [`RegisterSender`], but you can use this to build your own RegisterSender-like
     /// abstraction.
@@ -119,7 +119,7 @@ impl<'b, A: Address> BorrowedBus<'b, A> {
     }
 }
 
-impl<'b, A: Address> Address for BorrowedBus<'b, A> {
+impl<A: Address> Address for BorrowedBus<'_, A> {
     unsafe fn byte_add(self, offset: usize) -> Self {
         Self {
             // Safety: This is the same Bus as A, even though it is a distinct type. Therefore, the
@@ -132,7 +132,7 @@ impl<'b, A: Address> Address for BorrowedBus<'b, A> {
 }
 
 /// Safety: We are the same bus as A, so the padded size of each register type is the same.
-unsafe impl<'b, T, A: Address + Bus<T>> Bus<T> for BorrowedBus<'b, A> {
+unsafe impl<T, A: Address + Bus<T>> Bus<T> for BorrowedBus<'_, A> {
     const PADDED_SIZE: usize = A::PADDED_SIZE;
 }
 
