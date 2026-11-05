@@ -5,7 +5,7 @@
 
 //! This example shows where you can use doc comments in a register_map! invocation.
 
-use tock_registers::{register_map_mmio32, Read, Write};
+use tock_registers::{Read, Write, register_map_mmio32};
 
 register_map_mmio32! {
     /// Doc comment on a register definition.

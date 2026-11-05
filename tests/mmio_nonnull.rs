@@ -11,8 +11,8 @@
 
 use core::cell::UnsafeCell;
 use core::mem::size_of;
-use core::ptr::{null_mut, NonNull};
-use tock_registers::{register_map, Mmio32, Mmio64, Read, RegisterArray, Write};
+use core::ptr::{NonNull, null_mut};
+use tock_registers::{Mmio32, Mmio64, Read, RegisterArray, Write, register_map};
 use {inner_block::Interface as _, outer_block::Interface as _};
 
 register_map! {

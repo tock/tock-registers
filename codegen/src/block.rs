@@ -4,10 +4,10 @@
 // Copyright Better Bytes 2026.
 
 use crate::ast::{Field, FieldDef, Layout, PerBusInt};
-use crate::{new_doc_comment, register_definition, Env};
+use crate::{Env, new_doc_comment, register_definition};
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote, quote_spanned};
-use syn::{spanned::Spanned, Ident, Path, TypePath};
+use syn::{Ident, Path, TypePath, spanned::Spanned};
 
 /// Generates the module for a register block.
 pub fn generate(env: Env, tock_registers: &Path, layout: &Layout, fields: &[Field]) -> TokenStream {

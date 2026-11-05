@@ -3,9 +3,9 @@
 // Copyright Tock Contributors 2026.
 // Copyright Better Bytes 2026.
 
-#[cfg(feature = "register_types")]
-use crate::{array::Len, RegisterArray};
 use crate::{DataType, Read, Register, Write};
+#[cfg(feature = "register_types")]
+use crate::{RegisterArray, array::Len};
 #[cfg(feature = "register_types")]
 use core::marker::PhantomData;
 

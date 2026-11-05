@@ -12,7 +12,7 @@
 
 #![forbid(unsafe_code)]
 
-use crate::chip_unsafe::{rng, RngDma};
+use crate::chip_unsafe::{RngDma, rng};
 
 /// Driver for the RNG peripheral.
 pub struct Rng<R: rng::Interface> {

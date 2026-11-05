@@ -3,9 +3,9 @@
 // Copyright Tock Contributors 2022.
 // Copyright Better Bytes 2026.
 
-use crate::{fields::FieldValue, DataType, LocalRegisterCopy, Read, Register, UIntLike};
 #[cfg(feature = "register_types")]
 use crate::{Address, BorrowedBus, Bus};
+use crate::{DataType, LocalRegisterCopy, Read, Register, UIntLike, fields::FieldValue};
 
 /// A register that can be written.
 pub trait Write: Register {

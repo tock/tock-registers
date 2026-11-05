@@ -10,7 +10,7 @@
 #![no_std]
 
 use core::cell::UnsafeCell;
-use tock_registers::{register_map, Mmio32Nullable, Mmio64Nullable, Read, RegisterArray, Write};
+use tock_registers::{Mmio32Nullable, Mmio64Nullable, Read, RegisterArray, Write, register_map};
 use {inner_block::Interface as _, outer_block::Interface as _};
 
 register_map! {

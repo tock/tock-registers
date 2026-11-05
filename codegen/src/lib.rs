@@ -38,7 +38,7 @@ use ast::{Input, RegisterSpec, Value};
 use proc_macro2::TokenStream;
 use quote::quote;
 use std::mem::replace;
-use syn::{parse2, Ident, Path, PathArguments};
+use syn::{Ident, Path, PathArguments, parse2};
 
 /// Returns the generated code for a `tock_registers_macro::register_map!` invocation.
 ///

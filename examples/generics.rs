@@ -7,8 +7,8 @@
 //! that register_map!'s generated code compiles in those cases).
 
 use std::fmt::Debug;
-use std::ptr::{read_volatile, NonNull};
-use tock_registers::{register_map, Address, Bus, BusRead, Read, RegisterArray, Span};
+use std::ptr::{NonNull, read_volatile};
+use tock_registers::{Address, Bus, BusRead, Read, RegisterArray, Span, register_map};
 
 // -----------------------------------------------------------------------------
 // Partial implementation of LiteX buses, to test register_map!'s support for
