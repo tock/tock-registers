@@ -4,10 +4,10 @@
 // Copyright Better Bytes 2026.
 
 use crate::ast::{Layout, RegisterSpec};
-use crate::{register_definition, Env};
+use crate::{Env, register_definition};
 use proc_macro2::{Span, TokenStream};
 use quote::{quote, quote_spanned};
-use syn::{spanned::Spanned, Ident, Path};
+use syn::{Ident, Path, spanned::Spanned};
 
 /// Generates the module for a single register definition.
 pub fn generate(

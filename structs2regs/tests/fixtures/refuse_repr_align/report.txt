@@ -1,0 +1,6 @@
+skipped    Descriptor               input.rs:8
+    struct has a `repr` beyond plain `#[repr(C)]`; `register_structs!`
+    emits its own and an added alignment interacts with erasing a
+    reserved field's type
+
+0 converted, 1 skipped

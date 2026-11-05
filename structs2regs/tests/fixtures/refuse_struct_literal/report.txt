@@ -1,0 +1,5 @@
+skipped    Endpoint                 input.rs:8
+    `Endpoint` is built with a struct literal somewhere in this crate;
+    macro padding is `[u8; N]`, which such an initializer cannot name
+
+0 converted, 1 skipped

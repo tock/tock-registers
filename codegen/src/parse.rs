@@ -11,7 +11,7 @@ use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
 use syn::token::{Brace, Bracket};
-use syn::{braced, bracketed, Attribute, Error, LitInt, Meta, Result, Token, Type};
+use syn::{Attribute, Error, LitInt, Meta, Result, Token, Type, braced, bracketed};
 
 impl Parse for Input {
     fn parse(input: ParseStream) -> Result<Input> {
@@ -146,7 +146,7 @@ impl Parse for Value {
                     return Err(Error::new(
                         field.offsets[0].span(),
                         "last non-aliased field cannot be padding without a size",
-                    ))
+                    ));
                 }
                 FieldDef::Register { aliased: true, .. } => continue,
                 FieldDef::Padding(Some(_)) | FieldDef::Register { aliased: false, .. } => break,

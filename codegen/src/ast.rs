@@ -141,7 +141,7 @@ impl BusAttr {
 #[cfg_attr(test, derive(Debug))]
 pub enum Value {
     Block(Vec<Field>),
-    Single(RegisterSpec),
+    Single(Box<RegisterSpec>),
 }
 
 /// An individual field in a register block. A Field can be padding or a register.
@@ -208,7 +208,7 @@ pub enum FieldDef {
         docs: Vec<Attribute>,
         aliased: bool,
         name: Ident,
-        spec: RegisterSpec,
+        spec: Box<RegisterSpec>,
     },
 }
 

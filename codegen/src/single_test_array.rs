@@ -6,7 +6,7 @@
 use crate::single::{
     bus_doc_comment, interface_doc_comment, real_alias_doc_comment, struct_doc_comment,
 };
-use crate::{new_doc_comment, register_map, test_util::assert_tokens_eq, Env::ProcMacro};
+use crate::{Env::ProcMacro, new_doc_comment, register_map, test_util::assert_tokens_eq};
 use quote::quote;
 
 /// This serves two purposes: it tests the code generation of single flat (non-nested) array

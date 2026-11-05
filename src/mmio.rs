@@ -4,7 +4,7 @@
 // Copyright Better Bytes 2026.
 
 use crate::{Address, Bus, BusRead, BusWrite};
-use core::ptr::{read_volatile, write_volatile, NonNull};
+use core::ptr::{NonNull, read_volatile, write_volatile};
 
 /// Macro to declare the Mmio* structs and provide a few impls for each.
 macro_rules! mmio_structs {

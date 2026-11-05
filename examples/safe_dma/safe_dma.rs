@@ -61,11 +61,8 @@ pub trait DmaEnable: Register {
 macro_rules! DmaEnable {
     (real_impl, $name:ident, $datatype:ty,, $($rest:tt)*) => {
         impl<
-                B: Bus
-                    + $crate::safe_dma::BusDmaEnable<
-                        <$datatype as tock_registers::DataType>::Value,
-                    >,
-            > DmaEnable for $name<B>
+            B: Bus + $crate::safe_dma::BusDmaEnable<<$datatype as tock_registers::DataType>::Value>,
+        > DmaEnable for $name<B>
         {
             unsafe fn start(self) {
                 // Safety: The caller assured this register accessor points at a register on bus B
@@ -257,18 +254,18 @@ impl<'c, T: DataType> FakeUnsafeWrite<'c, T> {
     }
 }
 
-impl<'c, T: DataType> Clone for FakeUnsafeWrite<'c, T> {
+impl<T: DataType> Clone for FakeUnsafeWrite<'_, T> {
     fn clone(&self) -> Self {
         *self
     }
 }
-impl<'c, T: DataType> Copy for FakeUnsafeWrite<'c, T> {}
+impl<T: DataType> Copy for FakeUnsafeWrite<'_, T> {}
 
-impl<'c, T: DataType> Register for FakeUnsafeWrite<'c, T> {
+impl<T: DataType> Register for FakeUnsafeWrite<'_, T> {
     type DataType = T;
 }
 
-impl<'c, T: DataType> UnsafeWrite for FakeUnsafeWrite<'c, T> {
+impl<T: DataType> UnsafeWrite for FakeUnsafeWrite<'_, T> {
     unsafe fn set(self, value: T::Value) {
         self.0.set(value)
     }

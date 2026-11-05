@@ -3,14 +3,14 @@
 // Copyright Tock Contributors 2026.
 // Copyright Better Bytes 2026.
 
-use clap::{arg, Command};
+use clap::{Command, arg};
 use prettyplease::unparse;
 use proc_macro2::TokenStream;
-use quote::{quote, ToTokens};
+use quote::{ToTokens, quote};
 use std::{fs::read_to_string, process::exit};
 use syn::parse::{ParseStream, Parser};
-use syn::{parse_file, Attribute, File, Frontmatter, Item, Item::Macro, Result};
-use tock_registers_codegen::{register_map, Env::External};
+use syn::{Attribute, File, Frontmatter, Item, Item::Macro, Result, parse_file};
+use tock_registers_codegen::{Env::External, register_map};
 
 fn main() {
     let cli = Command::new(env!("CARGO_PKG_NAME"))

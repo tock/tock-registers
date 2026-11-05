@@ -1,0 +1,5 @@
+skipped    Sized                    input.rs:8
+    field `count`: `usize` is target-dependent; chip crates are checked
+    on a 64-bit host but built for 32-bit targets
+
+0 converted, 1 skipped

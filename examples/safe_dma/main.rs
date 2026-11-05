@@ -23,7 +23,7 @@ fn main() {
     use chip_unsafe::RngDma;
     use core::cell::UnsafeCell;
     use core::mem::{offset_of, replace};
-    use core::ptr::{null_mut, NonNull};
+    use core::ptr::{NonNull, null_mut};
     use tock_registers::Mmio64;
 
     // Replica of the of the peripheral registers' MMIO interface; allows us to demonstrate how

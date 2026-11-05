@@ -3,7 +3,7 @@
 // Copyright Tock Contributors 2026.
 // Copyright Better Bytes 2026.
 
-use crate::{internal::RealPhantom, Address, Span};
+use crate::{Address, Span, internal::RealPhantom};
 use core::marker::PhantomData;
 
 /// Interface for an array of registers (or register blocks, or register arrays). Each register

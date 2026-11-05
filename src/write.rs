@@ -3,9 +3,9 @@
 // Copyright Tock Contributors 2022.
 // Copyright Better Bytes 2026.
 
-use crate::{fields::FieldValue, DataType, LocalRegisterCopy, Read, Register, UIntLike};
 #[cfg(feature = "register_types")]
 use crate::{Address, BorrowedBus, Bus};
+use crate::{DataType, LocalRegisterCopy, Read, Register, UIntLike, fields::FieldValue};
 
 /// A register that can be written.
 pub trait Write: Register {
@@ -72,7 +72,7 @@ pub trait BusWrite<T>: Bus<T> {
 }
 
 #[cfg(feature = "register_types")]
-impl<'b, T, A: Address + BusWrite<T>> BusWrite<T> for BorrowedBus<'b, A> {
+impl<T, A: Address + BusWrite<T>> BusWrite<T> for BorrowedBus<'_, A> {
     unsafe fn write(self, value: T) {
         // Safety: We are the same Bus as A, so the caller has already satisfied all the
         // requirements of write.
