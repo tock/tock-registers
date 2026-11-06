@@ -7,7 +7,7 @@
 ///
 /// This is designed to demonstrate how unit testing hooks integrate with
 /// typical hardware instantiation.
-use tock_registers::{register_map_mmio32, Mmio32, Read};
+use tock_registers::{Mmio32, Read, register_map_mmio32};
 
 // This defines the peripheral interface. This interface definition is
 // independent of underlying implementation (i.e., real hardware or a mock).

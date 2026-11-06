@@ -11,7 +11,7 @@
 //! make sure that [register_map]'s generated code does not break that functionality.
 
 use core::marker::PhantomData;
-use tock_registers::{register_map, Address, Bus, Read};
+use tock_registers::{Address, Bus, Read, register_map};
 
 /// A Bus for x86's port I/O. This only implements byte-sized reads to limit the size of this
 /// example.

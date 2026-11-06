@@ -5,7 +5,7 @@
 
 use crate::{Address, Bus, BusRead, BusWrite};
 use core::num::NonZero;
-use core::ptr::{read_volatile, without_provenance_mut, write_volatile, NonNull};
+use core::ptr::{NonNull, read_volatile, without_provenance_mut, write_volatile};
 
 /// Macro to declare the Mmio* structs and provide a few impls for each.
 macro_rules! mmio_structs {

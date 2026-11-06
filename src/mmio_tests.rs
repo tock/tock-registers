@@ -4,7 +4,7 @@
 
 #![cfg(test)]
 
-use core::ptr::{null_mut, NonNull};
+use core::ptr::{NonNull, null_mut};
 
 #[cfg(not(target_pointer_width = "32"))]
 use crate::{Mmio32, Mmio32Nullable};

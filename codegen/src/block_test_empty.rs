@@ -4,7 +4,7 @@
 // Copyright Better Bytes 2026.
 
 use crate::block::{bus_doc_comment, interface_doc_comment, lengths_doc_comment, real_doc_comment};
-use crate::{new_doc_comment, register_map, test_util::assert_tokens_eq, Env::External};
+use crate::{Env::External, new_doc_comment, register_map, test_util::assert_tokens_eq};
 use quote::quote;
 
 // This also doubles as the test for Env::External code generation.

@@ -11,7 +11,7 @@ use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
 use syn::token::{Brace, Bracket};
-use syn::{braced, bracketed, Attribute, Error, LitInt, Meta, Result, Token, Type};
+use syn::{Attribute, Error, LitInt, Meta, Result, Token, Type, braced, bracketed};
 
 impl Parse for Input {
     fn parse(input: ParseStream) -> Result<Input> {
@@ -42,29 +42,29 @@ impl Parse for Input {
                 continue;
             };
             for field in fields {
-                if let PerBusInt::Array(offsets) = &field.offsets {
-                    if offsets.len() != layout.bus.len() {
-                        return Err(Error::new(
-                            offsets[0].span(),
-                            format!(
-                                "number of offsets ({}) does not match number of buses ({})",
-                                offsets.len(),
-                                layout.bus.len()
-                            ),
-                        ));
-                    };
+                if let PerBusInt::Array(offsets) = &field.offsets
+                    && offsets.len() != layout.bus.len()
+                {
+                    return Err(Error::new(
+                        offsets[0].span(),
+                        format!(
+                            "number of offsets ({}) does not match number of buses ({})",
+                            offsets.len(),
+                            layout.bus.len()
+                        ),
+                    ));
                 }
-                if let FieldDef::Padding(Some(PerBusInt::Array(sizes))) = &field.field_def {
-                    if sizes.len() != layout.bus.len() {
-                        return Err(Error::new(
-                            sizes[0].span(),
-                            format!(
-                                "number of sizes ({}) does not match number of buses ({})",
-                                sizes.len(),
-                                layout.bus.len()
-                            ),
-                        ));
-                    }
+                if let FieldDef::Padding(Some(PerBusInt::Array(sizes))) = &field.field_def
+                    && sizes.len() != layout.bus.len()
+                {
+                    return Err(Error::new(
+                        sizes[0].span(),
+                        format!(
+                            "number of sizes ({}) does not match number of buses ({})",
+                            sizes.len(),
+                            layout.bus.len()
+                        ),
+                    ));
                 }
             }
             layouts.push(layout);
@@ -146,7 +146,7 @@ impl Parse for Value {
                     return Err(Error::new(
                         field.offsets[0].span(),
                         "last non-aliased field cannot be padding without a size",
-                    ))
+                    ));
                 }
                 FieldDef::Register { aliased: true, .. } => continue,
                 FieldDef::Padding(Some(_)) | FieldDef::Register { aliased: false, .. } => break,

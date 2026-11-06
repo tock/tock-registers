@@ -61,11 +61,8 @@ pub trait DmaEnable: Register {
 macro_rules! DmaEnable {
     (real_impl, $name:ident, $datatype:ty,, $($rest:tt)*) => {
         impl<
-                B: Bus
-                    + $crate::safe_dma::BusDmaEnable<
-                        <$datatype as tock_registers::DataType>::Value,
-                    >,
-            > DmaEnable for $name<B>
+            B: Bus + $crate::safe_dma::BusDmaEnable<<$datatype as tock_registers::DataType>::Value>,
+        > DmaEnable for $name<B>
         {
             unsafe fn start(self) {
                 // Safety: The caller assured this register accessor points at a register on bus B

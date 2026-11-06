@@ -7,7 +7,7 @@ use crate::block::{
     bus_doc_comment, field_struct_doc_comment, interface_doc_comment, lengths_doc_comment,
     real_doc_comment,
 };
-use crate::{new_doc_comment, register_map, test_util::assert_tokens_eq, Env::ProcMacro};
+use crate::{Env::ProcMacro, new_doc_comment, register_map, test_util::assert_tokens_eq};
 use quote::quote;
 use syn::parse_quote;
 
