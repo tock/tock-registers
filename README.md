@@ -253,7 +253,7 @@ Read:
 .any_matching_bits_set(value: FieldValue<T, R>) -> bool  // Check if any bits corresponding to the mask in the passed field are set
 .matches_all(value: FieldValue<T, R>) -> bool  // Check if all specified parts of a field match
 .matches_any(&self, fields: &[FieldValue<T, R>]) -> bool // Check if any specified parts of a field match
-.extract() -> LocalRegisterCopy<T, R>          // Make local copy of register
+.extract() -> LocalRegisterCopy<DT>            // Make local copy of register
 .debug() -> RegisterDebugValue<T, R>           // Returns a type that implements Debug
 
 Write:
@@ -264,7 +264,7 @@ Write:
                                                // other fields unchanged (requires the register is
                                                // Read as well)
 .modify_no_read(                               // Write the value of one or more fields,
-      original: LocalRegisterCopy<T, R>,       //  leaving other fields unchanged, but pass in
+      original: LocalRegisterCopy<DT>,         //  leaving other fields unchanged, but pass in
       value: FieldValue<T, R>)                 //  the original value, instead of doing a register read
 ```
 

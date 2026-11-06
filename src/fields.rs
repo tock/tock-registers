@@ -832,15 +832,14 @@ mod tests {
                 ]
             }
 
-            let value: crate::LocalRegisterCopy<u32, TEST::Register> =
-                crate::LocalRegisterCopy::new(2);
+            let value: crate::LocalRegisterCopy<TEST::Register> = crate::LocalRegisterCopy::new(2);
             assert!(value.matches_any(&[TEST::SIZE::Word]));
             assert!(!value.matches_any(&[TEST::SIZE::Halfword]));
             assert!(!value.matches_any(&[TEST::SIZE::Byte]));
             assert!(value.matches_any(&[TEST::SIZE::Word, TEST::FLAG::SET]));
             assert!(value.matches_any(&[TEST::SIZE::Halfword, TEST::FLAG::CLEAR]));
             assert!(!value.matches_any(&[TEST::SIZE::Halfword, TEST::FLAG::SET]));
-            let value: crate::LocalRegisterCopy<u32, TEST::Register> =
+            let value: crate::LocalRegisterCopy<TEST::Register> =
                 crate::LocalRegisterCopy::new(266241);
             assert!(value.matches_any(&[TEST::FLAG::SET]));
             assert!(!value.matches_any(&[TEST::FLAG::CLEAR]));

@@ -44,10 +44,7 @@ pub trait Write: Register {
     /// read.
     fn modify_no_read(
         &self,
-        original: LocalRegisterCopy<
-            <Self::DataType as DataType>::Value,
-            <Self::DataType as DataType>::LongName,
-        >,
+        original: LocalRegisterCopy<Self::DataType>,
         field: FieldValue<
             <Self::DataType as DataType>::Value,
             <Self::DataType as DataType>::LongName,
