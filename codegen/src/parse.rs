@@ -245,9 +245,9 @@ impl Parse for RegisterSpec {
         input.parse::<Token![:]>()?;
         // Recursive function to parse the type specification (because syn makes it hard to consume
         // individual bracket tokens).
-        fn parse_type(input: ParseStream, array_sizes: &mut Vec<LitInt>) -> Result<Type> {
+        fn parse_type(input: ParseStream, array_sizes: &mut Vec<LitInt>) -> Result<Box<Type>> {
             if !input.peek(Bracket) {
-                return input.parse();
+                return input.parse().map(Box::new);
             }
             let inner;
             bracketed!(inner in input);
