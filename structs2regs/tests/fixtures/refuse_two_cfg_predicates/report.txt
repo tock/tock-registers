@@ -1,0 +1,6 @@
+skipped    GpioRegisters            input.rs:9
+    2 distinct cfg predicates on fields (feature = "nrf51", feature =
+    "nrf52"); each configuration needs its own invocation, and their
+    combinations are not mechanically separable
+
+0 converted, 1 skipped

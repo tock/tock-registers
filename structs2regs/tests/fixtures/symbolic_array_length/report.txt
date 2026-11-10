@@ -1,0 +1,3 @@
+converted  UsbdRegisters            0x000..0x24 + 4 * MAX_BIT_REGS
+
+1 converted, 0 skipped
