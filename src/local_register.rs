@@ -58,13 +58,16 @@ impl<T: Copy, R: RegisterLongName> LocalRegisterCopy<T, R> {
 impl<T: UIntLike, R: RegisterLongName> LocalRegisterCopy<T, R> {
     /// Read the value of the given field
     #[inline]
-    pub fn read(&self, field: Field<T, R>) -> T {
+    pub fn read<E>(&self, field: Field<T, R, E>) -> T {
         field.read(self.get())
     }
 
     /// Read value of the given field as an enum member
     #[inline]
-    pub fn read_as_enum<E: TryFromValue<T, EnumType = E>>(&self, field: Field<T, R>) -> Option<E> {
+    pub fn read_as_enum<E: TryFromValue<T, EnumType = E>>(
+        &self,
+        field: Field<T, R, E>,
+    ) -> Option<E> {
         field.read_as_enum(self.get())
     }
 
@@ -84,7 +87,7 @@ impl<T: UIntLike, R: RegisterLongName> LocalRegisterCopy<T, R> {
 
     /// Check if one or more bits in a field are set
     #[inline]
-    pub fn is_set(&self, field: Field<T, R>) -> bool {
+    pub fn is_set<E>(&self, field: Field<T, R, E>) -> bool {
         field.is_set(self.get())
     }
 

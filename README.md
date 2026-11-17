@@ -184,8 +184,10 @@ This generates the modules `Control`, `Status`, and `InterruptFlags`
 
 mod Control {
     pub struct Register;
-    pub const MODE: Field<u8, Register> = Field::<u8, Register>::new(0b111, 0);
-    pub const ENABLE: Field<u8, Register> = Field::<u8, Register>::new(0b1, 3);
+    pub const MODE: Field<u8, Register, MODE::Value> =
+        Field::<u8, Register, MODE::Value>::new(0b111, 0);
+    pub const ENABLE: Field<u8, Register, ENABLE::Value> =
+        Field::<u8, Register, ENABLE::Value>::new(0b1, 3);
 
     pub mod MODE {
         use super::{FieldValue, Register};
@@ -247,9 +249,9 @@ that registers can support. They provide the following methods:
 ```rust
 Read:
 .get() -> T                                    // Get the raw register value
-.read(field: Field<T, R>) -> T                 // Read the value of the given field
-.read_as_enum<E>(field: Field<T, R>) -> Option<E> // Read value of the given field as a enum member
-.is_set(field: Field<T, R>) -> bool            // Check if one or more bits in a field are set
+.read(field: Field<T, R, E>) -> T              // Read the value of the given field
+.read_as_enum(field: Field<T, R, E>) -> Option<E> // Read value of the given field as its enum
+.is_set(field: Field<T, R, E>) -> bool         // Check if one or more bits in a field are set
 .any_matching_bits_set(value: FieldValue<T, R>) -> bool  // Check if any bits corresponding to the mask in the passed field are set
 .matches_all(value: FieldValue<T, R>) -> bool  // Check if all specified parts of a field match
 .matches_any(&self, fields: &[FieldValue<T, R>]) -> bool // Check if any specified parts of a field match
