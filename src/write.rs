@@ -3,40 +3,44 @@
 // Copyright Tock Contributors 2022.
 // Copyright Better Bytes 2026.
 
+use crate::fields::{PartialRegisterValue, RegisterValue};
 #[cfg(feature = "register_types")]
 use crate::{Address, BorrowedBus, Bus};
-use crate::{DataType, LocalRegisterCopy, Read, Register, UIntLike, fields::FieldValue};
+use crate::{DataType, LocalRegisterCopy, Read, Register, UIntLike};
 
 /// A register that can be written.
 pub trait Write: Register {
     /// Set the raw register value
     fn set(self, value: <Self::DataType as DataType>::Value);
 
-    /// Write the value of one or more fields, overwriting the other fields with zero.
+    /// Write the entire register value.
     fn write(
         &self,
-        field: FieldValue<
+        value: RegisterValue<
             <Self::DataType as DataType>::Value,
             <Self::DataType as DataType>::LongName,
         >,
     ) where
         <Self::DataType as DataType>::Value: UIntLike,
     {
-        self.set(field.value);
+        self.set(value.value());
     }
 
-    /// Write the value of one or more fields, leaving the other fields unchanged.
+    /// Write a [`PartialRegisterValue`] to change only the covered fields,
+    /// leaving the other fields unchanged.
     fn modify(
         &self,
-        field: FieldValue<
-            <Self::DataType as DataType>::Value,
-            <Self::DataType as DataType>::LongName,
+        value: impl Into<
+            PartialRegisterValue<
+                <Self::DataType as DataType>::Value,
+                <Self::DataType as DataType>::LongName,
+            >,
         >,
     ) where
         Self: Read,
         <Self::DataType as DataType>::Value: UIntLike,
     {
-        self.set(field.modify(self.get()));
+        self.set(value.into().modify(self.get()));
     }
 
     /// Write the value of one or more fields, maintaining the value of
@@ -48,14 +52,16 @@ pub trait Write: Register {
             <Self::DataType as DataType>::Value,
             <Self::DataType as DataType>::LongName,
         >,
-        field: FieldValue<
-            <Self::DataType as DataType>::Value,
-            <Self::DataType as DataType>::LongName,
+        field: impl Into<
+            PartialRegisterValue<
+                <Self::DataType as DataType>::Value,
+                <Self::DataType as DataType>::LongName,
+            >,
         >,
     ) where
         <Self::DataType as DataType>::Value: UIntLike,
     {
-        self.set(field.modify(original.get()));
+        self.set(field.into().modify(original.get()));
     }
 }
 
@@ -107,4 +113,106 @@ macro_rules! Write {
     // breaking backwards compatibility (though registers! would need to be compatible with this
     // do-nothing block).
     ($($unknown:tt)*) => {};
+}
+
+#[cfg(test)]
+mod tests {
+    use core::cell::Cell;
+
+    use crate::fields::RegisterValue;
+    use crate::{register_bitfields, FakeRegister, Safe, Write};
+
+    register_bitfields![u8,
+        Status [
+            TXCOMPLETE  OFFSET(0) NUMBITS(1) [],
+            TXINTERRUPT OFFSET(1) NUMBITS(1) [],
+            RXCOMPLETE  OFFSET(2) NUMBITS(1) [],
+            RXINTERRUPT OFFSET(3) NUMBITS(1) [],
+            MODE        OFFSET(4) NUMBITS(2) [
+                FullDuplex = 0,
+                HalfDuplex = 1,
+                Loopback = 2,
+                Disabled = 3
+            ],
+            ERRORCOUNT OFFSET(6) NUMBITS(2) []
+        ],
+    ];
+
+    fn fake_status(cell: &Cell<u8>) -> FakeRegister<&Cell<u8>, Status::Register, Safe, Safe> {
+        cell.set(0);
+        FakeRegister::new(cell)
+            .on_read(|cell| cell.get())
+            .on_write(|cell, value| cell.set(value))
+    }
+
+    #[test]
+    fn write() {
+        let cell = Cell::new(0);
+
+        let status = fake_status(&cell);
+        status.write(RegisterValue::from_partial(Status::TXCOMPLETE::SET));
+        assert_eq!(cell.get(), 0b0000_0001);
+
+        let status = fake_status(&cell);
+        status.write(RegisterValue::from_partial(Status::RXINTERRUPT::SET));
+        assert_eq!(cell.get(), 0b0000_1000);
+
+        let status = fake_status(&cell);
+        status.write(RegisterValue::from_partial(Status::RXINTERRUPT::CLEAR));
+        assert_eq!(cell.get(), 0b0000_0000);
+
+        let status = fake_status(&cell);
+        status.write(RegisterValue::from_partial(Status::RXCOMPLETE::SET));
+        assert_eq!(cell.get(), 0b0000_0100);
+        status.write(RegisterValue::from_partial(Status::RXINTERRUPT::SET));
+        assert_eq!(cell.get(), 0b0000_1000);
+        status.write(RegisterValue::from_partial(Status::MODE::FullDuplex));
+        assert_eq!(cell.get(), 0b0000_0000);
+        status.write(RegisterValue::from_partial(Status::ERRORCOUNT.val(3)));
+        assert_eq!(cell.get(), 0b1100_0000);
+    }
+
+    #[test]
+    fn modify() {
+        let cell = Cell::new(0);
+
+        let status = fake_status(&cell);
+        status.modify(Status::TXCOMPLETE::SET);
+        assert_eq!(cell.get(), 0b0000_0001);
+
+        let status = fake_status(&cell);
+        status.modify(Status::RXINTERRUPT::SET);
+        assert_eq!(cell.get(), 0b0000_1000);
+
+        let status = fake_status(&cell);
+        status.modify(Status::RXINTERRUPT::CLEAR);
+        assert_eq!(cell.get(), 0b0000_0000);
+
+        let status = fake_status(&cell);
+        status.modify(Status::RXCOMPLETE::SET);
+        assert_eq!(cell.get(), 0b0000_0100);
+        status.modify(Status::RXINTERRUPT::SET);
+        assert_eq!(cell.get(), 0b0000_1100);
+        status.modify(Status::MODE::FullDuplex);
+        assert_eq!(cell.get(), 0b0000_1100);
+        status.modify(Status::ERRORCOUNT.val(3));
+        assert_eq!(cell.get(), 0b1100_1100);
+
+        let status = fake_status(&cell);
+        status.modify(Status::ERRORCOUNT.val(3));
+        assert_eq!(cell.get(), 0b1100_0000);
+        status.modify(Status::RXCOMPLETE::SET);
+        assert_eq!(cell.get(), 0b1100_0100);
+        status.modify(Status::ERRORCOUNT::CLEAR);
+        assert_eq!(cell.get(), 0b0000_0100);
+
+        let status = fake_status(&cell);
+        status.modify(Status::ERRORCOUNT.val(3));
+        assert_eq!(cell.get(), 0b1100_0000);
+        status.modify(Status::RXCOMPLETE::SET + Status::RXINTERRUPT::SET);
+        assert_eq!(cell.get(), 0b1100_1100);
+        status
+            .modify(Status::RXCOMPLETE::SET + Status::RXINTERRUPT::SET + Status::MODE::HalfDuplex);
+        assert_eq!(cell.get(), 0b1101_1100);
+    }
 }

@@ -8,7 +8,7 @@
 use core::fmt;
 use core::marker::PhantomData;
 
-use crate::fields::{Field, FieldValue, TryFromValue};
+use crate::fields::{Field, PartialRegisterValue, TryFromValue};
 use crate::{RegisterLongName, UIntLike};
 
 /// A read-write copy of register contents.
@@ -71,15 +71,15 @@ impl<T: UIntLike, R: RegisterLongName> LocalRegisterCopy<T, R> {
     /// Write the value of one or more fields, overwriting the other fields with
     /// zero
     #[inline]
-    pub fn write(&mut self, field: FieldValue<T, R>) {
-        self.set(field.value);
+    pub fn write(&mut self, field: impl Into<PartialRegisterValue<T, R>>) {
+        self.set(field.into().value());
     }
 
     /// Write the value of one or more fields, leaving the other fields
     /// unchanged
     #[inline]
-    pub fn modify(&mut self, field: FieldValue<T, R>) {
-        self.set(field.modify(self.get()));
+    pub fn modify(&mut self, field: impl Into<PartialRegisterValue<T, R>>) {
+        self.set(field.into().modify(self.get()));
     }
 
     /// Check if one or more bits in a field are set
@@ -89,17 +89,17 @@ impl<T: UIntLike, R: RegisterLongName> LocalRegisterCopy<T, R> {
     }
 
     /// Check if any bits corresponding to the mask in the passed `FieldValue`
-    /// are set.
+    /// or `PartialRegisterValue` are set.
     #[inline]
-    pub fn any_matching_bits_set(&self, field: FieldValue<T, R>) -> bool {
-        field.any_matching_bits_set(self.get())
+    pub fn any_matching_bits_set(&self, field: impl Into<PartialRegisterValue<T, R>>) -> bool {
+        field.into().any_matching_bits_set(self.get())
     }
 
     /// Check if the field value in `value` exactly matches the same field in
     /// the register.
     #[inline]
-    pub fn matches(&self, field: FieldValue<T, R>) -> bool {
-        field.matches(self.get())
+    pub fn matches(&self, field: impl Into<PartialRegisterValue<T, R>>) -> bool {
+        field.into().matches(self.get())
     }
 
     /// Do a bitwise AND operation of the stored value and the passed in value

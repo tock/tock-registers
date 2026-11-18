@@ -76,7 +76,7 @@
 #![allow(clippy::suspicious_arithmetic_impl)]
 
 use core::marker::PhantomData;
-use core::ops::{Add, AddAssign};
+use core::ops::Add;
 
 use crate::{RegisterLongName, UIntLike};
 
@@ -191,6 +191,104 @@ Field_impl_for!(u64);
 Field_impl_for!(u128);
 Field_impl_for!(usize);
 
+/// The value of an entire register.
+#[derive(Copy, Clone)]
+pub struct RegisterValue<T: UIntLike, R: RegisterLongName> {
+    value: T,
+    associated_register: PhantomData<R>,
+}
+
+impl<T: UIntLike, R: RegisterLongName> RegisterValue<T, R> {
+    pub fn from_partial(value: impl Into<PartialRegisterValue<T, R>>) -> Self {
+        Self {
+            value: value.into().value,
+            associated_register: PhantomData,
+        }
+    }
+
+    /// Get the raw value represented by this `RegisterValue`.
+    #[inline]
+    pub(crate) const fn value(&self) -> T {
+        self.value
+    }
+}
+
+macro_rules! RegisterValue_impl_for {
+    ($type:ty) => {
+        // Necessary to split the implementation of new() out because the
+        // bitwise math isn't treated as const when the type is generic.
+        // Tracking issue: https://github.com/rust-lang/rfcs/pull/2632
+        impl<R: RegisterLongName> RegisterValue<$type, R> {
+            #[must_use]
+            pub const fn new(value: $type) -> Self {
+                Self {
+                    value,
+                    associated_register: PhantomData,
+                }
+            }
+        }
+
+        // Necessary to split the implementation of From<> out because of the
+        // orphan rule for foreign trait implementation (see
+        // [E0210](https://doc.rust-lang.org/error-index.html#E0210)).
+        impl<R: RegisterLongName> From<RegisterValue<$type, R>> for $type {
+            fn from(val: RegisterValue<$type, R>) -> $type {
+                val.value
+            }
+        }
+    };
+}
+
+RegisterValue_impl_for!(u8);
+RegisterValue_impl_for!(u16);
+RegisterValue_impl_for!(u32);
+RegisterValue_impl_for!(u64);
+RegisterValue_impl_for!(u128);
+RegisterValue_impl_for!(usize);
+
+/// The value of specific field or fields of a register.
+#[derive(Copy, Clone)]
+pub struct PartialRegisterValue<T: UIntLike, R: RegisterLongName> {
+    mask: T,
+    value: T,
+    associated_register: PhantomData<R>,
+}
+
+impl<T: UIntLike, R: RegisterLongName> PartialRegisterValue<T, R> {
+    /// Get the raw bitmask represented by this `PartialRegisterValue`.
+    #[inline]
+    pub const fn mask(&self) -> T {
+        self.mask as T
+    }
+
+    /// Get the raw value represented by this `PartialRegisterValue`.
+    #[inline]
+    pub const fn value(&self) -> T {
+        self.value as T
+    }
+
+    /// Modify fields in a register value
+    #[inline]
+    pub fn modify(self, val: T) -> T {
+        (val & !self.mask) | self.value
+    }
+
+    /// Check if any of the bits covered by the mask for this
+    /// `PartialRegisterValue` and set in the `PartialRegisterValue` are also
+    /// set in the passed value
+    #[inline]
+    pub fn any_matching_bits_set(&self, val: T) -> bool {
+        val & self.mask & self.value != T::zero()
+    }
+
+    /// Check if this bits in this field match exactly with the same field in
+    /// `val`.
+    #[inline]
+    pub fn matches(&self, val: T) -> bool {
+        val & self.mask == self.value
+    }
+}
+
 /// Values for the specific register fields.
 ///
 /// For the FieldValue, the masks and values are shifted into their actual
@@ -279,13 +377,27 @@ impl<T: UIntLike, R: RegisterLongName> FieldValue<T, R> {
     }
 }
 
-// Combine two fields with the addition operator
-impl<T: UIntLike, R: RegisterLongName> Add for FieldValue<T, R> {
-    type Output = Self;
+// Converting a [`FieldValue`] to a [`PartialRegisterValue`] is a no-op
+// as a single [`FieldValue`] can be a full [`PartialRegisterValue`].
+impl<T: UIntLike, R: RegisterLongName> From<FieldValue<T, R>> for PartialRegisterValue<T, R> {
+    #[inline]
+    fn from(val: FieldValue<T, R>) -> Self {
+        PartialRegisterValue {
+            mask: val.mask,
+            value: val.value,
+            associated_register: PhantomData,
+        }
+    }
+}
+
+// Combine two fields with the addition operator, forming a partial register
+// value.
+impl<T: UIntLike, R: RegisterLongName> Add<FieldValue<T, R>> for FieldValue<T, R> {
+    type Output = PartialRegisterValue<T, R>;
 
     #[inline]
-    fn add(self, rhs: Self) -> Self {
-        FieldValue {
+    fn add(self, rhs: FieldValue<T, R>) -> PartialRegisterValue<T, R> {
+        PartialRegisterValue {
             mask: self.mask | rhs.mask,
             value: self.value | rhs.value,
             associated_register: PhantomData,
@@ -293,12 +405,52 @@ impl<T: UIntLike, R: RegisterLongName> Add for FieldValue<T, R> {
     }
 }
 
-// Combine two fields with the += operator
-impl<T: UIntLike, R: RegisterLongName> AddAssign for FieldValue<T, R> {
+// Combine a field with a partial register value with the addition operator,
+// forming a partial register value.
+impl<T: UIntLike, R: RegisterLongName> Add<PartialRegisterValue<T, R>> for FieldValue<T, R> {
+    type Output = PartialRegisterValue<T, R>;
+
     #[inline]
-    fn add_assign(&mut self, rhs: FieldValue<T, R>) {
-        self.mask |= rhs.mask;
-        self.value |= rhs.value;
+    fn add(self, rhs: PartialRegisterValue<T, R>) -> PartialRegisterValue<T, R> {
+        PartialRegisterValue {
+            mask: self.mask | rhs.mask,
+            value: self.value | rhs.value,
+            associated_register: PhantomData,
+        }
+    }
+}
+
+// Combine two partial register values with the addition operator, forming a
+// partial register value.
+impl<T: UIntLike, R: RegisterLongName> Add<PartialRegisterValue<T, R>>
+    for PartialRegisterValue<T, R>
+{
+    type Output = PartialRegisterValue<T, R>;
+
+    #[inline]
+    fn add(self, rhs: PartialRegisterValue<T, R>) -> PartialRegisterValue<T, R> {
+        PartialRegisterValue {
+            mask: self.mask | rhs.mask,
+            value: self.value | rhs.value,
+            associated_register: PhantomData,
+        }
+    }
+}
+
+// Combine a partial register value with a field with the addition operator,
+// forming a partial register value. This, together with `Add<FieldValue<T,
+// R>> for FieldValue<T, R>`, allows left-associative chains of any length
+// (`a + b + c + ...`) of `FieldValue`s to be summed without parentheses.
+impl<T: UIntLike, R: RegisterLongName> Add<FieldValue<T, R>> for PartialRegisterValue<T, R> {
+    type Output = PartialRegisterValue<T, R>;
+
+    #[inline]
+    fn add(self, rhs: FieldValue<T, R>) -> PartialRegisterValue<T, R> {
+        PartialRegisterValue {
+            mask: self.mask | rhs.mask,
+            value: self.value | rhs.value,
+            associated_register: PhantomData,
+        }
     }
 }
 
@@ -824,48 +976,17 @@ mod tests {
             let field2 = Field::<u32, ()>::new(0xFF, 16);
             let field3 = Field::<u32, ()>::new(0xFF, 8);
             let field4 = Field::<u32, ()>::new(0xFF, 0);
-            assert_eq!(
-                u32::from(
-                    field1.val(0x12) + field2.val(0x34) + field3.val(0x56) + field4.val(0x78)
-                ),
-                0x12345678
-            );
+            let combined =
+                field1.val(0x12) + field2.val(0x34) + field3.val(0x56) + field4.val(0x78);
+            assert_eq!(combined.value, 0x12345678);
 
             for shift in 0..24 {
                 let field1 = Field::<u32, ()>::new(0xF, shift);
                 let field2 = Field::<u32, ()>::new(0xF, shift + 4);
                 for x in 0..=0xF {
                     for y in 0..=0xF {
-                        assert_eq!(
-                            u32::from(field1.val(x) + field2.val(y)),
-                            (x | (y << 4)) << shift
-                        );
-                    }
-                }
-            }
-        }
-
-        #[test]
-        fn test_add_assign_disjoint_fields() {
-            let field1 = Field::<u32, ()>::new(0xFF, 24);
-            let field2 = Field::<u32, ()>::new(0xFF, 16);
-            let field3 = Field::<u32, ()>::new(0xFF, 8);
-            let field4 = Field::<u32, ()>::new(0xFF, 0);
-
-            let mut value = field1.val(0x12);
-            value += field2.val(0x34);
-            value += field3.val(0x56);
-            value += field4.val(0x78);
-            assert_eq!(u32::from(value), 0x12345678);
-
-            for shift in 0..24 {
-                let field1 = Field::<u32, ()>::new(0xF, shift);
-                let field2 = Field::<u32, ()>::new(0xF, shift + 4);
-                for x in 0..=0xF {
-                    for y in 0..=0xF {
-                        let mut value = field1.val(x);
-                        value += field2.val(y);
-                        assert_eq!(u32::from(value), (x | (y << 4)) << shift);
+                        let combined = field1.val(x) + field2.val(y);
+                        assert_eq!(combined.value, (x | (y << 4)) << shift);
                     }
                 }
             }
