@@ -115,10 +115,11 @@ pub trait Read: Register {
         field.any_matching_bits_set(self.get())
     }
 
-    /// Check if all specified parts of a field match
-    fn matches_all(
+    /// Check if the field value in `value` exactly matches the same field in
+    /// the register.
+    fn matches(
         self,
-        field: FieldValue<
+        value: FieldValue<
             <Self::DataType as DataType>::Value,
             <Self::DataType as DataType>::LongName,
         >,
@@ -126,26 +127,7 @@ pub trait Read: Register {
     where
         <Self::DataType as DataType>::Value: UIntLike,
     {
-        field.matches_all(self.get())
-    }
-
-    /// Check if any of the passed parts of a field exactly match the contained
-    /// value. This allows for matching on unset bits, or matching on specific
-    /// values in multi-bit fields.
-    fn matches_any(
-        self,
-        fields: &[FieldValue<
-            <Self::DataType as DataType>::Value,
-            <Self::DataType as DataType>::LongName,
-        >],
-    ) -> bool
-    where
-        <Self::DataType as DataType>::Value: UIntLike,
-    {
-        let value = self.get();
-        fields
-            .iter()
-            .any(|field| value & field.mask() == field.value)
+        value.matches(self.get())
     }
 
     /// Returns a [`RegisterDebugValue`] that implements [`core::fmt::Debug`]. The debug

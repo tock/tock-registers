@@ -251,8 +251,7 @@ Read:
 .read_as_enum<E>(field: Field<T, R>) -> Option<E> // Read value of the given field as a enum member
 .is_set(field: Field<T, R>) -> bool            // Check if one or more bits in a field are set
 .any_matching_bits_set(value: FieldValue<T, R>) -> bool  // Check if any bits corresponding to the mask in the passed field are set
-.matches_all(value: FieldValue<T, R>) -> bool  // Check if all specified parts of a field match
-.matches_any(&self, fields: &[FieldValue<T, R>]) -> bool // Check if any specified parts of a field match
+.matches(value: FieldValue<T, R>) -> bool      // Check if the field exactly matches the value
 .extract() -> LocalRegisterCopy<T, R>          // Make local copy of register
 .debug() -> RegisterDebugValue<T, R>           // Returns a type that implements Debug
 
@@ -364,13 +363,13 @@ let txcomplete: bool = registers.s().is_set(Status::TXCOMPLETE);
 // `any_matching_bits_set` or `matches_any`:
 
 // Doesn't care about the state of any field except TXCOMPLETE and MODE:
-let ready: bool = registers.s().matches_all(Status::TXCOMPLETE:SET +
-                                            Status::MODE::FullDuplex);
+let ready: bool = registers.s().matches(Status::TXCOMPLETE:SET +
+                                        Status::MODE::FullDuplex);
 
 // This is very useful for awaiting for a specific condition:
-while !registers.s().matches_all(Status::TXCOMPLETE::SET +
-                                 Status::RXCOMPLETE::SET +
-                                 Status::TXINTERRUPT::CLEAR) {}
+while !registers.s().matches(Status::TXCOMPLETE::SET +
+                             Status::RXCOMPLETE::SET +
+                             Status::TXINTERRUPT::CLEAR) {}
 
 // Or for checking whether any interrupts are enabled:
 let any_ints = registers.s().any_matching_bits_set(Status::TXINTERRUPT + Status::RXINTERRUPT);

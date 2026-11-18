@@ -271,9 +271,10 @@ impl<T: UIntLike, R: RegisterLongName> FieldValue<T, R> {
         val & self.mask & self.value != T::zero()
     }
 
-    /// Check if all specified parts of a field match
+    /// Check if this bits in this field match exactly with the same field in
+    /// `val`.
     #[inline]
-    pub fn matches_all(&self, val: T) -> bool {
+    pub fn matches(&self, val: T) -> bool {
         val & self.mask == self.value
     }
 }
@@ -803,47 +804,18 @@ mod tests {
         }
 
         #[test]
-        fn test_matches_all() {
+        fn test_matches() {
             let field = Field::<u32, ()>::new(0xFF, 4);
-            assert!(field.val(0x23).matches_all(0x1234));
-            assert!(!field.val(0x23).matches_all(0x5678));
+            assert!(field.val(0x23).matches(0x1234));
+            assert!(!field.val(0x23).matches(0x5678));
 
             for shift in 0..24 {
                 let field = Field::<u32, ()>::new(0xFF, shift);
                 for x in 0..=0xFF {
-                    assert!(field.val(x).matches_all(x << shift));
-                    assert!(!field.val(x + 1).matches_all(x << shift));
+                    assert!(field.val(x).matches(x << shift));
+                    assert!(!field.val(x + 1).matches(x << shift));
                 }
             }
-        }
-
-        #[test]
-        fn test_matches_any() {
-            register_bitfields! {
-                u32,
-
-                TEST [
-                    FLAG OFFSET(18) NUMBITS(1) [],
-                    SIZE OFFSET(0) NUMBITS(2) [
-                        Byte = 0,
-                        Halfword = 1,
-                        Word = 2
-                    ],
-                ]
-            }
-
-            let value: crate::LocalRegisterCopy<u32, TEST::Register> =
-                crate::LocalRegisterCopy::new(2);
-            assert!(value.matches_any(&[TEST::SIZE::Word]));
-            assert!(!value.matches_any(&[TEST::SIZE::Halfword]));
-            assert!(!value.matches_any(&[TEST::SIZE::Byte]));
-            assert!(value.matches_any(&[TEST::SIZE::Word, TEST::FLAG::SET]));
-            assert!(value.matches_any(&[TEST::SIZE::Halfword, TEST::FLAG::CLEAR]));
-            assert!(!value.matches_any(&[TEST::SIZE::Halfword, TEST::FLAG::SET]));
-            let value: crate::LocalRegisterCopy<u32, TEST::Register> =
-                crate::LocalRegisterCopy::new(266241);
-            assert!(value.matches_any(&[TEST::FLAG::SET]));
-            assert!(!value.matches_any(&[TEST::FLAG::CLEAR]));
         }
 
         #[test]
