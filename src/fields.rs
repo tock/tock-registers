@@ -104,12 +104,6 @@ impl<T: UIntLike, R: RegisterLongName> Field<T, R> {
     }
 
     #[inline]
-    /// Check if one or more bits in a field are set
-    pub fn is_set(self, val: T) -> bool {
-        val & (self.mask << self.shift) != T::zero()
-    }
-
-    #[inline]
     /// Read value of the field as an enum member
     ///
     /// This method expects to be passed the unasked and unshifted register
@@ -273,14 +267,6 @@ impl<T: UIntLike, R: RegisterLongName> PartialRegisterValue<T, R> {
         (val & !self.mask) | self.value
     }
 
-    /// Check if any of the bits covered by the mask for this
-    /// `PartialRegisterValue` and set in the `PartialRegisterValue` are also
-    /// set in the passed value
-    #[inline]
-    pub fn any_matching_bits_set(&self, val: T) -> bool {
-        val & self.mask & self.value != T::zero()
-    }
-
     /// Check if this bits in this field match exactly with the same field in
     /// `val`.
     #[inline]
@@ -360,13 +346,6 @@ impl<T: UIntLike, R: RegisterLongName> FieldValue<T, R> {
     #[inline]
     pub fn modify(self, val: T) -> T {
         (val & !self.mask) | self.value
-    }
-
-    /// Check if any of the bits covered by the mask for this `FieldValue` and
-    /// set in the `FieldValue` are also set in the passed value
-    #[inline]
-    pub fn any_matching_bits_set(&self, val: T) -> bool {
-        val & self.mask & self.value != T::zero()
     }
 
     /// Check if this bits in this field match exactly with the same field in
@@ -835,26 +814,6 @@ mod tests {
         }
 
         #[test]
-        fn test_is_set() {
-            let field = Field::<u16, ()>::new(0xFF, 4);
-            assert!(!field.is_set(0));
-            assert!(field.is_set(0xFFFF));
-            assert!(field.is_set(0x0FF0));
-            assert!(!field.is_set(0x1000));
-            assert!(field.is_set(0x0100));
-            assert!(field.is_set(0x0010));
-            assert!(!field.is_set(0x0001));
-
-            for shift in 0..24 {
-                let field = Field::<u32, ()>::new(0xFF, shift);
-                for x in 1..=0xFF {
-                    assert!(field.is_set(x << shift));
-                }
-                assert!(!field.is_set(!(0xFF << shift)));
-            }
-        }
-
-        #[test]
         fn test_read_as_enum() {
             let field = Field::<u16, ()>::new(0x7, 4);
             assert_eq!(field.read_as_enum(0x1234), Some(Foo::Foo3));
@@ -935,24 +894,6 @@ mod tests {
             assert_eq!(field.val(0x23).modify(0xFFFF), 0xF23F);
             assert_eq!(field.val(0x23).modify(0x1234), 0x1234);
             assert_eq!(field.val(0x23).modify(0x5678), 0x5238);
-        }
-
-        #[test]
-        fn test_any_matching_bits_set() {
-            let field = Field::<u32, ()>::new(0xFF, 4);
-            assert!(field.val(0x23).any_matching_bits_set(0x1234));
-            assert!(field.val(0x23).any_matching_bits_set(0x5678));
-            assert!(!field.val(0x23).any_matching_bits_set(0x5008));
-
-            for shift in 0..24 {
-                let field = Field::<u32, ()>::new(0xFF, shift);
-                let field_value = field.val(0xff);
-                for y in 1..=0xff {
-                    assert!(field_value.any_matching_bits_set(y << shift));
-                }
-                assert!(!field_value.any_matching_bits_set(0));
-                assert!(!field_value.any_matching_bits_set(!(0xFF << shift)));
-            }
         }
 
         #[test]

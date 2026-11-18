@@ -82,19 +82,6 @@ impl<T: UIntLike, R: RegisterLongName> LocalRegisterCopy<T, R> {
         self.set(field.into().modify(self.get()));
     }
 
-    /// Check if one or more bits in a field are set
-    #[inline]
-    pub fn is_set(&self, field: Field<T, R>) -> bool {
-        field.is_set(self.get())
-    }
-
-    /// Check if any bits corresponding to the mask in the passed `FieldValue`
-    /// or `PartialRegisterValue` are set.
-    #[inline]
-    pub fn any_matching_bits_set(&self, field: impl Into<PartialRegisterValue<T, R>>) -> bool {
-        field.into().any_matching_bits_set(self.get())
-    }
-
     /// Check if the field value in `value` exactly matches the same field in
     /// the register.
     #[inline]

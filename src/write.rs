@@ -52,7 +52,7 @@ pub trait Write: Register {
             <Self::DataType as DataType>::Value,
             <Self::DataType as DataType>::LongName,
         >,
-        field: impl Into<
+        value: impl Into<
             PartialRegisterValue<
                 <Self::DataType as DataType>::Value,
                 <Self::DataType as DataType>::LongName,
@@ -61,7 +61,7 @@ pub trait Write: Register {
     ) where
         <Self::DataType as DataType>::Value: UIntLike,
     {
-        self.set(field.into().modify(original.get()));
+        self.set(value.into().modify(original.get()));
     }
 }
 
@@ -162,6 +162,12 @@ mod tests {
         assert_eq!(cell.get(), 0b0000_0000);
 
         let status = fake_status(&cell);
+        status.write(RegisterValue::from_partial(
+            Status::RXINTERRUPT::SET + Status::TXCOMPLETE::SET,
+        ));
+        assert_eq!(cell.get(), 0b0000_1001);
+
+        let status = fake_status(&cell);
         status.write(RegisterValue::from_partial(Status::RXCOMPLETE::SET));
         assert_eq!(cell.get(), 0b0000_0100);
         status.write(RegisterValue::from_partial(Status::RXINTERRUPT::SET));
@@ -187,6 +193,10 @@ mod tests {
         let status = fake_status(&cell);
         status.modify(Status::RXINTERRUPT::CLEAR);
         assert_eq!(cell.get(), 0b0000_0000);
+
+        let status = fake_status(&cell);
+        status.modify(Status::RXINTERRUPT::SET + Status::TXCOMPLETE::SET);
+        assert_eq!(cell.get(), 0b0000_1001);
 
         let status = fake_status(&cell);
         status.modify(Status::RXCOMPLETE::SET);

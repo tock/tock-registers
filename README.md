@@ -249,22 +249,20 @@ Read:
 .get() -> T                                    // Get the raw register value
 .read(field: Field<T, R>) -> T                 // Read the value of the given field
 .read_as_enum<E>(field: Field<T, R>) -> Option<E> // Read value of the given field as a enum member
-.is_set(field: Field<T, R>) -> bool            // Check if one or more bits in a field are set
-.any_matching_bits_set(value: FieldValue<T, R>) -> bool  // Check if any bits corresponding to the mask in the passed field are set
-.matches(value: FieldValue<T, R>) -> bool      // Check if the field exactly matches the value
+.matches(value: PartialRegisterValue<T, R>) -> bool // Check if the partial value exactly matches the register
+.matches_any(values: &[FieldValue<T, R>]) -> bool // Check if at least one field exactly matches the register
 .extract() -> LocalRegisterCopy<T, R>          // Make local copy of register
 .debug() -> RegisterDebugValue<T, R>           // Returns a type that implements Debug
 
 Write:
 .set(value: T)                                 // Set the raw register value
-.write(value: FieldValue<T, R>)                // Write the value of one or more fields,
-                                               //  overwriting other fields to zero
-.modify(value: FieldValue<T, R>)               // Write the value of one or more fields, leaving
-                                               // other fields unchanged (requires the register is
-                                               // Read as well)
+.write(value: RegisterValue<T, R>)             // Write the entire register value
+.modify(value: PartialRegisterValue<T, R>)     // Write the value of one or more fields, leaving
+                                               //  other fields unchanged (requires the register is
+                                               //  Read as well)
 .modify_no_read(                               // Write the value of one or more fields,
       original: LocalRegisterCopy<T, R>,       //  leaving other fields unchanged, but pass in
-      value: FieldValue<T, R>)                 //  the original value, instead of doing a register read
+      value: PartialRegisterValue<T, R>)       //  the original value, instead of doing a register read
 ```
 
 External crates can [define new
@@ -345,25 +343,21 @@ registers.cr().modify_no_read(original, Control::EN::CLEAR);
 // WRITE
 // -----------------------------------------------------------------------------
 
-// Same interface as modify, except that all unspecified fields are overwritten to zero.
-registers.cr().write(Control::RANGE.val(1)); // implictly sets all other bits to zero
+// All unspecified fields are overwritten to zero.
+registers.cr().write(RegisterValue::from_partial(Control::RANGE.val(1)));
 
-// -----------------------------------------------------------------------------
-// BITFLAGS
-// -----------------------------------------------------------------------------
+// Can set multiple fields.
+registers.cr().write(RegisterValue::from_partial(Control::RANGE.val(1) + Control::EN::SET));
 
-// For one-bit fields, easily check if they are set or clear:
-let txcomplete: bool = registers.s().is_set(Status::TXCOMPLETE);
 
 // -----------------------------------------------------------------------------
 // MATCHING
 // -----------------------------------------------------------------------------
 
-// You can also query a specific register state easily with `matches_all` or
-// `any_matching_bits_set` or `matches_any`:
+// Check if all fields match with `.matches()`:
 
 // Doesn't care about the state of any field except TXCOMPLETE and MODE:
-let ready: bool = registers.s().matches(Status::TXCOMPLETE:SET +
+let ready: bool = registers.s().matches(Status::TXCOMPLETE::SET +
                                         Status::MODE::FullDuplex);
 
 // This is very useful for awaiting for a specific condition:
@@ -371,27 +365,25 @@ while !registers.s().matches(Status::TXCOMPLETE::SET +
                              Status::RXCOMPLETE::SET +
                              Status::TXINTERRUPT::CLEAR) {}
 
+// Check if any field matches with `.matches_any()`:
+
 // Or for checking whether any interrupts are enabled:
-let any_ints = registers.s().any_matching_bits_set(Status::TXINTERRUPT + Status::RXINTERRUPT);
+let any_interrupts = registers.s().matches_any(&[Status::TXINTERRUPT::SET,
+                                                 Status::RXINTERRUPT::SET]);
 
 // Or for checking whether any completion states are cleared:
-let any_cleared = registers.s().matches_any(&[Status::TXCOMPLETE::CLEAR, Status::RXCOMPLETE::CLEAR]);
+let any_cleared = registers.s().matches_any(&[Status::TXCOMPLETE::CLEAR,
+                                              Status::RXCOMPLETE::CLEAR]);
 
 // Or for checking if a multi-bit field matches one of several modes:
-let sub_word_size = registers.s().matches_any(&[Size::Halfword, Size::Word]);
+let sub_word_size = registers.s().matches_any(&[Size::LENGTH::Halfword,
+                                                Size::LENGTH::Word]);
 
 // Or for checking if any of several fields exactly match in the register:
-let not_supported_mode = registers.s().matches_any(&[Status::Mode::HalfDuplex, Status::Mode::VARSYNC, Status::MODE::NOPARITY]);
+let not_supported_mode = registers.s().matches_any(&[Status::MODE::HalfDuplex,
+                                                     Status::SYNC::VARSYNC,
+                                                     Status::PARITY::NOPARITY]);
 
-// Also you can read a register with set of enumerated values as a enum and `match` over it:
-let mode = registers.cr().read_as_enum(Status::MODE);
-
-match mode {
-    Some(Status::MODE::Value::FullDuplex) => { /* ... */ }
-    Some(Status::MODE::Value::HalfDuplex) => { /* ... */ }
-
-    None => unreachable!("invalid value")
-}
 
 // -----------------------------------------------------------------------------
 // LOCAL COPY
@@ -405,7 +397,8 @@ match mode {
 let local = registers.cr().extract();
 
 // Now all the functions for a ReadOnly register work.
-let txcomplete: bool = local.is_set(Status::TXCOMPLETE);
+let txcomplete: bool = local.matches(Status::TXCOMPLETE::SET);
+
 
 // -----------------------------------------------------------------------------
 // In-Memory Registers
@@ -420,9 +413,9 @@ let txcomplete: bool = local.is_set(Status::TXCOMPLETE);
 // type.
 
 let control: InMemoryRegister<u32, Control::Register> = InMemoryRegister::new(0)
-control.write(Contol::BYTE_COUNT.val(0) +
-              Contol::ENABLE::Yes +
-              Contol::LENGTH.val(10));
+control.write(RegisterValue::from_partial(Control::BYTE_COUNT.val(0) +
+                                          Control::ENABLE::Yes +
+                                          Control::LENGTH.val(10)));
 ```
 
 Note that `modify` performs exactly one volatile load and one volatile store,
@@ -450,7 +443,7 @@ the bitfields and registers as defined above,
 // of bitfields.
 registers.cr().modify(Control::RANGE.val(1));
 
-// This line will not compile, because registers.s is associated with the Status
+// This line will not compile, because registers.s() is associated with the Status
 // group, not the Control group.
 let range = registers.s().read(Control::RANGE);
 ```
