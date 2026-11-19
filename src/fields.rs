@@ -76,7 +76,7 @@
 #![allow(clippy::suspicious_arithmetic_impl)]
 
 use core::marker::PhantomData;
-use core::ops::{Add, AddAssign};
+use core::ops::Add;
 
 use crate::{RegisterLongName, UIntLike};
 
@@ -101,12 +101,6 @@ impl<T: UIntLike, R: RegisterLongName> Field<T, R> {
     #[inline]
     pub fn read(self, val: T) -> T {
         (val & (self.mask << self.shift)) >> self.shift
-    }
-
-    #[inline]
-    /// Check if one or more bits in a field are set
-    pub fn is_set(self, val: T) -> bool {
-        val & (self.mask << self.shift) != T::zero()
     }
 
     #[inline]
@@ -191,6 +185,96 @@ Field_impl_for!(u64);
 Field_impl_for!(u128);
 Field_impl_for!(usize);
 
+/// The value of an entire register.
+#[derive(Copy, Clone)]
+pub struct RegisterValue<T: UIntLike, R: RegisterLongName> {
+    value: T,
+    associated_register: PhantomData<R>,
+}
+
+impl<T: UIntLike, R: RegisterLongName> RegisterValue<T, R> {
+    pub fn from_partial(value: impl Into<PartialRegisterValue<T, R>>) -> Self {
+        Self {
+            value: value.into().value,
+            associated_register: PhantomData,
+        }
+    }
+
+    /// Get the raw value represented by this `RegisterValue`.
+    #[inline]
+    pub(crate) const fn value(&self) -> T {
+        self.value
+    }
+}
+
+macro_rules! RegisterValue_impl_for {
+    ($type:ty) => {
+        // Necessary to split the implementation of new() out because the
+        // bitwise math isn't treated as const when the type is generic.
+        // Tracking issue: https://github.com/rust-lang/rfcs/pull/2632
+        impl<R: RegisterLongName> RegisterValue<$type, R> {
+            #[must_use]
+            pub const fn new(value: $type) -> Self {
+                Self {
+                    value,
+                    associated_register: PhantomData,
+                }
+            }
+        }
+
+        // Necessary to split the implementation of From<> out because of the
+        // orphan rule for foreign trait implementation (see
+        // [E0210](https://doc.rust-lang.org/error-index.html#E0210)).
+        impl<R: RegisterLongName> From<RegisterValue<$type, R>> for $type {
+            fn from(val: RegisterValue<$type, R>) -> $type {
+                val.value
+            }
+        }
+    };
+}
+
+RegisterValue_impl_for!(u8);
+RegisterValue_impl_for!(u16);
+RegisterValue_impl_for!(u32);
+RegisterValue_impl_for!(u64);
+RegisterValue_impl_for!(u128);
+RegisterValue_impl_for!(usize);
+
+/// The value of specific field or fields of a register.
+#[derive(Copy, Clone)]
+pub struct PartialRegisterValue<T: UIntLike, R: RegisterLongName> {
+    mask: T,
+    value: T,
+    associated_register: PhantomData<R>,
+}
+
+impl<T: UIntLike, R: RegisterLongName> PartialRegisterValue<T, R> {
+    /// Get the raw bitmask represented by this `PartialRegisterValue`.
+    #[inline]
+    pub const fn mask(&self) -> T {
+        self.mask as T
+    }
+
+    /// Get the raw value represented by this `PartialRegisterValue`.
+    #[inline]
+    pub const fn value(&self) -> T {
+        self.value as T
+    }
+
+    /// Modify fields in a register value
+    #[inline]
+    pub fn modify(self, val: T) -> T {
+        (val & !self.mask) | self.value
+    }
+
+    /// Check if this bits in this field match exactly with the same field in
+    /// `val`.
+    #[inline]
+    pub fn matches(&self, val: T) -> bool {
+        val & self.mask == self.value
+    }
+}
+
 /// Values for the specific register fields.
 ///
 /// For the FieldValue, the masks and values are shifted into their actual
@@ -264,27 +348,35 @@ impl<T: UIntLike, R: RegisterLongName> FieldValue<T, R> {
         (val & !self.mask) | self.value
     }
 
-    /// Check if any of the bits covered by the mask for this `FieldValue` and
-    /// set in the `FieldValue` are also set in the passed value
+    /// Check if this bits in this field match exactly with the same field in
+    /// `val`.
     #[inline]
-    pub fn any_matching_bits_set(&self, val: T) -> bool {
-        val & self.mask & self.value != T::zero()
-    }
-
-    /// Check if all specified parts of a field match
-    #[inline]
-    pub fn matches_all(&self, val: T) -> bool {
+    pub fn matches(&self, val: T) -> bool {
         val & self.mask == self.value
     }
 }
 
-// Combine two fields with the addition operator
-impl<T: UIntLike, R: RegisterLongName> Add for FieldValue<T, R> {
-    type Output = Self;
+// Converting a [`FieldValue`] to a [`PartialRegisterValue`] is a no-op
+// as a single [`FieldValue`] can be a full [`PartialRegisterValue`].
+impl<T: UIntLike, R: RegisterLongName> From<FieldValue<T, R>> for PartialRegisterValue<T, R> {
+    #[inline]
+    fn from(val: FieldValue<T, R>) -> Self {
+        PartialRegisterValue {
+            mask: val.mask,
+            value: val.value,
+            associated_register: PhantomData,
+        }
+    }
+}
+
+// Combine two fields with the addition operator, forming a partial register
+// value.
+impl<T: UIntLike, R: RegisterLongName> Add<FieldValue<T, R>> for FieldValue<T, R> {
+    type Output = PartialRegisterValue<T, R>;
 
     #[inline]
-    fn add(self, rhs: Self) -> Self {
-        FieldValue {
+    fn add(self, rhs: FieldValue<T, R>) -> PartialRegisterValue<T, R> {
+        PartialRegisterValue {
             mask: self.mask | rhs.mask,
             value: self.value | rhs.value,
             associated_register: PhantomData,
@@ -292,12 +384,52 @@ impl<T: UIntLike, R: RegisterLongName> Add for FieldValue<T, R> {
     }
 }
 
-// Combine two fields with the += operator
-impl<T: UIntLike, R: RegisterLongName> AddAssign for FieldValue<T, R> {
+// Combine a field with a partial register value with the addition operator,
+// forming a partial register value.
+impl<T: UIntLike, R: RegisterLongName> Add<PartialRegisterValue<T, R>> for FieldValue<T, R> {
+    type Output = PartialRegisterValue<T, R>;
+
     #[inline]
-    fn add_assign(&mut self, rhs: FieldValue<T, R>) {
-        self.mask |= rhs.mask;
-        self.value |= rhs.value;
+    fn add(self, rhs: PartialRegisterValue<T, R>) -> PartialRegisterValue<T, R> {
+        PartialRegisterValue {
+            mask: self.mask | rhs.mask,
+            value: self.value | rhs.value,
+            associated_register: PhantomData,
+        }
+    }
+}
+
+// Combine two partial register values with the addition operator, forming a
+// partial register value.
+impl<T: UIntLike, R: RegisterLongName> Add<PartialRegisterValue<T, R>>
+    for PartialRegisterValue<T, R>
+{
+    type Output = PartialRegisterValue<T, R>;
+
+    #[inline]
+    fn add(self, rhs: PartialRegisterValue<T, R>) -> PartialRegisterValue<T, R> {
+        PartialRegisterValue {
+            mask: self.mask | rhs.mask,
+            value: self.value | rhs.value,
+            associated_register: PhantomData,
+        }
+    }
+}
+
+// Combine a partial register value with a field with the addition operator,
+// forming a partial register value. This, together with `Add<FieldValue<T,
+// R>> for FieldValue<T, R>`, allows left-associative chains of any length
+// (`a + b + c + ...`) of `FieldValue`s to be summed without parentheses.
+impl<T: UIntLike, R: RegisterLongName> Add<FieldValue<T, R>> for PartialRegisterValue<T, R> {
+    type Output = PartialRegisterValue<T, R>;
+
+    #[inline]
+    fn add(self, rhs: FieldValue<T, R>) -> PartialRegisterValue<T, R> {
+        PartialRegisterValue {
+            mask: self.mask | rhs.mask,
+            value: self.value | rhs.value,
+            associated_register: PhantomData,
+        }
     }
 }
 
@@ -682,26 +814,6 @@ mod tests {
         }
 
         #[test]
-        fn test_is_set() {
-            let field = Field::<u16, ()>::new(0xFF, 4);
-            assert!(!field.is_set(0));
-            assert!(field.is_set(0xFFFF));
-            assert!(field.is_set(0x0FF0));
-            assert!(!field.is_set(0x1000));
-            assert!(field.is_set(0x0100));
-            assert!(field.is_set(0x0010));
-            assert!(!field.is_set(0x0001));
-
-            for shift in 0..24 {
-                let field = Field::<u32, ()>::new(0xFF, shift);
-                for x in 1..=0xFF {
-                    assert!(field.is_set(x << shift));
-                }
-                assert!(!field.is_set(!(0xFF << shift)));
-            }
-        }
-
-        #[test]
         fn test_read_as_enum() {
             let field = Field::<u16, ()>::new(0x7, 4);
             assert_eq!(field.read_as_enum(0x1234), Some(Foo::Foo3));
@@ -785,65 +897,18 @@ mod tests {
         }
 
         #[test]
-        fn test_any_matching_bits_set() {
+        fn test_matches() {
             let field = Field::<u32, ()>::new(0xFF, 4);
-            assert!(field.val(0x23).any_matching_bits_set(0x1234));
-            assert!(field.val(0x23).any_matching_bits_set(0x5678));
-            assert!(!field.val(0x23).any_matching_bits_set(0x5008));
-
-            for shift in 0..24 {
-                let field = Field::<u32, ()>::new(0xFF, shift);
-                let field_value = field.val(0xff);
-                for y in 1..=0xff {
-                    assert!(field_value.any_matching_bits_set(y << shift));
-                }
-                assert!(!field_value.any_matching_bits_set(0));
-                assert!(!field_value.any_matching_bits_set(!(0xFF << shift)));
-            }
-        }
-
-        #[test]
-        fn test_matches_all() {
-            let field = Field::<u32, ()>::new(0xFF, 4);
-            assert!(field.val(0x23).matches_all(0x1234));
-            assert!(!field.val(0x23).matches_all(0x5678));
+            assert!(field.val(0x23).matches(0x1234));
+            assert!(!field.val(0x23).matches(0x5678));
 
             for shift in 0..24 {
                 let field = Field::<u32, ()>::new(0xFF, shift);
                 for x in 0..=0xFF {
-                    assert!(field.val(x).matches_all(x << shift));
-                    assert!(!field.val(x + 1).matches_all(x << shift));
+                    assert!(field.val(x).matches(x << shift));
+                    assert!(!field.val(x + 1).matches(x << shift));
                 }
             }
-        }
-
-        #[test]
-        fn test_matches_any() {
-            register_bitfields! {
-                u32,
-
-                TEST [
-                    FLAG OFFSET(18) NUMBITS(1) [],
-                    SIZE OFFSET(0) NUMBITS(2) [
-                        Byte = 0,
-                        Halfword = 1,
-                        Word = 2
-                    ],
-                ]
-            }
-
-            let value: crate::LocalRegisterCopy<u32, TEST::Register> =
-                crate::LocalRegisterCopy::new(2);
-            assert!(value.matches_any(&[TEST::SIZE::Word]));
-            assert!(!value.matches_any(&[TEST::SIZE::Halfword]));
-            assert!(!value.matches_any(&[TEST::SIZE::Byte]));
-            assert!(value.matches_any(&[TEST::SIZE::Word, TEST::FLAG::SET]));
-            assert!(value.matches_any(&[TEST::SIZE::Halfword, TEST::FLAG::CLEAR]));
-            assert!(!value.matches_any(&[TEST::SIZE::Halfword, TEST::FLAG::SET]));
-            let value: crate::LocalRegisterCopy<u32, TEST::Register> =
-                crate::LocalRegisterCopy::new(266241);
-            assert!(value.matches_any(&[TEST::FLAG::SET]));
-            assert!(!value.matches_any(&[TEST::FLAG::CLEAR]));
         }
 
         #[test]
@@ -852,48 +917,17 @@ mod tests {
             let field2 = Field::<u32, ()>::new(0xFF, 16);
             let field3 = Field::<u32, ()>::new(0xFF, 8);
             let field4 = Field::<u32, ()>::new(0xFF, 0);
-            assert_eq!(
-                u32::from(
-                    field1.val(0x12) + field2.val(0x34) + field3.val(0x56) + field4.val(0x78)
-                ),
-                0x12345678
-            );
+            let combined =
+                field1.val(0x12) + field2.val(0x34) + field3.val(0x56) + field4.val(0x78);
+            assert_eq!(combined.value, 0x12345678);
 
             for shift in 0..24 {
                 let field1 = Field::<u32, ()>::new(0xF, shift);
                 let field2 = Field::<u32, ()>::new(0xF, shift + 4);
                 for x in 0..=0xF {
                     for y in 0..=0xF {
-                        assert_eq!(
-                            u32::from(field1.val(x) + field2.val(y)),
-                            (x | (y << 4)) << shift
-                        );
-                    }
-                }
-            }
-        }
-
-        #[test]
-        fn test_add_assign_disjoint_fields() {
-            let field1 = Field::<u32, ()>::new(0xFF, 24);
-            let field2 = Field::<u32, ()>::new(0xFF, 16);
-            let field3 = Field::<u32, ()>::new(0xFF, 8);
-            let field4 = Field::<u32, ()>::new(0xFF, 0);
-
-            let mut value = field1.val(0x12);
-            value += field2.val(0x34);
-            value += field3.val(0x56);
-            value += field4.val(0x78);
-            assert_eq!(u32::from(value), 0x12345678);
-
-            for shift in 0..24 {
-                let field1 = Field::<u32, ()>::new(0xF, shift);
-                let field2 = Field::<u32, ()>::new(0xF, shift + 4);
-                for x in 0..=0xF {
-                    for y in 0..=0xF {
-                        let mut value = field1.val(x);
-                        value += field2.val(y);
-                        assert_eq!(u32::from(value), (x | (y << 4)) << shift);
+                        let combined = field1.val(x) + field2.val(y);
+                        assert_eq!(combined.value, (x | (y << 4)) << shift);
                     }
                 }
             }

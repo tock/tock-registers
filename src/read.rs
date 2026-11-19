@@ -4,7 +4,7 @@
 // Copyright Better Bytes 2026.
 
 use crate::debug::{RegisterDebugInfo, RegisterDebugValue};
-use crate::fields::{Field, FieldValue, TryFromValue};
+use crate::fields::{Field, FieldValue, PartialRegisterValue, TryFromValue};
 #[cfg(feature = "register_types")]
 use crate::{Address, BorrowedBus, Bus};
 use crate::{DataType, LocalRegisterCopy, Register, UIntLike};
@@ -87,46 +87,24 @@ pub trait Read: Register {
         LocalRegisterCopy::new(self.get())
     }
 
-    /// Check if one or more bits in a field are set
-    fn is_set(
+    /// Check if the fields covered in the [`PartialRegisterValue`] value
+    /// exactly match the same fields in the register.
+    ///
+    /// Fields which are not covered in the [`PartialRegisterValue`] are
+    /// ignored.
+    fn matches(
         self,
-        field: Field<<Self::DataType as DataType>::Value, <Self::DataType as DataType>::LongName>,
-    ) -> bool
-    where
-        <Self::DataType as DataType>::Value: UIntLike,
-    {
-        field.is_set(self.get())
-    }
-
-    /// Check if any bits corresponding to the mask in the passed `FieldValue`
-    /// are set.  This function is identical to `is_set()` but operates on a
-    /// `FieldValue` rather than a `Field`, allowing for checking if any bits
-    /// are set across multiple, non-contiguous portions of a bitfield.
-    fn any_matching_bits_set(
-        self,
-        field: FieldValue<
-            <Self::DataType as DataType>::Value,
-            <Self::DataType as DataType>::LongName,
+        value: impl Into<
+            PartialRegisterValue<
+                <Self::DataType as DataType>::Value,
+                <Self::DataType as DataType>::LongName,
+            >,
         >,
     ) -> bool
     where
         <Self::DataType as DataType>::Value: UIntLike,
     {
-        field.any_matching_bits_set(self.get())
-    }
-
-    /// Check if all specified parts of a field match
-    fn matches_all(
-        self,
-        field: FieldValue<
-            <Self::DataType as DataType>::Value,
-            <Self::DataType as DataType>::LongName,
-        >,
-    ) -> bool
-    where
-        <Self::DataType as DataType>::Value: UIntLike,
-    {
-        field.matches_all(self.get())
+        value.into().matches(self.get())
     }
 
     /// Check if any of the passed parts of a field exactly match the contained
@@ -134,7 +112,7 @@ pub trait Read: Register {
     /// values in multi-bit fields.
     fn matches_any(
         self,
-        fields: &[FieldValue<
+        values: &[FieldValue<
             <Self::DataType as DataType>::Value,
             <Self::DataType as DataType>::LongName,
         >],
@@ -143,9 +121,9 @@ pub trait Read: Register {
         <Self::DataType as DataType>::Value: UIntLike,
     {
         let value = self.get();
-        fields
+        values
             .iter()
-            .any(|field| value & field.mask() == field.value)
+            .any(|field_value| value & field_value.mask() == field_value.value)
     }
 
     /// Returns a [`RegisterDebugValue`] that implements [`core::fmt::Debug`]. The debug
@@ -189,8 +167,6 @@ impl<T, A: Address + BusRead<T>> BusRead<T> for BorrowedBus<'_, A> {
     }
 }
 
-/// The macro that goes along with the Read trait. We don't expect this macro to be used by
-/// tock_register's users, instead it is invoked by the generated code.
 #[cfg(feature = "register_types")]
 #[doc(hidden)]
 #[macro_export]
@@ -215,4 +191,151 @@ macro_rules! Read {
     // breaking backwards compatibility (though registers! would need to be compatible with this
     // do-nothing block).
     ($($unknown:tt)*) => {};
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{register_bitfields, FakeRegister, NoAccess, Read, Safe};
+
+    register_bitfields![u8,
+        Status [
+            TXCOMPLETE  OFFSET(0) NUMBITS(1) [],
+            TXINTERRUPT OFFSET(1) NUMBITS(1) [],
+            RXCOMPLETE  OFFSET(2) NUMBITS(1) [],
+            RXINTERRUPT OFFSET(3) NUMBITS(1) [],
+            MODE        OFFSET(4) NUMBITS(2) [
+                FullDuplex = 0,
+                HalfDuplex = 1,
+                Loopback = 2,
+                Disabled = 3
+            ],
+            ERRORCOUNT OFFSET(6) NUMBITS(2) []
+        ],
+    ];
+
+    fn fake_status(value: u8) -> FakeRegister<u8, Status::Register, Safe, NoAccess> {
+        FakeRegister::new(value).on_read(|value| value)
+    }
+
+    #[test]
+    fn matches() {
+        // TXCOMPLETE set, MODE == FullDuplex.
+        let status = fake_status(0b0000_0001);
+        let m = status.matches(Status::TXCOMPLETE::SET + Status::MODE::FullDuplex);
+        assert!(m);
+
+        // Flip TXCOMPLETE off: no longer matches.
+        let status = fake_status(0b0000_0000);
+        let m = status.matches(Status::TXCOMPLETE::SET + Status::MODE::FullDuplex);
+        assert!(!m);
+
+        // Three flags set, matches only two flags.
+        let status = fake_status(0b0000_0111);
+        let m = status.matches(Status::TXCOMPLETE::SET + Status::TXINTERRUPT::SET);
+        assert!(m);
+
+        let status = fake_status(0b0000_0101);
+        let m = status.matches(
+            Status::TXCOMPLETE::SET + Status::RXCOMPLETE::SET + Status::TXINTERRUPT::CLEAR,
+        );
+        assert!(m);
+
+        let status = fake_status(0b0000_0111);
+        let m = status.matches(
+            Status::TXCOMPLETE::SET + Status::RXCOMPLETE::SET + Status::TXINTERRUPT::CLEAR,
+        );
+        assert!(!m);
+
+        // A two bit field matches.
+        let status = fake_status(0b0010_0111);
+        let m = status.matches(Status::MODE::Loopback);
+        assert!(m);
+
+        // A two bit non-value field matches.
+        let status = fake_status(0b1011_0111);
+        let m = status.matches(Status::ERRORCOUNT.val(2));
+        assert!(m);
+    }
+
+    #[test]
+    fn matches_any() {
+        let status = fake_status(0b0000_0001);
+        let m = status.matches_any(&[Status::TXCOMPLETE::CLEAR]);
+        assert!(!m);
+
+        let status = fake_status(0b0000_0000);
+        let m = status.matches_any(&[Status::TXCOMPLETE::CLEAR]);
+        assert!(m);
+
+        let status = fake_status(0b0000_0001);
+        let m = status.matches_any(&[Status::TXCOMPLETE::SET]);
+        assert!(m);
+
+        let status = fake_status(0b0000_1111);
+        let m = status.matches_any(&[
+            Status::TXCOMPLETE::SET,
+            Status::TXINTERRUPT::SET,
+            Status::RXCOMPLETE::SET,
+            Status::RXINTERRUPT::SET,
+        ]);
+        assert!(m);
+
+        let status = fake_status(0b0000_0010);
+        let m = status.matches_any(&[
+            Status::TXCOMPLETE::SET,
+            Status::TXINTERRUPT::SET,
+            Status::RXCOMPLETE::SET,
+            Status::RXINTERRUPT::SET,
+        ]);
+        assert!(m);
+
+        let status = fake_status(0b0000_0000);
+        let m = status.matches_any(&[
+            Status::TXCOMPLETE::SET,
+            Status::TXINTERRUPT::SET,
+            Status::RXCOMPLETE::SET,
+            Status::RXINTERRUPT::SET,
+        ]);
+        assert!(!m);
+
+        let status = fake_status(0b0010_0000);
+        let m = status.matches_any(&[Status::TXCOMPLETE::SET, Status::MODE::Loopback]);
+        assert!(m);
+
+        let status = fake_status(0b0000_0000);
+        let m = status.matches_any(&[Status::MODE::FullDuplex]);
+        assert!(m);
+
+        let status = fake_status(0b0000_0000);
+        let m = status.matches_any(&[
+            Status::MODE::FullDuplex,
+            Status::MODE::HalfDuplex,
+            Status::MODE::Loopback,
+        ]);
+        assert!(m);
+
+        let status = fake_status(0b0001_0000);
+        let m = status.matches_any(&[
+            Status::MODE::FullDuplex,
+            Status::MODE::HalfDuplex,
+            Status::MODE::Loopback,
+        ]);
+        assert!(m);
+
+        let status = fake_status(0b0010_0000);
+        let m = status.matches_any(&[
+            Status::MODE::FullDuplex,
+            Status::MODE::HalfDuplex,
+            Status::MODE::Loopback,
+        ]);
+        assert!(m);
+
+        let status = fake_status(0b0011_0000);
+        let m = status.matches_any(&[
+            Status::MODE::FullDuplex,
+            Status::MODE::HalfDuplex,
+            Status::MODE::Loopback,
+        ]);
+        assert!(!m);
+    }
 }

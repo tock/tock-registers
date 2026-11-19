@@ -8,7 +8,7 @@
 use core::fmt;
 use core::marker::PhantomData;
 
-use crate::fields::{Field, FieldValue, TryFromValue};
+use crate::fields::{Field, PartialRegisterValue, TryFromValue};
 use crate::{RegisterLongName, UIntLike};
 
 /// A read-write copy of register contents.
@@ -71,44 +71,22 @@ impl<T: UIntLike, R: RegisterLongName> LocalRegisterCopy<T, R> {
     /// Write the value of one or more fields, overwriting the other fields with
     /// zero
     #[inline]
-    pub fn write(&mut self, field: FieldValue<T, R>) {
-        self.set(field.value);
+    pub fn write(&mut self, field: impl Into<PartialRegisterValue<T, R>>) {
+        self.set(field.into().value());
     }
 
     /// Write the value of one or more fields, leaving the other fields
     /// unchanged
     #[inline]
-    pub fn modify(&mut self, field: FieldValue<T, R>) {
-        self.set(field.modify(self.get()));
+    pub fn modify(&mut self, field: impl Into<PartialRegisterValue<T, R>>) {
+        self.set(field.into().modify(self.get()));
     }
 
-    /// Check if one or more bits in a field are set
+    /// Check if the field value in `value` exactly matches the same field in
+    /// the register.
     #[inline]
-    pub fn is_set(&self, field: Field<T, R>) -> bool {
-        field.is_set(self.get())
-    }
-
-    /// Check if any bits corresponding to the mask in the passed `FieldValue`
-    /// are set.
-    #[inline]
-    pub fn any_matching_bits_set(&self, field: FieldValue<T, R>) -> bool {
-        field.any_matching_bits_set(self.get())
-    }
-
-    /// Check if all specified parts of a field match
-    #[inline]
-    pub fn matches_all(&self, field: FieldValue<T, R>) -> bool {
-        field.matches_all(self.get())
-    }
-
-    /// Check if any of the passed parts of a field exactly match the contained
-    /// value. This allows for matching on unset bits, or matching on specific
-    /// values in multi-bit fields.
-    #[inline]
-    pub fn matches_any(&self, fields: &[FieldValue<T, R>]) -> bool {
-        fields
-            .iter()
-            .any(|field| self.get() & field.mask() == field.value)
+    pub fn matches(&self, field: impl Into<PartialRegisterValue<T, R>>) -> bool {
+        field.into().matches(self.get())
     }
 
     /// Do a bitwise AND operation of the stored value and the passed in value
