@@ -16,9 +16,13 @@ pub trait Read: Register {
     fn get(self) -> <Self::DataType as DataType>::Value;
 
     /// Read the value of the given field
-    fn read(
+    fn read<E>(
         self,
-        field: Field<<Self::DataType as DataType>::Value, <Self::DataType as DataType>::LongName>,
+        field: Field<
+            <Self::DataType as DataType>::Value,
+            <Self::DataType as DataType>::LongName,
+            E,
+        >,
     ) -> <Self::DataType as DataType>::Value
     where
         <Self::DataType as DataType>::Value: UIntLike,
@@ -69,7 +73,11 @@ pub trait Read: Register {
     /// ```
     fn read_as_enum<E: TryFromValue<<Self::DataType as DataType>::Value, EnumType = E>>(
         self,
-        field: Field<<Self::DataType as DataType>::Value, <Self::DataType as DataType>::LongName>,
+        field: Field<
+            <Self::DataType as DataType>::Value,
+            <Self::DataType as DataType>::LongName,
+            E,
+        >,
     ) -> Option<E>
     where
         <Self::DataType as DataType>::Value: UIntLike,
@@ -88,9 +96,13 @@ pub trait Read: Register {
     }
 
     /// Check if one or more bits in a field are set
-    fn is_set(
+    fn is_set<E>(
         self,
-        field: Field<<Self::DataType as DataType>::Value, <Self::DataType as DataType>::LongName>,
+        field: Field<
+            <Self::DataType as DataType>::Value,
+            <Self::DataType as DataType>::LongName,
+            E,
+        >,
     ) -> bool
     where
         <Self::DataType as DataType>::Value: UIntLike,
