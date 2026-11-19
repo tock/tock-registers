@@ -95,7 +95,6 @@ pub unsafe trait BusDmaEnable<T>: Bus<T> {
     fn get(self) -> T;
 }
 /// Safety: get() must be correct.
-#[cfg(target_arch = "x86_64")]
 unsafe impl BusDmaEnable<u8> for tock_registers::Mmio64 {
     unsafe fn start(self) {
         let ptr = self.address().as_ptr();
@@ -103,11 +102,11 @@ unsafe impl BusDmaEnable<u8> for tock_registers::Mmio64 {
         // is located in memory for which DMA is cache-coherent (so no memory fence instruction is
         // required). This functions as a release fence, guaranteeing the buffer is fully written
         // before the DMA operation is started.
-        #[cfg(not(miri))]
+        #[cfg(all(not(miri), target_arch = "x86_64"))]
         unsafe {
             core::arch::asm!("mov BYTE PTR [{}],1", in(reg) ptr);
         }
-        #[cfg(miri)]
+        #[cfg(any(miri, not(target_arch = "x86_64")))]
         unsafe { &*ptr.cast::<core::sync::atomic::AtomicU8>() }
             .store(1, core::sync::atomic::Ordering::Release);
     }
@@ -117,11 +116,11 @@ unsafe impl BusDmaEnable<u8> for tock_registers::Mmio64 {
         let ptr = self.address().as_ptr();
         // Safety: We know this points to a u8 DMA enable register, so we can read it. This is an
         // Acquire-ordered operation, so a read of 0 is sequenced after the DMA operation's writes.
-        #[cfg(not(miri))]
+        #[cfg(all(not(miri), target_arch = "x86_64"))]
         unsafe {
             core::arch::asm!("movzx {0:x}, BYTE PTR [{1}]", out(reg) val, in(reg) ptr)
         };
-        #[cfg(miri)]
+        #[cfg(any(miri, not(target_arch = "x86_64")))]
         {
             use core::sync::atomic::{AtomicU8, Ordering};
             val = unsafe { &*ptr.cast::<AtomicU8>() }
