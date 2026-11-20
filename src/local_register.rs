@@ -6,10 +6,9 @@
 //! its documentation.
 
 use core::fmt;
-use core::marker::PhantomData;
 
 use crate::fields::{Field, FieldValue, TryFromValue};
-use crate::{RegisterLongName, UIntLike};
+use crate::{DataType, UIntLike};
 
 /// A read-write copy of register contents.
 ///
@@ -29,75 +28,74 @@ use crate::{RegisterLongName, UIntLike};
 /// exposed by a type implementing [`Read`](trait@crate::Read) and
 /// [`Write`](trait@crate::Write).
 #[derive(Copy, Clone)]
-pub struct LocalRegisterCopy<T: Copy, R: RegisterLongName = ()> {
-    value: T,
-    associated_register: PhantomData<R>,
+pub struct LocalRegisterCopy<DT: DataType> {
+    value: DT::Value,
 }
 
-impl<T: Copy, R: RegisterLongName> LocalRegisterCopy<T, R> {
-    pub const fn new(value: T) -> Self {
-        LocalRegisterCopy {
-            value,
-            associated_register: PhantomData,
-        }
+impl<DT: DataType> LocalRegisterCopy<DT> {
+    pub const fn new(value: DT::Value) -> Self {
+        LocalRegisterCopy { value }
     }
 
     /// Get the raw register value
     #[inline]
-    pub fn get(&self) -> T {
+    pub fn get(&self) -> DT::Value {
         self.value
     }
 
     /// Set the raw register value
     #[inline]
-    pub fn set(&mut self, value: T) {
+    pub fn set(&mut self, value: DT::Value) {
         self.value = value;
     }
 }
 
-impl<T: UIntLike, R: RegisterLongName> LocalRegisterCopy<T, R> {
+impl<DT: DataType<Value: UIntLike>> LocalRegisterCopy<DT> {
     /// Read the value of the given field
     #[inline]
-    pub fn read(&self, field: Field<T, R>) -> T {
+    pub fn read(&self, field: Field<DT::Value, DT::LongName>) -> DT::Value {
         field.read(self.get())
     }
 
     /// Read value of the given field as an enum member
     #[inline]
-    pub fn read_as_enum<E: TryFromValue<T, EnumType = E>>(&self, field: Field<T, R>) -> Option<E> {
+    pub fn read_as_enum<E: TryFromValue<DT::Value, EnumType = E>>(
+        &self,
+        field: Field<DT::Value, DT::LongName>,
+    ) -> Option<E> {
         field.read_as_enum(self.get())
     }
 
     /// Write the value of one or more fields, overwriting the other fields with
     /// zero
     #[inline]
-    pub fn write(&mut self, field: FieldValue<T, R>) {
+    pub fn write(&mut self, field: FieldValue<DT::Value, DT::LongName>) {
         self.set(field.value);
     }
 
     /// Write the value of one or more fields, leaving the other fields
     /// unchanged
     #[inline]
-    pub fn modify(&mut self, field: FieldValue<T, R>) {
+    pub fn modify(&mut self, field: FieldValue<DT::Value, DT::LongName>) {
         self.set(field.modify(self.get()));
     }
 
     /// Check if one or more bits in a field are set
     #[inline]
-    pub fn is_set(&self, field: Field<T, R>) -> bool {
+    pub fn is_set(&self, field: Field<DT::Value, DT::LongName>) -> bool {
         field.is_set(self.get())
     }
 
     /// Check if any bits corresponding to the mask in the passed `FieldValue`
     /// are set.
     #[inline]
-    pub fn any_matching_bits_set(&self, field: FieldValue<T, R>) -> bool {
+    pub fn any_matching_bits_set(&self, field: FieldValue<DT::Value, DT::LongName>) -> bool {
         field.any_matching_bits_set(self.get())
     }
 
     /// Check if all specified parts of a field match
     #[inline]
-    pub fn matches_all(&self, field: FieldValue<T, R>) -> bool {
+    pub fn matches_all(&self, field: FieldValue<DT::Value, DT::LongName>) -> bool {
         field.matches_all(self.get())
     }
 
@@ -105,7 +103,7 @@ impl<T: UIntLike, R: RegisterLongName> LocalRegisterCopy<T, R> {
     /// value. This allows for matching on unset bits, or matching on specific
     /// values in multi-bit fields.
     #[inline]
-    pub fn matches_any(&self, fields: &[FieldValue<T, R>]) -> bool {
+    pub fn matches_any(&self, fields: &[FieldValue<DT::Value, DT::LongName>]) -> bool {
         fields
             .iter()
             .any(|field| self.get() & field.mask() == field.value)
@@ -115,14 +113,14 @@ impl<T: UIntLike, R: RegisterLongName> LocalRegisterCopy<T, R> {
     /// and return a new LocalRegisterCopy.
     #[inline]
     #[must_use]
-    pub fn bitand(&self, rhs: T) -> LocalRegisterCopy<T, R> {
+    pub fn bitand(&self, rhs: DT::Value) -> LocalRegisterCopy<DT> {
         LocalRegisterCopy::new(self.value & rhs)
     }
 
     #[inline]
-    pub fn debug(&self) -> crate::debug::RegisterDebugValue<T, R>
+    pub fn debug(&self) -> crate::debug::RegisterDebugValue<DT::Value, DT::LongName>
     where
-        R: crate::debug::RegisterDebugInfo<T>,
+        DT::LongName: crate::debug::RegisterDebugInfo<DT::Value>,
     {
         crate::debug::RegisterDebugValue {
             data: self.get(),
@@ -131,7 +129,7 @@ impl<T: UIntLike, R: RegisterLongName> LocalRegisterCopy<T, R> {
     }
 }
 
-impl<T: Copy + fmt::Debug, R: RegisterLongName> fmt::Debug for LocalRegisterCopy<T, R> {
+impl<DT: DataType<Value: fmt::Debug>> fmt::Debug for LocalRegisterCopy<DT> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{:?}", self.value)
     }
@@ -141,8 +139,8 @@ impl<T: Copy + fmt::Debug, R: RegisterLongName> fmt::Debug for LocalRegisterCopy
 // for <T: UIntLike>
 macro_rules! From_impl_for {
     ($type:ty) => {
-        impl<R: RegisterLongName> From<LocalRegisterCopy<$type, R>> for $type {
-            fn from(r: LocalRegisterCopy<$type, R>) -> $type {
+        impl<DT: DataType<Value = $type>> From<LocalRegisterCopy<DT>> for $type {
+            fn from(r: LocalRegisterCopy<DT>) -> $type {
                 r.value
             }
         }
